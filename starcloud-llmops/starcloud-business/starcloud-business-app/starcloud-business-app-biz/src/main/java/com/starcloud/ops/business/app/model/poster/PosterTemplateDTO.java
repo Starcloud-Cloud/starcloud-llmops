@@ -59,6 +59,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Long group;
 
     /**
+     * 图片模板分组名称
+     */
+    @Schema(description = "图片模板分组名称")
+    private String groupName;
+
+    /**
      * 素材分类编号
      */
     @Schema(description = "素材分类编号")

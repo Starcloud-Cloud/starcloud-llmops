@@ -21,6 +21,7 @@ import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -42,7 +43,6 @@ import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
-import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -163,7 +163,7 @@ public class CustomActionHandler extends BaseActionHandler {
         // AI自定义校验，文案生成要求不能为空
         else {
             // 文案生成要求变量
-            Object requirementValue = wrapper.getVariable(CreativeConstants.REQUIREMENT);
+            Object requirementValue = wrapper.getVariable(CreativeConstants.CUSTOM_REQUIREMENT);
             VerificationUtils.notNullStep(verifications, requirementValue, stepCode,
                     "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
             if (Objects.isNull(requirementValue)) {
@@ -331,11 +331,16 @@ public class CustomActionHandler extends BaseActionHandler {
             List<AbstractCreativeMaterialDTO> handlerReferList = handlerReferList(referList, refersCount);
             // 处理参数，并且重新放入到上下文中
             context.putVariable(CreativeConstants.REFERS, JsonUtils.toJsonPrettyString(handlerReferList));
-        }
 
-        // 处理用户要求
-        Object requirementPrompt = this.requirementPrompt(context, params);
-        context.putVariable(CreativeConstants.REQUIREMENT, requirementPrompt);
+            // 处理用户要求
+            Object requirementPrompt = params.getOrDefault(CreativeConstants.PARODY_REQUIREMENT, StringUtils.EMPTY);
+            context.putVariable(CreativeConstants.PARODY_REQUIREMENT, requirementPrompt);
+
+        } else {
+            // 处理用户要求
+            Object requirementPrompt = params.getOrDefault(CreativeConstants.CUSTOM_REQUIREMENT, StringUtils.EMPTY);
+            context.putVariable(CreativeConstants.CUSTOM_REQUIREMENT, requirementPrompt);
+        }
 
         // 获取到系统默认配置
         Map<String, String> defaultAppConfiguration = appDefaultConfigManager.configuration();
@@ -493,18 +498,6 @@ public class CustomActionHandler extends BaseActionHandler {
         } catch (Exception exception) {
             throw ActionResponseException.exception(response, exception);
         }
-    }
-
-    /**
-     * 返回用户要求
-     *
-     * @param context 上下文
-     * @return 用户要求
-     */
-    @JsonIgnore
-    @JSONField(serialize = false)
-    private Object requirementPrompt(AppContext context, Map<String, Object> params) {
-        return params.getOrDefault(CreativeConstants.REQUIREMENT, StringUtils.EMPTY);
     }
 
     /**

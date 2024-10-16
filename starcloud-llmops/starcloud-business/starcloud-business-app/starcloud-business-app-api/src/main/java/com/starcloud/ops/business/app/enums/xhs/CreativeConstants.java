@@ -67,6 +67,16 @@ public interface CreativeConstants {
     String REQUIREMENT = "REQUIREMENT";
 
     /**
+     * AI仿写要求
+     */
+    String PARODY_REQUIREMENT = "PARODY_REQUIREMENT";
+
+    /**
+     * 自定义要求
+     */
+    String CUSTOM_REQUIREMENT = "CUSTOM_REQUIREMENT";
+
+    /**
      * 海报生成模式
      */
     String POSTER_MODE = "POSTER_MODE";
