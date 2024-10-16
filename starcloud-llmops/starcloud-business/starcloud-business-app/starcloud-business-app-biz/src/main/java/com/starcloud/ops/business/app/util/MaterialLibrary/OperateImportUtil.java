@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.excel.EasyExcel;
 import com.github.junrar.exception.RarException;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.listener.ExcelDataEventListener;
 import com.starcloud.ops.business.app.service.materiallibrary.listener.ExcelHeadEventListener;
@@ -97,11 +98,10 @@ public class OperateImportUtil {
      * 这种是 内存溢出出现的情况非常低，但是事务不好控制（主要是出错全部回滚）
      *
      * @param inputStream   文件流
-     * @param commonService 将数据存储到某张表的service【需要在业务service上实现这个接口，并重写saveBatchData方法】
      * @param <T>           泛型类型
      */
-    public static <T> void readExcel(InputStream inputStream, File[] files, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber) {
-        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files, "");
+    public static <T> void readExcel(InputStream inputStream, ExcelDataImportConfigDTO configDTO, Integer headRowNumber) {
+        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener();
 
         EasyExcel.read(inputStream, readExcelDataListener)
                 .customObject(configDTO)
@@ -116,15 +116,17 @@ public class OperateImportUtil {
      * @param file          文件
      * @param commonService 将数据存储到某张表的service【需要在业务service上实现这个接口，并重写saveBatchData方法】
      * @param <T>           泛型类型
+     * @return
      */
-    public static <T> void readExcel(File file, File[] files, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber, String unzipDir) {
-        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener(commonService, files, unzipDir);
+    public static <T> List<MaterialLibrarySliceSaveReqVO> readExcel(File file, ExcelDataImportConfigDTO configDTO, MaterialLibrarySliceService commonService, Integer headRowNumber) {
+        ExcelDataEventListener readExcelDataListener = new ExcelDataEventListener();
 
         EasyExcel.read(file, readExcelDataListener)
                 .customObject(configDTO)
                 .sheet()
                 .headRowNumber(headRowNumber)
                 .doReadSync();
+        return readExcelDataListener.getResult();
     }
 
 
