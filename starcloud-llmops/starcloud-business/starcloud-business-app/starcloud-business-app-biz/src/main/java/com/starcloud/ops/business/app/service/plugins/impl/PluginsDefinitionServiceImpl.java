@@ -524,7 +524,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Override
     public PluginRespVO modifyPlugin(PluginConfigModifyReqVO reqVO) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(reqVO.getUid());
-        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginDefinitionDO.getCreator()));
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_edit, Long.valueOf(pluginDefinitionDO.getCreator()));
 
         PluginDefinitionDO updatePlugin = PluginDefinitionConvert.INSTANCE.convert(reqVO);
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginDefinitionDO.getType())) {
