@@ -71,8 +71,8 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             return null;
         }
 
-        List<String> roleNameList = roleApi.getRoleNameList(userId);
-        if (roleNameList.contains(UserUtils.MOFAAI_APP_ADMIN) || roleNameList.contains(UserUtils.ADMIN_ROLE)) {
+        List<String> roleCodeList = roleApi.getRoleCodeList(userId);
+        if (roleCodeList.contains(UserUtils.MOFAAI_APP_ADMIN) || roleCodeList.contains(UserUtils.ADMIN_ROLE)) {
             return null;
         }
 
