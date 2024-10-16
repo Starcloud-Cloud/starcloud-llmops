@@ -341,6 +341,10 @@ public class UpgradeDataService {
         VariableItemRespVO model = variables.stream().filter(item -> CreativeConstants.GENERATE_MODE.equals(item.getField()))
                 .findFirst()
                 .orElse(RecommendVariableItemFactory.defMediaMatrixGenerateVariable());
+        model.setOptions(new ArrayList<>());
+        model.addOption(CreativeContentGenerateModelEnum.AI_CUSTOM.getLabel(), CreativeContentGenerateModelEnum.AI_CUSTOM.name(), "直接让AI生成内容，要求越详细越好");
+        model.addOption(CreativeContentGenerateModelEnum.AI_PARODY.getLabel(), CreativeContentGenerateModelEnum.AI_PARODY.name(), "从参考内容中随机获取几条内容作为参考，并用AI进行仿写");
+        model.addOption(CreativeContentGenerateModelEnum.RANDOM.getLabel(), CreativeContentGenerateModelEnum.RANDOM.name(), "从参考内容中随机获取一条内容使用");
 
         VariableItemRespVO requirement = variables.stream()
                 .filter(item -> CreativeConstants.REQUIREMENT.equals(item.getField()))

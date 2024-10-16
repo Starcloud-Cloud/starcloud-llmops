@@ -81,7 +81,7 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
 
 
         if (Objects.isNull(excel)) {
-            throw new RuntimeException(StrUtil.format("压缩包中未找到名为:{} 的文件", TEMPLATE_FILE_NAME));
+            throw exception(EXCEL_NOT_EXIST);
         }
 
 
