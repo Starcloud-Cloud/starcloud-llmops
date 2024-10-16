@@ -5,8 +5,10 @@ import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
+import cn.iocoder.yudao.module.system.api.permission.RoleApi;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
 import com.google.common.collect.Sets;
+import com.starcloud.ops.business.user.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
@@ -15,6 +17,7 @@ import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -39,8 +42,12 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
     @Resource
     private final PermissionApi permissionApi;
 
-    public StarcloudDataPermissionRule(PermissionApi permissionApi) {
+    @Resource
+    private final RoleApi roleApi;
+
+    public StarcloudDataPermissionRule(PermissionApi permissionApi, RoleApi roleApi) {
         this.permissionApi = permissionApi;
+        this.roleApi = roleApi;
     }
 
     @Override
@@ -61,6 +68,11 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
         }
 
         if (userId == null) {
+            return null;
+        }
+
+        List<String> roleNameList = roleApi.getRoleNameList(userId);
+        if (roleNameList.contains(UserUtils.MOFAAI_APP_ADMIN) || roleNameList.contains(UserUtils.ADMIN_ROLE)) {
             return null;
         }
 
