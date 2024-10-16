@@ -7,6 +7,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryImportReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -128,8 +129,10 @@ public class ZipMaterialImportStrategy implements MaterialImportStrategy {
 
         importConfigDTO.setColumnConfig(BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnRespVO.class));
 
-        // 存储数据
-        OperateImportUtil.readExcel(excel, childrenDirs, importConfigDTO, materialLibrarySliceService, 2, unzipDir.getAbsolutePath());
+        // 解析Excel数据
+        List<MaterialLibrarySliceSaveReqVO> saveReqVOList = OperateImportUtil.readExcel(excel, importConfigDTO, materialLibrarySliceService, 2);
+        materialLibrarySliceService.batchSaveDataDesc(saveReqVOList);
+
     }
 
 

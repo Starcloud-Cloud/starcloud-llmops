@@ -19,4 +19,21 @@ public class MultipartFileUtils {
         );
         return multipartFile;
     }
+
+
+    public static File convert(MultipartFile multipartFile) {
+        String fileName = multipartFile.getOriginalFilename();
+        String prefix = fileName.substring(fileName.lastIndexOf("."));
+
+        File file = null;
+        try {
+            file = File.createTempFile(fileName, prefix);
+            multipartFile.transferTo(file);
+            file.deleteOnExit();
+            return file;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
