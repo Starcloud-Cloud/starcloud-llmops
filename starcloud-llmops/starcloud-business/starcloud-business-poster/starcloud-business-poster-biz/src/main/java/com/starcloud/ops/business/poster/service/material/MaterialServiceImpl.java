@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -24,14 +25,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
 import static cn.iocoder.yudao.module.mp.enums.ErrorCodeConstants.MATERIAL_NOT_EXISTS;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.GET_MATERIAL_POST_FAILURE;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_POST_NOT_EXISTS;
 import static java.util.Arrays.asList;
 
 /**
@@ -210,13 +218,21 @@ public class MaterialServiceImpl implements MaterialService {
     @Override
     public PosterTemplateDTO posterTemplate(String uid) {
 
-        MaterialDO material = this.getMaterialByUId(uid);
-
-        MaterialGroupDO materialGroup = materialGroupService.getMaterialGroup(material.getGroupId());
-        if (materialGroup == null) {
-            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+        try {
+            MaterialDO material = this.getMaterialByUId(uid);
+            if (material == null) {
+                throw exception(MATERIAL_POST_NOT_EXISTS);
+            }
+            MaterialGroupDO materialGroup = materialGroupService.getMaterialGroup(material.getGroupId());
+            if (materialGroup == null) {
+                throw exception(MATERIAL_GROUP_NOT_EXISTS);
+            }
+            return transform(material, materialGroup.getName(), true);
+        } catch (ServiceException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw exception(GET_MATERIAL_POST_FAILURE);
         }
-        return transform(material, materialGroup.getName(), true);
     }
 
     /**
@@ -257,7 +273,7 @@ public class MaterialServiceImpl implements MaterialService {
         // 查询列表
         List<MaterialDO> materialList = materialMapper.selectList(wrapper);
         return CollectionUtils.emptyIfNull(materialList).stream()
-                .map(item -> transform(item,  materialGroup.getName(), false))
+                .map(item -> transform(item, materialGroup.getName(), false))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
