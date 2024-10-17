@@ -57,7 +57,7 @@ public class PowerjobManager {
         // 最大实例个数
         request.setMaxInstanceNum(1);
         request.setInstanceTimeLimit(310000L);
-        request.setTaskRetryNum(3);
+        request.setTaskRetryNum(2);
         request.setId(jobId);
 
         ResultDTO<Long> result = powerJobClient.saveJob(request);

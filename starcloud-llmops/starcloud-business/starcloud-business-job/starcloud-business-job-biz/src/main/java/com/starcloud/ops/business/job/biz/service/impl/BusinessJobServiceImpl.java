@@ -21,8 +21,10 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.job.JobConstants.REMAIN_NUM;
 import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.EXIST_JOB;
 import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB_NOT_EXIST;
 
@@ -35,11 +37,6 @@ public class BusinessJobServiceImpl implements BusinessJobService {
 
     @Resource
     private BusinessJobMapper businessJobMapper;
-
-    /**
-     * 定时任务执行次数
-     */
-    private static final int NUM = 14;
 
     @Override
     public Map<String, Object> metadata() {
@@ -58,14 +55,12 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         if (Objects.nonNull(existJob)) {
             throw exception(EXIST_JOB, existJob.getForeignKey());
         }
-        Long lastTriggerTime = CronUtils.lastTriggerTime(NUM, businessJobBaseVO.getTimeExpression(), null, null);
-        businessJobBaseVO.setLifecycleStart(System.currentTimeMillis());
-        businessJobBaseVO.setLifecycleEnd(lastTriggerTime + 10L);
 
         Long jobId = powerjobManager.saveJob(businessJobBaseVO, null);
         BusinessJobDO businessJobDO = BusinessJobConvert.INSTANCE.convert(businessJobBaseVO);
         businessJobDO.setUid(IdUtil.fastSimpleUUID());
         businessJobDO.setJobId(jobId);
+        businessJobDO.setRemainCount(REMAIN_NUM);
         businessJobMapper.insert(businessJobDO);
         return BusinessJobConvert.INSTANCE.convert(businessJobDO);
     }
@@ -77,11 +72,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         BusinessJobDO businessJobDO = getByUid(reqVO.getUid());
         BusinessJobDO updateDO = BusinessJobConvert.INSTANCE.convert(reqVO);
         updateDO.setId(businessJobDO.getId());
-
-        Long lastTriggerTime = CronUtils.lastTriggerTime(NUM, reqVO.getTimeExpression(), null, null);
-        reqVO.setLifecycleStart(System.currentTimeMillis());
-        reqVO.setLifecycleEnd(lastTriggerTime + 10L);
-
+        businessJobDO.setRemainCount(REMAIN_NUM);
         powerjobManager.saveJob(reqVO, businessJobDO.getJobId());
         businessJobMapper.updateById(updateDO);
     }
@@ -108,6 +99,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     public void start(String uid) {
         BusinessJobDO businessJobDO = getByUid(uid);
         businessJobDO.setEnable(true);
+        businessJobDO.setRemainCount(REMAIN_NUM);
         businessJobMapper.updateById(businessJobDO);
         powerjobManager.enable(businessJobDO.getJobId());
     }
@@ -119,6 +111,11 @@ public class BusinessJobServiceImpl implements BusinessJobService {
             throw exception(JOB_NOT_EXIST, "jobId", jobId);
         }
         return businessJobDO;
+    }
+
+    @Override
+    public void decreaseNum(String uid) {
+        businessJobMapper.decreaseNum(uid);
     }
 
     @Override
