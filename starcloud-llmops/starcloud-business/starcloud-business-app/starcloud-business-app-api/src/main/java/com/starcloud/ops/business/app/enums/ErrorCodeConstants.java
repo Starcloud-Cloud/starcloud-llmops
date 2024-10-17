@@ -244,6 +244,7 @@ public interface ErrorCodeConstants {
      */
     ErrorCode PUBLISH_APP_REPEAT = new ErrorCode(300400140, "应用已经发布过了，请检查后重试（{}）!");
 
+    ErrorCode APP_PUBLISHED = new ErrorCode(300400141, "该应用已发布到应用市场，请删除应用市场后再进行操作！");
     // ========== 应用发布渠道错误码 300 500 xxx ==========
 
     /**
@@ -671,4 +672,5 @@ public interface ErrorCodeConstants {
 
     ErrorCode MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME = new ErrorCode(300702218, "数据上传超时，请重试");
 
+    
 }
