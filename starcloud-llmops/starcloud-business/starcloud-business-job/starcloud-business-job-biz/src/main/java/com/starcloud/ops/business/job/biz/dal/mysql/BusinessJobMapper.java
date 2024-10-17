@@ -2,6 +2,7 @@ package com.starcloud.ops.business.job.biz.dal.mysql;
 
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
 import org.apache.ibatis.annotations.Mapper;
@@ -33,6 +34,14 @@ public interface BusinessJobMapper extends BaseMapperX<BusinessJobDO> {
         LambdaQueryWrapper<BusinessJobDO> wrapper = Wrappers.lambdaQuery(BusinessJobDO.class)
                 .in(BusinessJobDO::getForeignKey, foreignKeys);
         return selectList(wrapper);
+    }
+
+
+    default void decreaseNum(String uid) {
+        LambdaUpdateWrapper<BusinessJobDO> wrapper = Wrappers.lambdaUpdate(BusinessJobDO.class)
+                .eq(BusinessJobDO::getUid, uid)
+                .setSql("remain_count = remain_count - 1");
+        update(wrapper);
     }
 
 }

@@ -79,4 +79,9 @@ public class BusinessJobDO extends DeptBaseDO {
      */
     private Boolean enable;
 
+    /**
+     * 剩余次数
+     */
+    private Integer remainCount;
+
 }
