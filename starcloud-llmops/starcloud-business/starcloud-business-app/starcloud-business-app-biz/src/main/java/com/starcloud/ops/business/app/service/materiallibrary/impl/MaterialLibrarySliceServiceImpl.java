@@ -37,10 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
@@ -50,7 +48,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -135,7 +132,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 .collect(Collectors.toList());
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryIds.get(0));
 
-        // 批量添加时 对空数据做填充
         List<MaterialLibrarySliceSaveReqVO> saveReqVOS = createReqVO.getSaveReqVOS();
 
         saveReqVOS.forEach(saveReq -> {
@@ -186,29 +182,9 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
             }
         }
 
-        // 第三步 使用asyncUploadImage 方法 这个方法支持异步上传多张图片
-        ListenableFuture<Boolean> future = asyncUploadImage(allImageContents, libraryId);
+        // 异步上传图片
+        getSelf().asyncUploadImage(allImageContents, libraryId);
 
-        try {
-            if (!future.get()) {
-                throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            Thread.currentThread().interrupt(); // 恢复中断状态
-            throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
-        }
-
-        validateUploadIsSuccess(buildRedisKey(allImageContents, libraryId));
-        // 第四步 替换原有图片的值 使用新的值
-        saveReqVOS.forEach(data -> {
-            data.getContent().stream()
-                    .filter(content -> imageColumnCodes.contains(content.getColumnCode()) && StrUtil.isNotBlank(content.getValue()))
-                    .forEach(content -> {
-                        String key = getRedisKey(content.getValue(), libraryId);
-                        String urlsString = redisTemplate.boundValueOps(key).get();
-                        content.setValue(urlsString);
-                    });
-        });
     }
 
     @Override
@@ -747,7 +723,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
 
     @Async
-    public ListenableFuture<Boolean> asyncUploadImage(List<String> imageUrls, Long libraryId) {
+    public void asyncUploadImage(List<String> imageUrls, Long libraryId) {
         String prefix = LocalDateTimeUtil.format(LocalDateTimeUtil.now(), PURE_DATETIME_MS_PATTERN) + RandomUtil.randomInt(1000, 9999);
         imageUrls.forEach(url -> {
             if (ImageUploadUtils.isImage(url)) {
@@ -764,7 +740,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         });
 
-        return AsyncResult.forValue(true);
     }
 
 
@@ -851,7 +826,8 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 return;
             }
         }
-
+        // 超过最大重试次数后，直接跳过，不抛出异常
+        log.error("图片上传超过最大重试时间，上传异常");
         throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
 
     }
@@ -922,5 +898,16 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
                 .collect(Collectors.toList());
     }
 
+
+
+
+    /**
+     * 获得自身的代理对象，解决 AOP 生效问题
+     *
+     * @return 自己
+     */
+    private MaterialLibrarySliceServiceImpl getSelf() {
+        return SpringUtil.getBean(getClass());
+    }
 
 }
