@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.convert.category.CategoryConvert;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.limit.AppLimitConfigEnum;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,12 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         Stream<AppCategoryVO> stream = dictDataList.stream().map(CategoryConvert.INSTANCE::convert);
         if (isRoot) {
             stream = stream.filter(category -> AppConstants.ROOT.equalsIgnoreCase(category.getParentCode()));
+        }
+        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+            // 不是管理员，不显示其他分类
+            if (UserUtils.isNotAdmin()) {
+                stream = stream.filter(category -> !"OTHER".equalsIgnoreCase(category.getCode()));
+            }
         }
         return stream.sorted(Comparator.comparingInt(AppCategoryVO::getSort)).collect(Collectors.toList());
     }
