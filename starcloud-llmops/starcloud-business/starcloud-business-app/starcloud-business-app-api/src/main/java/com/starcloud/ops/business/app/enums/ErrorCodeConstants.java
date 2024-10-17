@@ -244,6 +244,7 @@ public interface ErrorCodeConstants {
      */
     ErrorCode PUBLISH_APP_REPEAT = new ErrorCode(300400140, "应用已经发布过了，请检查后重试（{}）!");
 
+    ErrorCode APP_PUBLISHED = new ErrorCode(300400141, "该应用已发布到应用市场，请删除应用市场后再进行操作！");
     // ========== 应用发布渠道错误码 300 500 xxx ==========
 
     /**
@@ -674,4 +675,5 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_IMPORT_LIBRARY_EMPTY = new ErrorCode(300702220, "数据导入失败，素材库编号不存在");
     ErrorCode MATERIAL_LIBRARY_IMPORT_DATA_EMPTY = new ErrorCode(300702221, "数据导入失败，数据为空数据");
 
+    
 }
