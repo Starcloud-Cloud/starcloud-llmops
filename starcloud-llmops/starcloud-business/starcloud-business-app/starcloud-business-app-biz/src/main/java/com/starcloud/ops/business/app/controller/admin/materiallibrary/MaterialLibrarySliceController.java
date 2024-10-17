@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
-import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
@@ -116,10 +115,4 @@ public class MaterialLibrarySliceController {
     }
 
 
-    @PostMapping("/test1")
-    @Operation(summary = "测试通过素材库 UID 获取素材数据")
-    @OperateLog(enable = false)
-    public CommonResult<List<MaterialLibrarySliceRespVO>> materialLibraryCopy(@RequestParam("uid") String uid) {
-        return success(materialLibrarySliceService.getMaterialLibrarySliceListByAppUid(uid));
-    }
 }

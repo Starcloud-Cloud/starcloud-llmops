@@ -179,4 +179,13 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
     void asyncUpdateSliceByColumnCodeDelete(List<String> columnCodes, Long libraryId);
 
     void executeAsyncUpload(Map<Integer, List<String>> columnData, File[] childrenDirs, String unzipDirPath, Long libraryId);
+
+    /**
+     * 批量保存数据-倒序
+     * 内部会将list倒序
+     *
+     * @param cachedDataList cachedDataList
+     */
+    void batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> cachedDataList);
+
 }
