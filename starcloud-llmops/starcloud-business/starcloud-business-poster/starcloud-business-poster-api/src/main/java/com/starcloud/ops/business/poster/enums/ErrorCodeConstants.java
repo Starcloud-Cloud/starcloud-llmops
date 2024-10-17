@@ -12,7 +12,8 @@ public interface ErrorCodeConstants {
 
     ErrorCode ELEMENT_NOT_EXISTS = new ErrorCode(600003004, "海报元素不存在");
 
-
+    ErrorCode GET_MATERIAL_POST_FAILURE = new ErrorCode(600003005, "获取海报素材失败");
+    ErrorCode MATERIAL_POST_NOT_EXISTS = new ErrorCode(600003006, "海报素材不存在");
 
 
     ErrorCode MATERIAL_CATEGORY_NOT_EXISTS = new ErrorCode(600003001, "当前分类不存在，请重新选择");
