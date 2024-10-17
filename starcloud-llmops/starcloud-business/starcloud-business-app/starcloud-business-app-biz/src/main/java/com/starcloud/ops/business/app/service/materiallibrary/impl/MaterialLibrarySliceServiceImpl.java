@@ -828,7 +828,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         }
         // 超过最大重试次数后，直接跳过，不抛出异常
         log.error("图片上传超过最大重试时间，上传异常");
-        throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_OVERTIME);
 
     }
 
