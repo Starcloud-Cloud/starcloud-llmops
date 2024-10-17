@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySli
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.MaterialLibrary.OperateImportUtil;
 import com.starcloud.ops.business.app.util.MaterialLibrary.dto.ExcelDataImportConfigDTO;
+import com.starcloud.ops.business.app.util.MultipartFileUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -67,8 +68,9 @@ public class ExcelMaterialImportStrategy implements MaterialImportStrategy {
 
         importConfigDTO.setColumnConfig(BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnRespVO.class));
 
+
         // 异步存储数据
-        OperateImportUtil.readExcel(excel.getInputStream(), null, importConfigDTO, materialLibrarySliceService, 2);
+        OperateImportUtil.readExcel(MultipartFileUtils.convert(excel), importConfigDTO, materialLibrarySliceService, 2);
 
     }
 }

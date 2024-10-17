@@ -87,9 +87,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         // 更新素材
         materialService.updateMaterialByGroup(updateObj.getId(), newMaterialReqVO);
 
-        if (updateReqVO.getOvertStatus()){
+        if (updateReqVO.getOvertStatus()) {
             this.publish(updateReqVO.getUid());
-        }else {
+        } else {
             this.cancelPublish(updateReqVO.getUid());
         }
     }
@@ -144,13 +144,13 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
 
-        if (materialGroupDO.getOvertStatus()){
+        if (materialGroupDO.getOvertStatus()) {
             throw exception(MATERIAL_DELETE_FAIL_PUBLISH);
         }
         // 增加发布数据校验
         MaterialGroupDO publish = validatePublish(uid);
 
-        if (Objects.nonNull(publish)){
+        if (Objects.nonNull(publish)) {
             // 删除分组下的素材
             materialService.deleteMaterialByGroup(publish.getId());
             // 删除分组
@@ -243,7 +243,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialDOS == null || materialDOS.isEmpty()) {
             throw exception(MATERIAL_PUBLISH_FAIL_EMPTY);
         }
-        List<MaterialSaveReqVO>  collect= BeanUtil.copyToList(materialDOS, MaterialSaveReqVO.class);
+        List<MaterialSaveReqVO> collect = BeanUtil.copyToList(materialDOS, MaterialSaveReqVO.class);
 
         List<MaterialSaveReqVO> materialSaveReqVOS = collect.stream()
                 .peek(t -> t.setId(null))
@@ -254,8 +254,10 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
             materialService.deleteMaterialByGroup(groupDO.getId());
 
             // 设置缩略图为素材的第一张
-            groupDO.setThumbnail(materialDOS.get(0).getThumbnail())
-                    .setName(materialDOS.get(0).getName())
+            groupDO.setCategoryId(materialGroupDO.getCategoryId())
+                    .setThumbnail(materialGroupDO.getThumbnail())
+                    .setMaterialTags(materialGroupDO.getMaterialTags())
+                    .setName(materialGroupDO.getName())
                     .setStatus(Boolean.TRUE)
                     .setOvertStatus(Boolean.TRUE)
             ;
@@ -263,14 +265,14 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
             // 设置分组编号
             List<MaterialSaveReqVO> newMaterialReqVO = materialSaveReqVOS.stream()
-                    .peek(t ->{
+                    .peek(t -> {
                         t.setGroupId(groupDO.getId());
                         t.setId(null);
                     })
                     .collect(Collectors.toList());
 
             materialService.batchCreateMaterial(newMaterialReqVO);
-        }else {
+        } else {
 
             // 1.0   复制分组
             MaterialGroupSaveReqVO publishGroupVO = BeanUtil.toBean(materialGroupDO, MaterialGroupSaveReqVO.class);
@@ -379,9 +381,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
 
-        if (publishReqVO.getOvertStatus()){
+        if (publishReqVO.getOvertStatus()) {
             this.publish(publishReqVO.getUid());
-        }else {
+        } else {
             this.cancelPublish(publishReqVO.getUid());
         }
     }

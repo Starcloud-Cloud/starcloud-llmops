@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_DATA_UPLOAD_BIG;
+
 @Slf4j
 public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, String>> {
 
@@ -19,7 +22,6 @@ public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, S
     /**
      * -- GETTER --
      * 获取excel的所有数据，数据量太大会出现内存溢出
-     *
      */
     @Getter
     private List<String> heads = new CopyOnWriteArrayList<>();
@@ -48,6 +50,14 @@ public class ExcelHeadEventListener extends AnalysisEventListener<Map<Integer, S
      */
     @Override
     public void invokeHeadMap(Map<Integer, String> headMap, AnalysisContext context) {
+        int max_size = 1000;
+        Integer totalRowNumber = context.readSheetHolder().getApproximateTotalRowNumber();
+        log.info("总行数为{}", totalRowNumber);
+        if (max_size < totalRowNumber) {
+            // throw new RuntimeException("导入数据量过大，请分批导入");
+            throw exception(MATERIAL_LIBRARY_DATA_UPLOAD_BIG, max_size);
+        }
+
         if (Objects.equals(context.getCurrentRowNum(), limitColSize)) {
             heads.addAll(headMap.values());
             log.info("解析表头数据:{}", JSON.toJSONString(headMap));
