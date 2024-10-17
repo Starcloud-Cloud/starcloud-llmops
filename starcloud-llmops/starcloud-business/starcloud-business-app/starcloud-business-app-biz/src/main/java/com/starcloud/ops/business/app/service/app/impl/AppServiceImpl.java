@@ -647,6 +647,7 @@ public class AppServiceImpl implements AppService {
                 .map(item -> {
                     AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convertResponse(item);
                     AppRespVO appResponse = AppConvert.INSTANCE.convert(appMarketResponse);
+                    appResponse.setCategory(null);
                     appResponse.setSource(AppSourceEnum.WEB.name());
                     return appResponse;
                 }).collect(Collectors.toList());
