@@ -65,7 +65,7 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
         if (isRoot) {
             stream = stream.filter(category -> AppConstants.ROOT.equalsIgnoreCase(category.getParentCode()));
         }
-        if (AppConstants.MOFAAI_TENANT_ID.equals(tenantId)) {
+        if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId)) {
             // 不是管理员，不显示其他分类
             if (UserUtils.isNotAdmin()) {
                 stream = stream.filter(category -> !"OTHER".equalsIgnoreCase(category.getCode()));
