@@ -78,4 +78,7 @@ public class MaterialLibraryRespVO {
     @ExcelProperty("表头")
     private List<MaterialLibraryTableColumnRespVO> tableMeta;
 
+    @Schema(description = "是否包含插件")
+    private boolean hasPlugin;
+
 }

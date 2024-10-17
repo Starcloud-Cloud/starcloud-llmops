@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.lang.Assert;
@@ -22,6 +23,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceUseRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -39,6 +41,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.ExcelMateri
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ImageMaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
 import com.starcloud.ops.business.mq.producer.LibraryDeleteProducer;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
@@ -95,6 +98,9 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
 
     @Resource
     private DeptPermissionApi deptPermissionApi;
+
+    @Resource
+    private PluginConfigService pluginConfigService;
 
 
     @Override
@@ -183,9 +189,13 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
             List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(materialLibrary.getId());
             bean.setTableMeta(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
         }
+
+        List<PluginConfigRespVO> pluginConfigRespList = pluginConfigService.configList(bean.getUid());
+        if (CollectionUtil.isNotEmpty(pluginConfigRespList)) {
+            bean.setHasPlugin(Boolean.TRUE);
+        }
+
         return bean;
-
-
     }
 
 
