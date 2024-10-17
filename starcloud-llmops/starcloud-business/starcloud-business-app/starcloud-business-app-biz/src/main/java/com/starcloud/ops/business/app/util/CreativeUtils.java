@@ -652,6 +652,9 @@ public class CreativeUtils {
             if (CollectionUtil.isEmpty(materialListRequest.getSliceIdList())) {
                 throw ServiceExceptionUtil.invalidParamException("计划执行失败：选择执行时需要选择您需要执行的素材！");
             }
+            if (materialListRequest.getSliceIdList().size() > 32) {
+                throw ServiceExceptionUtil.invalidParamException("计划执行失败：选择执行时最多只能选中32条素材！");
+            }
             // 构造排序条件，这里设置按照创建时间倒序，和页面的素材排序一致。
             SortingField sortingField = new SortingField();
             sortingField.setOrder(SortingField.ORDER_DESC);
