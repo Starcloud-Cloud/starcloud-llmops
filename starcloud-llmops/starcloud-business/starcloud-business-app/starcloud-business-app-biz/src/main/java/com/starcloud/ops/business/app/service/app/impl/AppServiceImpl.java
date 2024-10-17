@@ -21,6 +21,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemR
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -414,8 +415,17 @@ public class AppServiceImpl implements AppService {
 
         // 删除应用
         appMapper.delete(uid);
-        // 删除应用发布信息
-        appPublishService.deleteByAppUid(uid);
+        // 查询应用发布信息
+        List<AppPublishRespVO> publishList = appPublishService.listByAppUid(uid);
+        if (CollectionUtil.isNotEmpty(publishList)) {
+            String marketUid = Optional.of(publishList.get(0)).map(AppPublishRespVO::getMarketUid).orElse(null);
+            AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
+            if (Objects.nonNull(appMarket)) {
+                throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_PUBLISHED);
+            }
+            // 删除应用发布信息
+            appPublishService.deleteByAppUid(uid);
+        }
         // 删除其他资源
         appDeleteProducer.send(uid);
     }
@@ -636,6 +646,7 @@ public class AppServiceImpl implements AppService {
                 .map(item -> {
                     AppMarketRespVO appMarketResponse = AppMarketConvert.INSTANCE.convertResponse(item);
                     AppRespVO appResponse = AppConvert.INSTANCE.convert(appMarketResponse);
+                    appResponse.setCategory(null);
                     appResponse.setSource(AppSourceEnum.WEB.name());
                     return appResponse;
                 }).collect(Collectors.toList());
