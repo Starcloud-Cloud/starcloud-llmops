@@ -72,7 +72,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         BusinessJobDO businessJobDO = getByUid(reqVO.getUid());
         BusinessJobDO updateDO = BusinessJobConvert.INSTANCE.convert(reqVO);
         updateDO.setId(businessJobDO.getId());
-        businessJobDO.setRemainCount(REMAIN_NUM);
+        updateDO.setRemainCount(REMAIN_NUM);
         powerjobManager.saveJob(reqVO, businessJobDO.getJobId());
         businessJobMapper.updateById(updateDO);
     }
