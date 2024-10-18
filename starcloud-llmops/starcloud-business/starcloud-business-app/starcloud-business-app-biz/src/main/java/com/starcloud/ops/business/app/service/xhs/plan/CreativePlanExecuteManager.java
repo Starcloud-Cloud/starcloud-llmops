@@ -137,7 +137,7 @@ public class CreativePlanExecuteManager {
             this.updatePlanBatchExecuting(batchUid);
 
             // 更新计划状态为执行中, 并且更新总数
-            this.updatePlanExecuting(planUid, total);
+            this.updatePlanExecuting(planUid);
 
             // 返回执行结果
             PlanExecuteResult result = new PlanExecuteResult();
@@ -362,11 +362,10 @@ public class CreativePlanExecuteManager {
      *
      * @param planUid 计划UID
      */
-    private void updatePlanExecuting(String planUid, Integer total) {
+    private void updatePlanExecuting(String planUid) {
         LambdaUpdateWrapper<CreativePlanDO> updateWrapper = Wrappers.lambdaUpdate();
         updateWrapper.set(CreativePlanDO::getStatus, CreativePlanStatusEnum.RUNNING.name());
         updateWrapper.set(CreativePlanDO::getUpdateTime, LocalDateTime.now());
-        updateWrapper.set(CreativePlanDO::getTotalCount, total);
         updateWrapper.eq(CreativePlanDO::getUid, planUid);
         creativePlanMapper.update(updateWrapper);
     }
