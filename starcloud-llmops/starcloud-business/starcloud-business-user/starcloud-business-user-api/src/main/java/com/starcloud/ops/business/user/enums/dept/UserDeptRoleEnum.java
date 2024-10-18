@@ -28,7 +28,11 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.mission_edit.getPermission(),
             DeptPermissionEnum.material_library_edit.getPermission(),
             DeptPermissionEnum.material_library_column_edit.getPermission(),
-            DeptPermissionEnum.material_library_slice_edit.getPermission()
+            DeptPermissionEnum.material_library_slice_edit.getPermission(),
+
+            DeptPermissionEnum.material_library_delete.getPermission(),
+            DeptPermissionEnum.material_library_column_delete.getPermission(),
+            DeptPermissionEnum.material_library_slice_delete.getPermission()
     )),
 
     SUPER_ADMIN(1000, "创建者", Sets.newHashSet(
