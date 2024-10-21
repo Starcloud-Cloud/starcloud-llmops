@@ -363,7 +363,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getUserId() == null) {
             Long userId = this.getRunUserId(request);
             request.setUserId(userId);
-            UserContextHolder.setUserId(userId);
         }
         //强制设置，不设置应该获取的是当前上下文的
         if (request.getTenantId() != null) {
@@ -400,8 +399,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exceptionWithCause(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage(), exception);
-        } finally {
-            UserContextHolder.clear();
         }
     }
 
@@ -419,7 +416,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getUserId() == null) {
             Long userId = this.getRunUserId(request);
             request.setUserId(userId);
-            UserContextHolder.setUserId(userId);
         }
         // 会话处理
         this.initAppConversationLog(request);
@@ -466,8 +462,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
-        } finally {
-            UserContextHolder.clear();
         }
     }
 
