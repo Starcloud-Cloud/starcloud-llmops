@@ -6,7 +6,6 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -28,6 +27,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
@@ -362,7 +362,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getUserId() == null) {
             Long userId = this.getRunUserId(request);
             request.setUserId(userId);
-            UserContextHolder.setUserId(userId);
         }
         //强制设置，不设置应该获取的是当前上下文的
         if (request.getTenantId() != null) {
@@ -399,8 +398,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exceptionWithCause(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage(), exception);
-        } finally {
-            UserContextHolder.clear();
         }
     }
 
@@ -418,7 +415,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getUserId() == null) {
             Long userId = this.getRunUserId(request);
             request.setUserId(userId);
-            UserContextHolder.setUserId(userId);
         }
         // 会话处理
         this.initAppConversationLog(request);
@@ -465,8 +461,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
-        } finally {
-            UserContextHolder.clear();
         }
     }
 
@@ -620,6 +614,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         createRequest.setEndUser(request.getEndUser());
         createRequest.setCreator(String.valueOf(request.getUserId()));
         createRequest.setUpdater(String.valueOf(request.getUserId()));
+        createRequest.setDeptId(this.obtainDeptId(request.getUserId()));
         createRequest.setTenantId(this.getTenantId());
         createRequest.setFromScene(request.getScene());
         createRequest.setAiModel(this.getLlmModelType(request));
@@ -728,6 +723,24 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         logAppMessageService.createAppLogMessage(messageCreateRequest);
         log.info("应用执行：创建日志消息结束 ...");
         return messageCreateRequest;
+    }
+
+    /**
+     * 获取部门ID
+     *
+     * @param userId 用户ID
+     * @return 部门ID
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Long obtainDeptId(Long userId) {
+        if (Objects.nonNull(userId)) {
+            Long deptId = UserUtils.getDeptId(userId);
+            if (Objects.nonNull(deptId)) {
+                return deptId;
+            }
+        }
+        return null;
     }
 
     /**

@@ -138,6 +138,23 @@ public class UserUtils {
     }
 
     /**
+     * 获取部门ID
+     *
+     * @param userId 用户id
+     * @return 部门ID
+     */
+    public static Long getDeptId(Long userId) {
+        if (Objects.isNull(userId)) {
+            return null;
+        }
+        AdminUserDO user = ADMIN_USER_SERVICE.getUser(userId);
+        if (Objects.nonNull(user)) {
+            return user.getDeptId();
+        }
+        return null;
+    }
+
+    /**
      * 根据用户 ID 集合，获得用户 Map
      *
      * @param userIds 用户 ID 集合

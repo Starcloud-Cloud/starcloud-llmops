@@ -634,6 +634,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setEndUser(appContext.getEndUser());
             messageCreateRequest.setCreator(String.valueOf(appContext.getUserId()));
             messageCreateRequest.setUpdater(String.valueOf(appContext.getUserId()));
+            messageCreateRequest.setDeptId(this.obtainDeptId(appContext.getUserId()));
             messageCreateRequest.setFromScene(appContext.getScene().name());
             messageCreateRequest.setMediumUid(appContext.getMediumUid());
             messageCreateRequest.setCreateTime(nodeTracking.getStartTime());
@@ -777,10 +778,19 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setEndUser(request.getEndUser());
             messageCreateRequest.setCreator(String.valueOf(request.getUserId()));
             messageCreateRequest.setUpdater(String.valueOf(request.getUserId()));
+            messageCreateRequest.setDeptId(this.obtainDeptId(request.getUserId()));
             messageCreateRequest.setCreateTime(LocalDateTime.now());
             messageCreateRequest.setUpdateTime(LocalDateTime.now());
             messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setCostPoints(0);
+
+//            if (Objects.nonNull(request.getUserId())) {
+//                Long deptId = UserUtils.getDeptId(appContext.getUserId());
+//                if (Objects.nonNull(deptId)) {
+//                    messageCreateRequest.setDeptId(deptId);
+//                }
+//            }
+
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
             }
