@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.service.Task.ThreadWithContext;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.message.vo.query.LogAppMessagePageReqVO;
@@ -620,6 +621,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         createRequest.setEndUser(request.getEndUser());
         createRequest.setCreator(String.valueOf(request.getUserId()));
         createRequest.setUpdater(String.valueOf(request.getUserId()));
+        createRequest.setDeptId(this.obtainDeptId(request.getUserId()));
         createRequest.setTenantId(this.getTenantId());
         createRequest.setFromScene(request.getScene());
         createRequest.setAiModel(this.getLlmModelType(request));
@@ -728,6 +730,24 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         logAppMessageService.createAppLogMessage(messageCreateRequest);
         log.info("应用执行：创建日志消息结束 ...");
         return messageCreateRequest;
+    }
+
+    /**
+     * 获取部门ID
+     *
+     * @param userId 用户ID
+     * @return 部门ID
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public Long obtainDeptId(Long userId) {
+        if (Objects.nonNull(userId)) {
+            Long deptId = UserUtils.getDeptId(userId);
+            if (Objects.nonNull(deptId)) {
+                return deptId;
+            }
+        }
+        return null;
     }
 
     /**

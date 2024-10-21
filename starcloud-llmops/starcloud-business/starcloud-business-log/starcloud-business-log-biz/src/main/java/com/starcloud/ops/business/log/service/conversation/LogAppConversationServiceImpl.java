@@ -54,6 +54,7 @@ public class LogAppConversationServiceImpl implements LogAppConversationService 
         //手动设置，不走用户态
         appConversation.setCreator(request.getCreator());
         appConversation.setUpdater(request.getUpdater());
+        appConversation.setDeptId(request.getDeptId());
         appConversation.setTenantId(request.getTenantId());
         appConversation.setCreateTime(LocalDateTime.now());
         appConversation.setUpdateTime(LocalDateTime.now());

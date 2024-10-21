@@ -345,6 +345,7 @@ public class ImageAppEntity extends BaseAppEntity<ImageReqVO, ImageRespVO> {
         messageRequest.setEndUser(request.getEndUser());
         messageRequest.setCreator(String.valueOf(request.getUserId()));
         messageRequest.setUpdater(String.valueOf(request.getUserId()));
+        messageRequest.setDeptId(this.obtainDeptId(request.getUserId()));
         messageRequest.setCreateTime(LocalDateTime.now());
         messageRequest.setUpdateTime(LocalDateTime.now());
     }
