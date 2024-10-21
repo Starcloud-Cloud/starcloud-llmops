@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -13,7 +14,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.alibaba.fastjson.annotation.JSONField;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.api.app.vo.request.AppContextReqVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
@@ -362,6 +362,7 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         if (request.getUserId() == null) {
             Long userId = this.getRunUserId(request);
             request.setUserId(userId);
+            UserContextHolder.setUserId(userId);
         }
         //强制设置，不设置应该获取的是当前上下文的
         if (request.getTenantId() != null) {
@@ -398,6 +399,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             throw exceptionWithCause(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage(), exception);
+        } finally {
+            UserContextHolder.clear();
         }
     }
 
@@ -413,7 +416,9 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         log.info("应用异步执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
         // 扣除权益用户，记录日志用户
         if (request.getUserId() == null) {
-            request.setUserId(this.getRunUserId(request));
+            Long userId = this.getRunUserId(request);
+            request.setUserId(userId);
+            UserContextHolder.setUserId(userId);
         }
         // 会话处理
         this.initAppConversationLog(request);
@@ -460,6 +465,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
             // 更新会话记录
             this.failureAppConversationLog(request.getConversationUid(), String.valueOf(ErrorCodeConstants.EXECUTE_BASE_FAILURE.getCode()), ExceptionUtil.stackTraceToString(exception), request);
             this.afterExecute(null, request, exception(ErrorCodeConstants.EXECUTE_BASE_FAILURE, exception.getMessage()));
+        } finally {
+            UserContextHolder.clear();
         }
     }
 
