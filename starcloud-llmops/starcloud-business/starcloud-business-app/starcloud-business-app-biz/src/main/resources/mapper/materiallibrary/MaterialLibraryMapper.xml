@@ -25,7 +25,6 @@
   a.creator,
   a.create_time,
   a.update_time,
-  a.uid ,
   u.nickname AS create_name  -- 获取创建人名称
   FROM llm_material_library a
   LEFT JOIN llm_material_library_slice s ON a.id = s.library_id
@@ -45,7 +44,7 @@
    AND s.deleted = 0
    AND u.deleted = 0
   </where>
-  ORDER BY a.create_time DESC;
+  Group By  a.id;
  </select>
 
 
