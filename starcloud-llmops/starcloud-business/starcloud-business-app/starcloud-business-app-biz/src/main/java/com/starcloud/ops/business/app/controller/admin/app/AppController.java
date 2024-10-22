@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.app.vo.request.AppPageQuery;
-import com.starcloud.ops.business.app.api.app.vo.request.AppReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.AppUpdateReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.VariableReqVO;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
@@ -13,8 +12,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
-import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.request.GeneralFieldCodeReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppModifyExtendReqVO;
+import com.starcloud.ops.business.app.service.app.AppManager;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -51,6 +50,9 @@ public class AppController {
 
     @Resource
     private AppService appService;
+
+    @Resource
+    private AppManager appManager;
 
     @GetMapping("/categories")
     @Operation(summary = "查询应用类别列表", description = "查询应用类别列表")
@@ -129,8 +131,8 @@ public class AppController {
     @DataPermission(enable = false)
     @Operation(summary = "更新应用", description = "根据 UID 更新应用")
     @ApiOperationSupport(order = 110, author = "nacoyer")
-    public CommonResult<AppRespVO> modify(@Validated @RequestBody AppUpdateReqVO request) {
-        return CommonResult.success(appService.modify(request));
+    public CommonResult<AppRespVO> modify(@Validated @RequestBody AppModifyExtendReqVO request) {
+        return CommonResult.success(appManager.modify(request));
     }
 
     @DeleteMapping("/delete/{uid}")
