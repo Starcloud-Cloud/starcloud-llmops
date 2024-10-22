@@ -14,6 +14,8 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.common.util.object.ObjectUtils;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.*;
@@ -296,8 +298,13 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     }
 
     @Override
-    public PageResult<MaterialLibraryDO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO) {
-        return materialLibraryMapper.selectPage2(pageReqVO);
+    public PageResult<MaterialLibraryPageRespVO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO) {
+        // 2. 分页查询
+        IPage<MaterialLibraryPageRespVO> pageResult = materialLibraryMapper.selectPage3(
+                MyBatisUtils.buildPage(pageReqVO,pageReqVO.getSortingFields()), pageReqVO);
+
+        // 3. 拼接数据并返回
+        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
     }
 
     /**

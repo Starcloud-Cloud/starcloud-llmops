@@ -64,17 +64,13 @@ public class MaterialLibraryController {
             pageReqVO.setCreator(user.getId());
         }
 
-        PageResult<MaterialLibraryDO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
+        PageResult<MaterialLibraryPageRespVO> pageResult = materialLibraryService.getMaterialLibraryPage(pageReqVO);
         if (CollUtil.isEmpty(pageResult.getList())) {
             return success(PageResult.empty());
         }
-        PageResult<MaterialLibraryPageRespVO> bean = BeanUtils.toBean(pageResult, MaterialLibraryPageRespVO.class);
-        bean.getList().forEach(reqVO ->{
-            reqVO.setCreateName(adminUserApi.getUser(reqVO.getCreator()).getNickname());
-            reqVO.setFileCount(materialLibrarySliceService.getMaterialLibrarySliceCountByLibraryId(reqVO.getId()));
-        } );
 
-        return success(bean);
+
+        return success(pageResult);
     }
 
     @PostMapping("/create")
