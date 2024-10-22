@@ -123,6 +123,9 @@ public class CreativePlanExecuteManager {
 
             // 创作内容任务数据整合处理
             ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse);
+            // 新的总数。
+            int total = getTotal(planResponse, CollectionUtil.emptyIfNull(batchRequest.getContentRequestList()).size());
+            planResponse.setTotalCount(total);
 
             // 新增一条计划批次
             String batchUid = this.createPlanBatch(planResponse);
@@ -133,7 +136,7 @@ public class CreativePlanExecuteManager {
             // 更新批次状态为执行中
             this.updatePlanBatchExecuting(batchUid);
 
-            // 更新计划状态为执行中
+            // 更新计划状态为执行中, 并且更新总数
             this.updatePlanExecuting(planUid);
 
             // 返回执行结果
@@ -301,6 +304,23 @@ public class CreativePlanExecuteManager {
         contentBatchRequest.setMessage(message);
         contentBatchRequest.setContentRequestList(handleContentRequestList);
         return contentBatchRequest;
+    }
+
+    /**
+     * 获取任务总数
+     *
+     * @param plan          计划
+     * @param computedTotal 计算的总数
+     * @return 总数
+     */
+    private Integer getTotal(CreativePlanRespVO plan, Integer computedTotal) {
+        // 获取到使用模式，如果是选择执行，则直接返回计算的总数
+        AppMarketRespVO appInformation = plan.getConfiguration().getAppInformation();
+        MaterialUsageModel materialUsageModel = materialUsageModel(appInformation.getStepByHandler(MaterialActionHandler.class));
+        if (MaterialUsageModel.SELECT.equals(materialUsageModel)) {
+            return computedTotal;
+        }
+        return plan.getTotalCount();
     }
 
     /**
