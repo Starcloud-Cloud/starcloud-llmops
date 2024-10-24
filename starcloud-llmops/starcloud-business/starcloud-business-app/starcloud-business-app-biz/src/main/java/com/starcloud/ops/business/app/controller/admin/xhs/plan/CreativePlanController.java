@@ -12,8 +12,15 @@ import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.Creat
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanListQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.PlanExecuteRequest;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -127,10 +134,17 @@ public class CreativePlanController {
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
-        PlanExecuteRequest executeRequest = new PlanExecuteRequest();
-        executeRequest.setUid(request.getUid());
-        executeRequest.setParams(Collections.emptyMap());
-        return CommonResult.success(creativePlanExecuteManager.execute(executeRequest));
+        PlanExecuteRequest planExecuteRequest = new PlanExecuteRequest();
+        planExecuteRequest.setPlanUid(request.getUid());
+        planExecuteRequest.setMaterialList(Collections.emptyList());
+        return CommonResult.success(creativePlanExecuteManager.execute(planExecuteRequest));
+    }
+
+    @PostMapping("/run")
+    @Operation(summary = "执行创作计划", description = "执行创作计划")
+    @ApiOperationSupport(order = 90, author = "nacoyer")
+    public CommonResult<PlanExecuteResult> run(@Validated @RequestBody PlanExecuteRequest request) {
+        return CommonResult.success(creativePlanExecuteManager.execute(request));
     }
 
     @PostMapping("/cancel")

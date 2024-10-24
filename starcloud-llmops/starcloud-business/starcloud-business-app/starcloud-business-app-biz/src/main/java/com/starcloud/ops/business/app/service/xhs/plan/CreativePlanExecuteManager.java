@@ -34,6 +34,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.plan.ContentBatchRequest;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
@@ -107,13 +108,20 @@ public class CreativePlanExecuteManager {
     /**
      * 计划执行
      *
-     * @param request 执行请求
+     * @param request 计划UID
      * @return 执行结果
      */
     @Transactional(rollbackFor = Exception.class)
     public PlanExecuteResult execute(PlanExecuteRequest request) {
-        String planUid = request.getUid();
-        AppValidate.notBlank(planUid, "计划执行失败：计划UID不能为空！");
+        // 计划状态，只能修改待执行、已完成、失败的创作计划
+        if (!CreativePlanStatusEnum.canModifyStatus(request.getPlanUid())) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：计划UID为必填！");
+        }
+
+        String planUid = request.getPlanUid();
+        List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
+        // 素材校验
+
         RLock lock = redissonClient.getLock(lockKey(planUid));
 
         try {
@@ -123,10 +131,10 @@ public class CreativePlanExecuteManager {
             }
 
             // 获取并且校验计划
-            CreativePlanRespVO planResponse = this.getAndValidate(request);
+            CreativePlanRespVO planResponse = this.getAndValidate(planUid);
 
             // 创作内容任务数据整合处理
-            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse);
+            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse, materialList);
             // 新的总数。
             int total = getTotal(planResponse, CollectionUtil.emptyIfNull(batchRequest.getContentRequestList()).size());
             planResponse.setTotalCount(total);
@@ -168,12 +176,13 @@ public class CreativePlanExecuteManager {
     /**
      * 获取并且校验计划
      *
-     * @param request 计划UID
+     * @param planUid 计划UID
      * @return 计划
      */
-    private CreativePlanRespVO getAndValidate(PlanExecuteRequest request) {
+    private CreativePlanRespVO getAndValidate(String planUid) {
 
-        CreativePlanRespVO planResponse = creativePlanService.get(request.getUid());
+        AppValidate.notBlank(planUid, "计划执行失败：计划UID不能为空！");
+        CreativePlanRespVO planResponse = creativePlanService.get(planUid);
 
         // 计划状态，只能修改待执行、已完成、失败的创作计划
         if (!CreativePlanStatusEnum.canModifyStatus(planResponse.getStatus())) {
@@ -188,11 +197,8 @@ public class CreativePlanExecuteManager {
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         AppValidate.notNull(configuration, "计划执行失败：计划配置不能为空！");
 
-        // 处理一下计划配置信息
-        this.handlerConfiguration(configuration, request);
-
         // 计划配置校验
-        List< Verification > verifications = configuration.validate(request.getUid(), ValidateTypeEnum.EXECUTE, true);
+        List<Verification> verifications = configuration.validate(planUid, ValidateTypeEnum.EXECUTE, true);
         if (CollectionUtil.isNotEmpty(verifications)) {
             Verification verification = verifications.get(0);
             throw ServiceExceptionUtil.invalidParamException(verification.getMessage());
@@ -202,40 +208,13 @@ public class CreativePlanExecuteManager {
     }
 
     /**
-     * 处理计划配置信息
-     *
-     * @param configuration 计划配置信息
-     * @param request       请求参数
-     */
-    private void handlerConfiguration(CreativePlanConfigurationDTO configuration, PlanExecuteRequest request) {
-        // 获取请求参数
-        Map<String, Object> params = MapUtil.emptyIfNull(request.getParams());
-
-        // 获取计划应用信息
-        AppMarketRespVO appInformation = configuration.getAppInformation();
-        AppValidate.notNull(appInformation, "计划执行失败：应用配置信息不能为空！");
-        // 获取全局变量步骤。如果没有全局变量步骤，则不进行处理
-        WorkflowStepWrapperRespVO variableStepWrapper = CreativeUtils.getVariableStepWrapper(appInformation);
-        if (Objects.isNull(variableStepWrapper)) {
-            return;
-        }
-
-        // 将参数填充到全局变量步骤中
-        params.forEach((key, value) -> {
-            // 将参数填充到全局变量步骤中
-            appInformation.putVariable(variableStepWrapper.getStepCode(), key, value);
-        });
-
-        configuration.setAppInformation(appInformation);
-    }
-
-    /**
      * 构建创作内容请求列表。
      *
      * @param planResponse 计划
      * @return 创作内容请求列表
      */
-    private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse) {
+    private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse,
+                                                        List<Map<String, Object>> materials) {
 
         /*
          * 相关数据处理准备
@@ -245,7 +224,7 @@ public class CreativePlanExecuteManager {
         // 获取素材库处理器
         AbstractMaterialHandler handler = materialHandler(metadata.getMaterialType());
         // 获取素材库素材列表
-        List<Map<String, Object>> materialList = this.materialList(planResponse);
+        List<Map<String, Object>> materialList = this.materialList(planResponse, materials);
 
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
@@ -501,9 +480,15 @@ public class CreativePlanExecuteManager {
      * @param planResponse 计划
      * @return 素材列表
      */
-    private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse) {
+    private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse,
+                                                   List<Map<String, Object>> materials) {
         try {
             log.info("开始获取素材库列表");
+            // 如果上传素材不为空，直接返回
+            if (CollectionUtil.isNotEmpty(materials)) {
+                return materials;
+            }
+
             List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
             // 素材库步骤不为空的话，上传素材不能为空
             AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
