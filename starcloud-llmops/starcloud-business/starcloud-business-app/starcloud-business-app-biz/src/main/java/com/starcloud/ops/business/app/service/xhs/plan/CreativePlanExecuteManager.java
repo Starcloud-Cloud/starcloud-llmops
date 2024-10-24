@@ -112,7 +112,7 @@ public class CreativePlanExecuteManager {
     @Transactional(rollbackFor = Exception.class)
     public PlanExecuteResult execute(PlanExecuteRequest request) {
         // 计划状态，只能修改待执行、已完成、失败的创作计划
-        if (!CreativePlanStatusEnum.canModifyStatus(request.getPlanUid())) {
+        if (StringUtils.isBlank(request.getPlanUid())) {
             throw ServiceExceptionUtil.invalidParamException("计划执行失败：计划UID为必填！");
         }
 
