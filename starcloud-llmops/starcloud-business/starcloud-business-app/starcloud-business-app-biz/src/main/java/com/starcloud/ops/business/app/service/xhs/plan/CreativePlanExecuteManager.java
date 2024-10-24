@@ -32,6 +32,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.plan.ContentBatchRequest;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
@@ -105,11 +106,20 @@ public class CreativePlanExecuteManager {
     /**
      * 计划执行
      *
-     * @param planUid 计划UID
+     * @param request 计划UID
      * @return 执行结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public PlanExecuteResult execute(String planUid) {
+    public PlanExecuteResult execute(PlanExecuteRequest request) {
+        // 计划状态，只能修改待执行、已完成、失败的创作计划
+        if (!CreativePlanStatusEnum.canModifyStatus(request.getPlanUid())) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：计划UID为必填！");
+        }
+
+        String planUid = request.getPlanUid();
+        List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
+        // 素材校验
+
         RLock lock = redissonClient.getLock(lockKey(planUid));
 
         try {
@@ -122,7 +132,7 @@ public class CreativePlanExecuteManager {
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
 
             // 创作内容任务数据整合处理
-            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse);
+            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse, materialList);
             // 新的总数。
             int total = getTotal(planResponse, CollectionUtil.emptyIfNull(batchRequest.getContentRequestList()).size());
             planResponse.setTotalCount(total);
@@ -201,7 +211,8 @@ public class CreativePlanExecuteManager {
      * @param planResponse 计划
      * @return 创作内容请求列表
      */
-    private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse) {
+    private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse,
+                                                        List<Map<String, Object>> materials) {
 
         /*
          * 相关数据处理准备
@@ -211,7 +222,7 @@ public class CreativePlanExecuteManager {
         // 获取素材库处理器
         AbstractMaterialHandler handler = materialHandler(metadata.getMaterialType());
         // 获取素材库素材列表
-        List<Map<String, Object>> materialList = this.materialList(planResponse);
+        List<Map<String, Object>> materialList = this.materialList(planResponse, materials);
 
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
@@ -467,9 +478,15 @@ public class CreativePlanExecuteManager {
      * @param planResponse 计划
      * @return 素材列表
      */
-    private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse) {
+    private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse,
+                                                   List<Map<String, Object>> materials) {
         try {
             log.info("开始获取素材库列表");
+            // 如果上传素材不为空，直接返回
+            if (CollectionUtil.isNotEmpty(materials)) {
+                return materials;
+            }
+
             List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
             // 素材库步骤不为空的话，上传素材不能为空
             AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
