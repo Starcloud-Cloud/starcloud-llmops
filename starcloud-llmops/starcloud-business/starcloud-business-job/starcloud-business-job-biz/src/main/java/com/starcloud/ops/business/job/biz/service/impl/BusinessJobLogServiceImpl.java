@@ -2,7 +2,9 @@ package com.starcloud.ops.business.job.biz.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
@@ -14,6 +16,7 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJ
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.CozeJobLogRespVO;
 import com.starcloud.ops.business.job.biz.convert.BusinessJobLogConvert;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobLogDO;
+import com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO;
 import com.starcloud.ops.business.job.biz.dal.mysql.BusinessJobLogMapper;
 import com.starcloud.ops.business.job.biz.service.BusinessJobLogService;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
@@ -80,5 +83,16 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
             resp.setLibraryName(libraryName);
         });
         return result;
+    }
+
+    @Override
+    public PageResult<JobLogDTO> pluginLog(PageParam pageParam) {
+        Long count = businessJobLogMapper.count();
+        if (Objects.isNull(count) || count < 1) {
+            return PageResult.empty();
+        }
+        List<JobLogDTO> result = businessJobLogMapper.pluginLog(PageUtils.getStart(pageParam), pageParam.getPageSize());
+        result.stream().forEach(BusinessJobLogConvert.INSTANCE::convert);
+        return PageResult.of(result, count);
     }
 }
