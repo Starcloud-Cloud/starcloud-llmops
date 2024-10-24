@@ -92,7 +92,7 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
             return PageResult.empty();
         }
         List<JobLogDTO> result = businessJobLogMapper.pluginLog(PageUtils.getStart(pageParam), pageParam.getPageSize());
-        result.stream().forEach(BusinessJobLogConvert.INSTANCE::convert);
+        result.forEach(BusinessJobLogConvert.INSTANCE::convert);
         return PageResult.of(result, count);
     }
 }
