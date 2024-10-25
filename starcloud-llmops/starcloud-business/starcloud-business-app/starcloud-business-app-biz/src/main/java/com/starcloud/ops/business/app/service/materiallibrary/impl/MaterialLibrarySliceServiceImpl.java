@@ -132,7 +132,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      * @param createReqVO 批量创建VO
      */
     @Override
-    public void createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
+    public List<Long> createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
         Optional<Long> libraryId = createReqVO.getSaveReqVOS().stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst();
 
         if (!libraryId.isPresent()) {
@@ -141,9 +141,8 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId.get());
         deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
 
-
         if (createReqVO.getSaveReqVOS().isEmpty()) {
-            return;
+            return new ArrayList<>();
         }
         List<Long> libraryIds = createReqVO.getSaveReqVOS().stream()
                 .map(MaterialLibrarySliceSaveReqVO::getLibraryId)
@@ -161,7 +160,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         handleImageValue(tableColumnDOList, saveReqVOS, libraryIds.get(0));
 
-        this.batchSaveDataDesc(createReqVO.getSaveReqVOS());
+        return this.batchSaveDataDesc(createReqVO.getSaveReqVOS());
     }
 
     public void handleImageValue(List<MaterialLibraryTableColumnDO> tableColumnDOList,
@@ -684,7 +683,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      * @param saveReqVOS saveReqVOS
      */
     @Override
-    public void batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> saveReqVOS) {
+    public List<Long> batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> saveReqVOS) {
 
 
         Long libraryId = saveReqVOS.stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst().orElse(null);
@@ -718,6 +717,10 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         List<MaterialLibrarySliceDO> bean = BeanUtil.copyToList(descSaveReqVOS, MaterialLibrarySliceDO.class);
 
         materialLibrarySliceMapper.insertBatch(bean);
+
+        return bean.stream().map(MaterialLibrarySliceDO::getId).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+
+
 
     }
 
