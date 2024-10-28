@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
+import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
@@ -21,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -128,26 +128,22 @@ public abstract class AbstractMaterialHandler {
     /**
      * 处理资料库列表，返回处理后的资料库列表
      *
-     * @param materialList    资料库列表
-     * @param posterStyleList 海报风格列表
+     * @param materialList   资料库列表
+     * @param posterStyleMap 海报风格列表
      * @return 处理后的资料库列表
      */
-    public Map<Integer, List<Map<String, Object>>> handleMaterialMap(List<Map<String, Object>> materialList, List<PosterStyleDTO> posterStyleList, MaterialMetadata metadata) {
-        if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(posterStyleList)) {
-            return Collections.emptyMap();
-        }
+    public Map<String, List<Map<String, Object>>> handleMaterialMap(List<Map<String, Object>> materialList,
+                                                                    Map<String, PosterStyleDTO> posterStyleMap,
+                                                                    MaterialMetadata metadata) {
 
-        List<Integer> needMaterialSizeList = computeNeedMaterialSize(posterStyleList);
-        if (CollectionUtil.isEmpty(needMaterialSizeList)) {
-            return Collections.emptyMap();
-        }
-        Map<Integer, List<Map<String, Object>>> map = this.doHandleMaterialMap(materialList, needMaterialSizeList, metadata);
+        Map<String, List<Map<String, Object>>> map = this.doHandleMaterialMap(materialList, posterStyleMap, metadata);
 
         // 素材使用量增加
         List<Map<String, Object>> list = new ArrayList<>();
         map.values().forEach(list::addAll);
         // 去重
-        list = new ArrayList<>(list.stream().collect(Collectors.toMap(m -> m.get("__id__"), m -> m, (existing, replacement) -> existing)).values());
+        // list = new ArrayList<>(list.stream().collect(Collectors.toMap(m -> m.get("__id__"), m -> m, (existing,
+        // replacement) -> existing)).values());
         List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
         for (Map<String, Object> mapItem : list) {
             Long id = (Long) mapItem.get("__id__");
@@ -248,32 +244,8 @@ public abstract class AbstractMaterialHandler {
                                               MaterialMetadata metadata) {
         // 计算每个海报风格需要的素材数量
         List<Integer> needMaterialSize = computeNeedMaterialSize(posterStyleList);
-        if (CollectionUtil.isEmpty(needMaterialSize)) {
-            return PlanTotalCount.of(0);
-        }
-
         // 获取素材字段配置
-        List<MaterialFieldConfigDTO> materialFieldList = metadata.getMaterialFieldList();
-        if (CollectionUtil.isEmpty(materialFieldList)) {
-            return this.calculateNoGroupTotalCount(materialList, needMaterialSize);
-        }
-
-        // 如果没有分组字段，则定义一个默认分组字段，作为默认分组字段
-        MaterialFieldConfigDTO defaultGroup = new MaterialFieldConfigDTO();
-        defaultGroup.setFieldName(GROUP);
-        defaultGroup.setIsGroupField(Boolean.TRUE);
-        // 获取分组字段
-        MaterialFieldConfigDTO groupField = materialFieldList.stream()
-                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
-                .findFirst()
-                .orElse(defaultGroup);
-
-        // 如果分组字段为空，按照默认的计算逻辑进行计算
-        if (StringUtil.isBlank(groupField.getFieldName())) {
-            return this.calculateNoGroupTotalCount(materialList, needMaterialSize);
-        }
-
-        String group = groupField.getFieldName();
+        String group = getGroupField(metadata.getMaterialFieldList());
 
         // 分组字段不为空的素材
         List<Map<String, Object>> groupMaterial = materialList.stream()
@@ -317,7 +289,10 @@ public abstract class AbstractMaterialHandler {
             loopCount++;
             for (int i = 0; i < needMaterialSize.size(); i++) {
                 int currentNeed = needMaterialSize.get(i);
-
+                // 如果素材数量为0，直接返回
+                if (currentMaterialSize == 0) {
+                    return PlanTotalCount.of(totalCount);
+                }
                 if (currentNeed > currentMaterialSize) {
                     // 如果是第一次循环，并且是第一个海报风格，说明素材数量不足
                     if (loopCount == 1 && i == 0) {
@@ -338,92 +313,86 @@ public abstract class AbstractMaterialHandler {
     /**
      * 处理素材为一个Map，如果需要不同的分组逻辑，子类重写此方法即可
      *
-     * @param materialList     素材列表
-     * @param materialSizeList 每个海报风格需要的素材数量
+     * @param materialList   素材列表
+     * @param posterStyleMap 海报风格列表
      * @return 海报素材 map
      */
-    protected Map<Integer, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList, List<Integer> materialSizeList, MaterialMetadata metadata) {
+    protected Map<String, List<Map<String, Object>>> doHandleMaterialMap(List<Map<String, Object>> materialList,
+                                                                         Map<String, PosterStyleDTO> posterStyleMap,
+                                                                         MaterialMetadata metadata) {
 
         // 复制一份素材列表，防止修改原始数据
         List<Map<String, Object>> copyMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
+        // 获取素材字段配置，前面已经做过校验，不需要校验
+        String group = getGroupField(metadata.getMaterialFieldList());
 
-        // 获取素材字段配置
-        List<MaterialFieldConfigDTO> materialFieldList = metadata.getMaterialFieldList();
-        if (CollectionUtil.isEmpty(materialFieldList)) {
-            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
-        }
-
-        // 如果没有分组字段，则定义一个默认分组字段，作为默认分组字段
-        MaterialFieldConfigDTO defaultGroup = new MaterialFieldConfigDTO();
-        defaultGroup.setFieldName(GROUP);
-        defaultGroup.setIsGroupField(Boolean.TRUE);
-        // 获取分组字段
-        MaterialFieldConfigDTO groupField = materialFieldList.stream()
-                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
-                .findFirst()
-                .orElse(defaultGroup);
-
-        // 如果分组字段为空，直接按照默认的复制逻辑进行复制
-        if (StringUtil.isBlank(groupField.getFieldName())) {
-            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
-        }
-
-        String group = groupField.getFieldName();
-
-        // 分组字段不为空的素材
+        // 分组字段值不为空的素材
         List<Map<String, Object>> groupMaterial = copyMaterialList.stream()
                 .filter(Objects::nonNull).filter(item -> StringUtil.objectNotBlank(item.get(group)))
                 .collect(Collectors.toList());
 
-        // 1. 如果有分组的素材为空，直接按照默认的复制逻辑进行复制
+        // 获取素材使用模式
+        MaterialUsageModel usageModel = metadata.getMaterialUsageModel();
+
+        // 1. 如果所有的素材，分组字段值都为空，则按照默认复制逻辑复制即可。
         if (CollectionUtil.isEmpty(groupMaterial)) {
-            return this.defaultMaterialListMap(copyMaterialList, materialSizeList);
+            if (MaterialUsageModel.SELECT.equals(usageModel)) {
+                return this.defaultMaterialListMap(copyMaterialList, posterStyleMap);
+            }
+            return this.defaultCopyMaterialListMap(copyMaterialList, posterStyleMap);
         }
 
         // 将同一组的素材分组，并且保持原有的顺序。
-        LinkedHashMap<Object, List<Map<String, Object>>> collect = groupMaterial.stream()
+        LinkedHashMap<Object, List<Map<String, Object>>> materialGroupMap = groupMaterial.stream()
                 .collect(Collectors.groupingBy(item -> item.get(group), LinkedHashMap::new, Collectors.toList()));
 
-        // 2. 如果分组的数量大于等于 materialSizeList 的数量，说明分组的数量大于等于需要复制的数量，这时候，直接按照 materialSizeList 的数量进行复制即可
-        if (collect.size() >= materialSizeList.size()) {
-            Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
+        // 2.如果组的数量大于生成生成任务的数量，则按照顺序从分组中取出 posterStyleMap.size() 个分组即可
+        if (materialGroupMap.size() >= posterStyleMap.size()) {
             int index = 0;
-            for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
-                resultMap.put(index, entry.getValue());
+            Map<String, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
+            List<List<Map<String, Object>>> list = new ArrayList<>(materialGroupMap.values());
+            for (Map.Entry<String, PosterStyleDTO> entry : posterStyleMap.entrySet()) {
+                String key = entry.getKey();
+                // 数组不会越界，因为 materialGroupMap.size() >= posterStyleMap.size()
+                List<Map<String, Object>> groupList = list.get(index);
+                resultMap.put(key, groupList);
                 index++;
-                if (index >= materialSizeList.size()) {
-                    break;
-                }
             }
             return resultMap;
         }
 
         // 3. 否则，一部分按照分组复制，一部分按照默认复制逻辑复制
-        Map<Integer, List<Map<String, Object>>> groupMap = new LinkedHashMap<>();
+        Map<String, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
         int index = 0;
-        for (Map.Entry<Object, List<Map<String, Object>>> entry : collect.entrySet()) {
-            groupMap.put(index, entry.getValue());
+        Map<String, PosterStyleDTO> noHandlerMap = new LinkedHashMap<>();
+        List<List<Map<String, Object>>> list = new ArrayList<>(materialGroupMap.values());
+        for (Map.Entry<String, PosterStyleDTO> entry : posterStyleMap.entrySet()) {
+            String key = entry.getKey();
+            if (index < materialGroupMap.size()) {
+                List<Map<String, Object>> groupList = list.get(index);
+                resultMap.put(key, groupList);
+            } else {
+                noHandlerMap.put(key, entry.getValue());
+            }
             index++;
         }
 
-        // 此时不需要担心下标越界，因为 collect.size() < materialSizeList.size()
-        // 剩余的部分按照默认复制逻辑复制
-        // 截取 materialSizeList 的剩余部分
-        List<Integer> subList = materialSizeList.subList(collect.size(), materialSizeList.size());
-
         // 分组字段为空的素材
-        List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream().filter(Objects::nonNull).filter(item -> Objects.isNull(item.get(group))).collect(Collectors.toList());
+        List<Map<String, Object>> noGroupMaterial = copyMaterialList.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> Objects.isNull(item.get(group)))
+                .collect(Collectors.toList());
 
         // 将没有分组的素材按照默认复制逻辑复制
-        Map<Integer, List<Map<String, Object>>> noGroupMap = this.defaultMaterialListMap(noGroupMaterial, subList);
+        Map<String, List<Map<String, Object>>> noGroupMap;
+        if (MaterialUsageModel.SELECT.equals(usageModel)) {
+            noGroupMap = this.defaultMaterialListMap(noGroupMaterial, noHandlerMap);
+        } else {
+            noGroupMap = this.defaultCopyMaterialListMap(noGroupMaterial, noHandlerMap);
+        }
 
         // 将分组的素材和没有分组的素材合并
-        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>(groupMap);
-        int noGroupIndex = groupMap.size();
-        for (Map.Entry<Integer, List<Map<String, Object>>> entry : noGroupMap.entrySet()) {
-            resultMap.put(noGroupIndex, entry.getValue());
-            noGroupIndex++;
-        }
+        resultMap.putAll(noGroupMap);
 
         return resultMap;
     }
@@ -437,82 +406,72 @@ public abstract class AbstractMaterialHandler {
     protected List<Integer> defaultComputeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
         List<Integer> materialIndexList = new ArrayList<>();
         for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
-            // 如果风格为空，填充 0
-            if (Objects.isNull(posterStyle)) {
-                materialIndexList.add(0);
-                continue;
-            }
-
-            List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-            // 如果海报模板为空，填充 0
-            if (CollectionUtil.isEmpty(posterTemplateList)) {
-                materialIndexList.add(0);
-                continue;
-            }
-
-            // 报模板，图片变量值，获取到选择素材的最大索引列表
-            List<Integer> templateIndexList = new ArrayList<>();
-            for (PosterTemplateDTO template : posterTemplateList) {
-                // 如果海报模板为空，设置默认值为 -1
-                if (Objects.isNull(template)) {
-                    templateIndexList.add(-1);
-                    continue;
-                }
-                // 获取每一个海报模板，图片变量值，获取到选择素材的最大索引
-                Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList()).stream().filter(Objects::nonNull)
-                        //.filter(CreativeUtils::isImageVariable)
-                        .map(item -> {
-                            Integer matcher = matcherMax(String.valueOf(item.getValue()));
-                            if (matcher == -1) {
-                                return -1;
-                            }
-                            return matcher + 1;
-                        }).max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
-
-                templateIndexList.add(maxIndex);
-            }
-
-            // 所有的海报模板中获取最大的那个素材索引。如果没有，为 -1
-            Integer maxIndex = templateIndexList.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(-1);
-            if (maxIndex == -1) {
-                // 如果没有找到，设置该值为图片总数
-                materialIndexList.add(posterStyle.getTotalImageCount());
-            } else {
-                materialIndexList.add(maxIndex);
-            }
+            materialIndexList.add(computePosterStyleNeedMaterialSize(posterStyle));
         }
         return materialIndexList;
     }
 
     /**
-     * 默认逻辑： 将资料库列表按照指定的大小和总数进行分组
-     * 不会进行复制素材
+     * 计算海报风格需要的素材数量
      *
-     * @param materialList 资料库列表
-     * @param needSizeList 需要复制的列表
+     * @param posterStyle 海报风格
+     * @return 需要的素材数量
+     */
+    protected Integer computePosterStyleNeedMaterialSize(PosterStyleDTO posterStyle) {
+        // posterTemplateList 不会为空，前面已经做过校验
+        List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+        int needMaterialSize = 0;
+        for (PosterTemplateDTO template : posterTemplateList) {
+            // 计算每一个模板需要的素材数量，即每一个模板中选择的素材的最大索引 +1
+            // 如果整个图片模板未曾引用过素材，则整个模板需要的素材数量为 0
+            Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList())
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(item -> {
+                        Integer matcher = matcherMax(String.valueOf(item.getValue()));
+                        if (matcher == -1) {
+                            return -1;
+                        }
+                        return matcher + 1;
+                    }).max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+
+            needMaterialSize += maxIndex;
+        }
+        return needMaterialSize;
+    }
+
+    /**
+     * 默认逻辑： 将资料库列表按照指定的大小和总数进行分组
+     * 进行复制素材库。
+     *
+     * @param materialList   资料库列表
+     * @param posterStyleMap 需要复制的列表
      * @return 分组后的资料库列表
      */
-    protected Map<Integer, List<Map<String, Object>>> defaultCopyMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
+    protected Map<String, List<Map<String, Object>>> defaultCopyMaterialListMap(List<Map<String, Object>> materialList,
+                                                                                Map<String, PosterStyleDTO> posterStyleMap) {
         // 结果集合
-        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
+        Map<String, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
-        // 如果素材列表为空或者需要复制的数量集合为空
-        if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(needSizeList)) {
-            return resultMap;
+        // 获取每一个风格需要的素材数量的Map
+        Map<String, Integer> needSizeMap = new LinkedHashMap<>();
+        int index = 0;
+        for (Map.Entry<String, PosterStyleDTO> entry : posterStyleMap.entrySet()) {
+            PosterStyleDTO posterStyle = entry.getValue();
+            Integer size = computePosterStyleNeedMaterialSize(posterStyle);
+            if (materialList.size() < size && index == 0) {
+                throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记，请添加素材后重试！");
+            }
+            needSizeMap.put(entry.getKey(), size);
+            index++;
         }
 
-        // 处理制的数量集合
-        needSizeList = needSizeList.stream().map(item -> {
-            if (item == null || item <= 0) {
-                return 0;
-            }
-            return item;
-        }).collect(Collectors.toList());
+        List<Map<String, Object>> copiedMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
 
         // 记录原始素材列表的大小
         int originalSize = materialList.size();
-        // 计算需要复制的总数
-        int copyTotal = needSizeList.stream().mapToInt(Integer::intValue).sum();
+        // 计算所有海报风格需要的素材数量
+        int copyTotal = needSizeMap.values().stream().mapToInt(Integer::intValue).sum();
 
         // 如果素材列表的数量小于需要复制的总数，说明需要进行复制。
         if (originalSize < copyTotal) {
@@ -520,16 +479,16 @@ public abstract class AbstractMaterialHandler {
             int requiredSize = copyTotal - originalSize;
             // 将imageList从头开始按顺序复制，直至满足扩容要求
             for (int i = 0; i < requiredSize; i++) {
-                materialList.add(materialList.get(i % originalSize));
+                copiedMaterialList.add(materialList.get(i % originalSize));
             }
         }
 
         // 扩容后按照顺序复制图片
         int currentIndex = 0;
-        for (int i = 0; i < needSizeList.size(); i++) {
-            int size = needSizeList.get(i);
-            List<Map<String, Object>> copiedImages = new ArrayList<>(materialList.subList(currentIndex, currentIndex + size));
-            resultMap.put(i, copiedImages);
+        for (Map.Entry<String, Integer> entry : needSizeMap.entrySet()) {
+            int size = entry.getValue();
+            List<Map<String, Object>> subList = new ArrayList<>(copiedMaterialList.subList(currentIndex, currentIndex + size));
+            resultMap.put(entry.getKey(), subList);
             currentIndex += size;
         }
 
@@ -539,47 +498,69 @@ public abstract class AbstractMaterialHandler {
     /**
      * 默认逻辑： 将资料库列表按照指定的大小和总数进行分组
      *
-     * @param materialList 资料库列表
-     * @param needSizeList 需要复制的列表
+     * @param materialList   资料库列表
+     * @param posterStyleMap 需要复制的列表
      * @return 分组后的资料库列表
      */
-    protected Map<Integer, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList, List<Integer> needSizeList) {
+    protected Map<String, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList,
+                                                                            Map<String, PosterStyleDTO> posterStyleMap) {
         // 结果集合
-        Map<Integer, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
+        Map<String, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
-        // 如果素材列表为空或者需要复制的数量集合为空
-        if (CollectionUtil.isEmpty(materialList) || CollectionUtil.isEmpty(needSizeList)) {
-            return resultMap;
-        }
-
-        // 处理制的数量集合
-        needSizeList = needSizeList.stream().map(item -> {
-            if (item == null || item <= 0) {
-                return 0;
+        // 获取每一个风格需要的素材数量的Map
+        Map<String, Integer> needSizeMap = new LinkedHashMap<>();
+        int index = 0;
+        for (Map.Entry<String, PosterStyleDTO> entry : posterStyleMap.entrySet()) {
+            PosterStyleDTO posterStyle = entry.getValue();
+            Integer size = computePosterStyleNeedMaterialSize(posterStyle);
+            if (materialList.size() < size && index == 0) {
+                throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记，请添加素材后重试！");
             }
-            return item;
-        }).collect(Collectors.toList());
+            needSizeMap.put(entry.getKey(), size);
+            index++;
+        }
 
         // 记录原始素材列表的大小
         int originalSize = materialList.size();
         int currentIndex = 0;
-        for (int i = 0; i < needSizeList.size(); i++) {
-            int currentNeed = needSizeList.get(i);
+        for (Map.Entry<String, Integer> entry : needSizeMap.entrySet()) {
+            String key = entry.getKey();
+            int currentNeed = entry.getValue();
             if (currentNeed > originalSize) {
-                if (i == 0) {
+                if (currentIndex == 0) {
                     throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记，请添加素材后重试！");
                 } else {
                     break;
                 }
             } else {
                 List<Map<String, Object>> subMaterialList = new ArrayList<>(materialList.subList(currentIndex, currentIndex + currentNeed));
-                resultMap.put(i, subMaterialList);
+                resultMap.put(key, subMaterialList);
                 currentIndex += currentNeed;
                 originalSize -= currentNeed;
             }
-
         }
 
         return resultMap;
+    }
+
+    /**
+     * 获取分组字段
+     *
+     * @param materialFieldList 素材字段配置
+     * @return 分组字段
+     */
+    protected String getGroupField(List<MaterialFieldConfigDTO> materialFieldList) {
+        // 如果没有分组字段，则定义一个默认分组字段，作为默认分组字段
+        MaterialFieldConfigDTO defaultGroup = new MaterialFieldConfigDTO();
+        defaultGroup.setFieldName(GROUP);
+        defaultGroup.setIsGroupField(Boolean.TRUE);
+
+        // 获取分组字段
+        MaterialFieldConfigDTO groupField = materialFieldList.stream()
+                .filter(item -> Objects.nonNull(item.getIsGroupField()) && Objects.equals(item.getIsGroupField(), Boolean.TRUE))
+                .findFirst()
+                .orElse(defaultGroup);
+
+        return groupField.getFieldName();
     }
 }

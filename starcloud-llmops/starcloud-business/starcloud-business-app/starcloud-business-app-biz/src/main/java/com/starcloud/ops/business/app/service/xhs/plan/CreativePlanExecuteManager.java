@@ -32,6 +32,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.plan.ContentBatchRequest;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
@@ -54,6 +55,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -105,11 +108,20 @@ public class CreativePlanExecuteManager {
     /**
      * 计划执行
      *
-     * @param planUid 计划UID
+     * @param request 计划UID
      * @return 执行结果
      */
     @Transactional(rollbackFor = Exception.class)
-    public PlanExecuteResult execute(String planUid) {
+    public PlanExecuteResult execute(PlanExecuteRequest request) {
+        // 计划状态，只能修改待执行、已完成、失败的创作计划
+        if (StringUtils.isBlank(request.getPlanUid())) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：计划UID为必填！");
+        }
+
+        String planUid = request.getPlanUid();
+        List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
+        // 素材校验
+
         RLock lock = redissonClient.getLock(lockKey(planUid));
 
         try {
@@ -122,7 +134,7 @@ public class CreativePlanExecuteManager {
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
 
             // 创作内容任务数据整合处理
-            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse);
+            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse, materialList);
             // 新的总数。
             int total = getTotal(planResponse, CollectionUtil.emptyIfNull(batchRequest.getContentRequestList()).size());
             planResponse.setTotalCount(total);
@@ -201,7 +213,8 @@ public class CreativePlanExecuteManager {
      * @param planResponse 计划
      * @return 创作内容请求列表
      */
-    private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse) {
+    private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse,
+                                                        List<Map<String, Object>> materials) {
 
         /*
          * 相关数据处理准备
@@ -211,35 +224,13 @@ public class CreativePlanExecuteManager {
         // 获取素材库处理器
         AbstractMaterialHandler handler = materialHandler(metadata.getMaterialType());
         // 获取素材库素材列表
-        List<Map<String, Object>> materialList = this.materialList(planResponse);
-
+        List<Map<String, Object>> materialList = this.materialList(planResponse, materials);
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         // 获取海报风格配置
         AppMarketRespVO appInformation = configuration.getAppInformation();
         // 获取图片风格列表
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-
-        /*
-         * 构建创作内容执行参数列表
-         */
-        // 构建创作内容执行参数列表
-        List<CreativeContentExecuteParam> contentExecuteList = CollectionUtil.newArrayList();
-        // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
-        for (PosterStyleDTO posterStyle : posterStyleList) {
-            if (!posterStyle.getEnable()) {
-                continue;
-            }
-            // 校验海报样式
-            handler.validatePosterStyle(posterStyle);
-            // 处理并且填充应用
-            AppMarketRespVO appMarketResponse = this.handlerExecuteApp(appInformation);
-            // 将处理后的应用填充到执行参数中
-            appMarketResponse.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
-            CreativeContentExecuteParam planExecute = new CreativeContentExecuteParam();
-            planExecute.setAppInformation(appMarketResponse);
-            contentExecuteList.add(planExecute);
-        }
 
         /*
          * 计算需要生成的任务总数
@@ -259,37 +250,55 @@ public class CreativePlanExecuteManager {
          * 根据总数创建批量任务
          */
         List<CreativeContentCreateReqVO> contentRequestList = Lists.newArrayList();
+        Map<String, PosterStyleDTO> posterStyleMap = new LinkedHashMap<>();
+
         for (int index = 0; index < totalCount; index++) {
             // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
-            int sequenceInt = index % contentExecuteList.size();
-            CreativeContentExecuteParam contentExecuteParam = SerializationUtils.clone(contentExecuteList.get(sequenceInt));
-            CreativeContentCreateReqVO contentRequest = this.buildContentRequest(planResponse, contentExecuteParam);
-            contentRequestList.add(contentRequest);
+            int sequenceInt = index % posterStyleList.size();
+            PosterStyleDTO posterStyle = SerializationUtils.clone(posterStyleList.get(sequenceInt));
+            // 获取到待执行的应用信息
+            AppMarketRespVO appMarketResponse = this.handlerExecuteApp(appInformation);
+            // 将执行的海报风格填充到应用中
+            appMarketResponse.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
+
+            // 创建创作内容请求参数
+            CreativeContentExecuteParam contentExecuteParam = new CreativeContentExecuteParam();
+            contentExecuteParam.setAppInformation(appMarketResponse);
+
+            // 构造创作内容创建请求
+            CreativeContentCreateReqVO createContentRequest = new CreativeContentCreateReqVO();
+            createContentRequest.setPlanUid(planResponse.getUid());
+            createContentRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
+            createContentRequest.setType(CreativeContentTypeEnum.ALL.name());
+            createContentRequest.setSource(planResponse.getSource());
+            createContentRequest.setExecuteParam(contentExecuteParam);
+            // 将创作内容请求添加到列表中
+            contentRequestList.add(createContentRequest);
+            posterStyleMap.put(createContentRequest.getConversationUid(), posterStyle);
         }
 
-        // 从创作内容任务列表中获取每个任务的海报配置，组成列表。总数为任务总数。
-        List<PosterStyleDTO> handlerPosterStyleList = getPosterStyleListFromRequest(contentRequestList, metadata.getPosterStepId());
         // 对每一个风格进行素材的分配
-        Map<Integer, List<Map<String, Object>>> materialMap = handler.handleMaterialMap(materialList, handlerPosterStyleList, metadata);
+        Map<String, List<Map<String, Object>>> materialMap = handler.handleMaterialMap(materialList, posterStyleMap, metadata);
 
         /*
          * 二次处理创作内容请求列表
          */
         List<CreativeContentCreateReqVO> handleContentRequestList = Lists.newArrayList();
-        for (int index = 0; index < contentRequestList.size(); index++) {
-            CreativeContentCreateReqVO contentCreateRequest = contentRequestList.get(index);
+        for (CreativeContentCreateReqVO contentCreateRequest : contentRequestList) {
+
             CreativeContentExecuteParam contentExecute = contentCreateRequest.getExecuteParam();
             // 获取应用，处理海报相关信息
             AppMarketRespVO executeAppInformation = contentExecute.getAppInformation();
             // 获取待执行的海报风格
-            PosterStyleDTO posterStyle = this.getExecutePosterStyle(metadata.getPosterStepId(), executeAppInformation);
-            if (Objects.isNull(posterStyle)) {
-                continue;
-            }
+            PosterStyleDTO posterStyle = posterStyleMap.get(contentCreateRequest.getConversationUid());
+
             // 获取到该风格下的素材列表
-            List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
+            List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(contentCreateRequest.getConversationUid(),
+                    Collections.emptyList());
+
             // 不同的处理器处理海报风格
             PosterStyleDTO style = handler.handlePosterStyle(posterStyle, handleMaterialList, metadata);
+
             // 将处理后的海报风格填充到执行参数中
             executeAppInformation.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
             // 将素材库的素材列表填充上传素材步骤变量中
@@ -467,9 +476,15 @@ public class CreativePlanExecuteManager {
      * @param planResponse 计划
      * @return 素材列表
      */
-    private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse) {
+    private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse,
+                                                   List<Map<String, Object>> materials) {
         try {
             log.info("开始获取素材库列表");
+            // 如果上传素材不为空，直接返回
+            if (CollectionUtil.isNotEmpty(materials)) {
+                return materials;
+            }
+
             List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
             // 素材库步骤不为空的话，上传素材不能为空
             AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
@@ -601,9 +616,13 @@ public class CreativePlanExecuteManager {
      */
     private List<PosterStyleDTO> posterStyleList(CreativePlanConfigurationDTO configuration) {
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-
-        posterStyleList = CreativeUtils.mergeImagePosterStyleList(posterStyleList, configuration.getAppInformation());
-        return CreativeUtils.preHandlerPosterStyleList(posterStyleList);
+        // 合并海报风格列表, 从系统配置的海报风格中获取最新的海报风格
+        List<PosterStyleDTO> merged = CreativeUtils.mergeImagePosterStyleList(posterStyleList, configuration.getAppInformation());
+        List<PosterStyleDTO> list = CreativeUtils.preHandlerPosterStyleList(merged);
+        if (CollectionUtil.isEmpty(list)) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：海报风格配置不能为空，请联系管理员！");
+        }
+        return list;
     }
 
     /**
@@ -631,22 +650,4 @@ public class CreativePlanExecuteManager {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * 构造创作内容创建请求
-     *
-     * @param planResponse        计划
-     * @param contentExecuteParam 执行参数
-     * @return 创作内容创建请求
-     */
-    private CreativeContentCreateReqVO buildContentRequest(CreativePlanRespVO planResponse, CreativeContentExecuteParam contentExecuteParam) {
-
-        // 构造创作内容创建请求
-        CreativeContentCreateReqVO createContentRequest = new CreativeContentCreateReqVO();
-        createContentRequest.setPlanUid(planResponse.getUid());
-        createContentRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
-        createContentRequest.setType(CreativeContentTypeEnum.ALL.name());
-        createContentRequest.setSource(planResponse.getSource());
-        createContentRequest.setExecuteParam(contentExecuteParam);
-        return createContentRequest;
-    }
 }
