@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -223,34 +224,12 @@ public class CreativePlanExecuteManager {
         AbstractMaterialHandler handler = materialHandler(metadata.getMaterialType());
         // 获取素材库素材列表
         List<Map<String, Object>> materialList = this.materialList(planResponse, materials);
-
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         // 获取海报风格配置
         AppMarketRespVO appInformation = configuration.getAppInformation();
         // 获取图片风格列表
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-
-        /*
-         * 构建创作内容执行参数列表
-         */
-        // 构建创作内容执行参数列表
-        List<CreativeContentExecuteParam> contentExecuteList = CollectionUtil.newArrayList();
-        // 如果有海报步骤，则需要创建多个执行参数, 每一个海报参数创建一个执行参数
-        for (PosterStyleDTO posterStyle : posterStyleList) {
-            if (!posterStyle.getEnable()) {
-                continue;
-            }
-            // 校验海报样式
-            handler.validatePosterStyle(posterStyle);
-            // 处理并且填充应用
-            AppMarketRespVO appMarketResponse = this.handlerExecuteApp(appInformation);
-            // 将处理后的应用填充到执行参数中
-            appMarketResponse.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
-            CreativeContentExecuteParam planExecute = new CreativeContentExecuteParam();
-            planExecute.setAppInformation(appMarketResponse);
-            contentExecuteList.add(planExecute);
-        }
 
         /*
          * 计算需要生成的任务总数
@@ -270,37 +249,55 @@ public class CreativePlanExecuteManager {
          * 根据总数创建批量任务
          */
         List<CreativeContentCreateReqVO> contentRequestList = Lists.newArrayList();
+        Map<String, PosterStyleDTO> posterStyleMap = new HashMap<>();
+
         for (int index = 0; index < totalCount; index++) {
             // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
-            int sequenceInt = index % contentExecuteList.size();
-            CreativeContentExecuteParam contentExecuteParam = SerializationUtils.clone(contentExecuteList.get(sequenceInt));
-            CreativeContentCreateReqVO contentRequest = this.buildContentRequest(planResponse, contentExecuteParam);
-            contentRequestList.add(contentRequest);
+            int sequenceInt = index % posterStyleList.size();
+            PosterStyleDTO posterStyle = SerializationUtils.clone(posterStyleList.get(sequenceInt));
+            // 获取到待执行的应用信息
+            AppMarketRespVO appMarketResponse = this.handlerExecuteApp(appInformation);
+            // 将执行的海报风格填充到应用中
+            appMarketResponse.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(posterStyle));
+
+            // 创建创作内容请求参数
+            CreativeContentExecuteParam contentExecuteParam = new CreativeContentExecuteParam();
+            contentExecuteParam.setAppInformation(appMarketResponse);
+
+            // 构造创作内容创建请求
+            CreativeContentCreateReqVO createContentRequest = new CreativeContentCreateReqVO();
+            createContentRequest.setPlanUid(planResponse.getUid());
+            createContentRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
+            createContentRequest.setType(CreativeContentTypeEnum.ALL.name());
+            createContentRequest.setSource(planResponse.getSource());
+            createContentRequest.setExecuteParam(contentExecuteParam);
+            // 将创作内容请求添加到列表中
+            contentRequestList.add(createContentRequest);
+            posterStyleMap.put(createContentRequest.getConversationUid(), posterStyle);
         }
 
-        // 从创作内容任务列表中获取每个任务的海报配置，组成列表。总数为任务总数。
-        List<PosterStyleDTO> handlerPosterStyleList = getPosterStyleListFromRequest(contentRequestList, metadata.getPosterStepId());
         // 对每一个风格进行素材的分配
-        Map<Integer, List<Map<String, Object>>> materialMap = handler.handleMaterialMap(materialList, handlerPosterStyleList, metadata);
+        Map<String, List<Map<String, Object>>> materialMap = handler.handleMaterialMap(materialList, posterStyleMap, metadata);
 
         /*
          * 二次处理创作内容请求列表
          */
         List<CreativeContentCreateReqVO> handleContentRequestList = Lists.newArrayList();
-        for (int index = 0; index < contentRequestList.size(); index++) {
-            CreativeContentCreateReqVO contentCreateRequest = contentRequestList.get(index);
+        for (CreativeContentCreateReqVO contentCreateRequest : contentRequestList) {
+
             CreativeContentExecuteParam contentExecute = contentCreateRequest.getExecuteParam();
             // 获取应用，处理海报相关信息
             AppMarketRespVO executeAppInformation = contentExecute.getAppInformation();
             // 获取待执行的海报风格
-            PosterStyleDTO posterStyle = this.getExecutePosterStyle(metadata.getPosterStepId(), executeAppInformation);
-            if (Objects.isNull(posterStyle)) {
-                continue;
-            }
+            PosterStyleDTO posterStyle = posterStyleMap.get(contentCreateRequest.getConversationUid());
+
             // 获取到该风格下的素材列表
-            List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(index, Collections.emptyList());
+            List<Map<String, Object>> handleMaterialList = materialMap.getOrDefault(contentCreateRequest.getConversationUid(),
+                    Collections.emptyList());
+
             // 不同的处理器处理海报风格
             PosterStyleDTO style = handler.handlePosterStyle(posterStyle, handleMaterialList, metadata);
+
             // 将处理后的海报风格填充到执行参数中
             executeAppInformation.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
             // 将素材库的素材列表填充上传素材步骤变量中
@@ -618,9 +615,13 @@ public class CreativePlanExecuteManager {
      */
     private List<PosterStyleDTO> posterStyleList(CreativePlanConfigurationDTO configuration) {
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-
-        posterStyleList = CreativeUtils.mergeImagePosterStyleList(posterStyleList, configuration.getAppInformation());
-        return CreativeUtils.preHandlerPosterStyleList(posterStyleList);
+        // 合并海报风格列表, 从系统配置的海报风格中获取最新的海报风格
+        List<PosterStyleDTO> merged = CreativeUtils.mergeImagePosterStyleList(posterStyleList, configuration.getAppInformation());
+        List<PosterStyleDTO> list = CreativeUtils.preHandlerPosterStyleList(merged);
+        if (CollectionUtil.isEmpty(list)) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：海报风格配置不能为空，请联系管理员！");
+        }
+        return list;
     }
 
     /**
@@ -648,22 +649,4 @@ public class CreativePlanExecuteManager {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * 构造创作内容创建请求
-     *
-     * @param planResponse        计划
-     * @param contentExecuteParam 执行参数
-     * @return 创作内容创建请求
-     */
-    private CreativeContentCreateReqVO buildContentRequest(CreativePlanRespVO planResponse, CreativeContentExecuteParam contentExecuteParam) {
-
-        // 构造创作内容创建请求
-        CreativeContentCreateReqVO createContentRequest = new CreativeContentCreateReqVO();
-        createContentRequest.setPlanUid(planResponse.getUid());
-        createContentRequest.setConversationUid(BaseAppEntity.createAppConversationUid());
-        createContentRequest.setType(CreativeContentTypeEnum.ALL.name());
-        createContentRequest.setSource(planResponse.getSource());
-        createContentRequest.setExecuteParam(contentExecuteParam);
-        return createContentRequest;
-    }
 }
