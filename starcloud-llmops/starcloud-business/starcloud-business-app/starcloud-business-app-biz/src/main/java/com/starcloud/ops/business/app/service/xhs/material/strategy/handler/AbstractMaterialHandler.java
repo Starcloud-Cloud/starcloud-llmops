@@ -288,7 +288,10 @@ public abstract class AbstractMaterialHandler {
             loopCount++;
             for (int i = 0; i < needMaterialSize.size(); i++) {
                 int currentNeed = needMaterialSize.get(i);
-
+                // 如果素材数量为0，直接返回
+                if (currentMaterialSize == 0) {
+                    return PlanTotalCount.of(totalCount);
+                }
                 if (currentNeed > currentMaterialSize) {
                     // 如果是第一次循环，并且是第一个海报风格，说明素材数量不足
                     if (loopCount == 1 && i == 0) {
@@ -462,6 +465,8 @@ public abstract class AbstractMaterialHandler {
             index++;
         }
 
+        List<Map<String, Object>> copiedMaterialList = SerializationUtils.clone((ArrayList<Map<String, Object>>) materialList);
+
         // 记录原始素材列表的大小
         int originalSize = materialList.size();
         // 计算所有海报风格需要的素材数量
@@ -473,7 +478,7 @@ public abstract class AbstractMaterialHandler {
             int requiredSize = copyTotal - originalSize;
             // 将imageList从头开始按顺序复制，直至满足扩容要求
             for (int i = 0; i < requiredSize; i++) {
-                materialList.add(materialList.get(i % originalSize));
+                copiedMaterialList.add(materialList.get(i % originalSize));
             }
         }
 
@@ -481,8 +486,8 @@ public abstract class AbstractMaterialHandler {
         int currentIndex = 0;
         for (Map.Entry<String, Integer> entry : needSizeMap.entrySet()) {
             int size = entry.getValue();
-            List<Map<String, Object>> copiedImages = new ArrayList<>(materialList.subList(currentIndex, currentIndex + size));
-            resultMap.put(entry.getKey(), copiedImages);
+            List<Map<String, Object>> subList = new ArrayList<>(copiedMaterialList.subList(currentIndex, currentIndex + size));
+            resultMap.put(entry.getKey(), subList);
             currentIndex += size;
         }
 
