@@ -40,6 +40,15 @@ public enum TriggerTypeEnum  implements IEnumable<Integer> {
                 }).collect(Collectors.toList());
     }
 
+    public static TriggerTypeEnum of(Integer code) {
+        for (TriggerTypeEnum value : TriggerTypeEnum.values()) {
+            if (value.code == code) {
+                return value;
+            }
+        }
+        return null;
+    }
+
     @Override
     public String getLabel() {
         return desc;

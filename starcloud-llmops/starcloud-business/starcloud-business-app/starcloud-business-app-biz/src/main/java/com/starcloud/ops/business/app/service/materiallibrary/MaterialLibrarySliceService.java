@@ -30,7 +30,7 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      *
      * @param createReqVO 创建信息
      */
-    void createBatchMaterialLibrarySlice(@Valid MaterialLibrarySliceBatchSaveReqVO createReqVO);
+    List<Long> createBatchMaterialLibrarySlice(@Valid MaterialLibrarySliceBatchSaveReqVO createReqVO);
 
     /**
      * 更新素材知识库数据
@@ -186,6 +186,6 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      *
      * @param cachedDataList cachedDataList
      */
-    void batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> cachedDataList);
+    List<Long> batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> cachedDataList);
 
 }
