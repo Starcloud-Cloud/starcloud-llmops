@@ -447,7 +447,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             materialMetadata.setMaterialFieldList(fieldList);
 
 
-            Map<Integer, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, Collections.singletonList(posterStyle), materialMetadata);
+            Map<String, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList,
+                    Collections.emptyMap(),
+                    materialMetadata);
 
             // 获取该风格下，处理之后的素材列表
             List<Map<String, Object>> usageMaterialList = materialMap.get(0);
