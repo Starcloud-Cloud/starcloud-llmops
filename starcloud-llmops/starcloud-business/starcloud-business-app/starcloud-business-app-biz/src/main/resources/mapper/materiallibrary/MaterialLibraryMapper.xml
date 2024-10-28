@@ -27,8 +27,8 @@
   a.update_time,
   u.nickname AS create_name  -- 获取创建人名称
   FROM llm_material_library a
-  LEFT JOIN llm_material_library_slice s ON a.id = s.library_id
-  LEFT JOIN system_users u ON a.creator = u.id
+  LEFT JOIN llm_material_library_slice s ON a.id = s.library_id   AND s.deleted = 0
+  LEFT JOIN system_users u ON a.creator = u.id    AND u.deleted = 0
   <where>
    <if test="query.name != null and query.name != '' ">
     <bind name="name" value="query.name+'%'"/>
@@ -41,11 +41,9 @@
     AND u.nickname = #{query.createName}
    </if>
    AND a.deleted = 0
-   AND s.deleted = 0
+
    AND u.deleted = 0
   </where>
   Group By  a.id;
  </select>
-
-
  </mapper>
