@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -249,7 +250,7 @@ public class CreativePlanExecuteManager {
          * 根据总数创建批量任务
          */
         List<CreativeContentCreateReqVO> contentRequestList = Lists.newArrayList();
-        Map<String, PosterStyleDTO> posterStyleMap = new HashMap<>();
+        Map<String, PosterStyleDTO> posterStyleMap = new LinkedHashMap<>();
 
         for (int index = 0; index < totalCount; index++) {
             // 对执行参数进行取模，按照顺序取出执行参数。构建创作内容创建请求
