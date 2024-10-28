@@ -420,7 +420,7 @@ public abstract class AbstractMaterialHandler {
     protected Integer computePosterStyleNeedMaterialSize(PosterStyleDTO posterStyle) {
         // posterTemplateList 不会为空，前面已经做过校验
         List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-        int needMaterialSize = 0;
+        List<Integer> materialIndexList = new ArrayList<>();
         for (PosterTemplateDTO template : posterTemplateList) {
             // 计算每一个模板需要的素材数量，即每一个模板中选择的素材的最大索引 +1
             // 如果整个图片模板未曾引用过素材，则整个模板需要的素材数量为 0
@@ -435,9 +435,13 @@ public abstract class AbstractMaterialHandler {
                         return matcher + 1;
                     }).max(Comparator.comparingInt(Integer::intValue)).orElse(0);
 
-            needMaterialSize += maxIndex;
+            materialIndexList.add(maxIndex);
         }
-        return needMaterialSize;
+        // 返回最大的索引值，即为需要的素材数量
+        return CollectionUtil.emptyIfNull(materialIndexList)
+                .stream()
+                .max(Comparator.comparingInt(Integer::intValue))
+                .orElse(0);
     }
 
     /**
