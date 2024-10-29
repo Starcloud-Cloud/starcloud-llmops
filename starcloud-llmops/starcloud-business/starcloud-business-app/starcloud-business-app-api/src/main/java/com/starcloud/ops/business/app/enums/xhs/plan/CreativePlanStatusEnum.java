@@ -71,6 +71,7 @@ public enum CreativePlanStatusEnum implements IEnumable<Integer> {
     public static Boolean canModifyStatus(String name) {
         return CreativePlanStatusEnum.PENDING.name().equals(name)
                 || CreativePlanStatusEnum.COMPLETE.name().equals(name)
-                || CreativePlanStatusEnum.FAILURE.name().equals(name);
+                || CreativePlanStatusEnum.FAILURE.name().equals(name)
+                || CreativePlanStatusEnum.CANCELED.name().equals(name);
     }
 }
