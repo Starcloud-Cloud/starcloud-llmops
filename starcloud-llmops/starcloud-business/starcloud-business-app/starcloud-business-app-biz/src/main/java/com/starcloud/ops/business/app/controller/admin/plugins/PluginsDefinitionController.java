@@ -101,7 +101,6 @@ public class PluginsDefinitionController {
         return CommonResult.success(pluginsDefinitionService.spaceList(accessTokenId, pageSize, pageIndex));
     }
 
-
     @PostMapping(value = "/verify")
     @Operation(summary = "验证")
     public CommonResult<String> verify(@RequestBody @Valid PluginTestReqVO reqVO) {

@@ -87,6 +87,12 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
     public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
         String code = pluginResultReqVO.getCode();
         String workflowResp = redisTemplate.boundValueOps(prefix_exectue + code).get();
+        PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
+        if (StringUtils.isBlank(workflowResp)) {
+            executeRespVO.setStatus("in_progress");
+            return executeRespVO;
+        }
+
         CozeResponse<String> response = JSONUtil.toBean(workflowResp, CozeResponse.class);
         if (response.getCode() != 0 || Objects.isNull(response.getData())) {
             throw exception(COZE_ERROR, response.getMsg());
@@ -97,7 +103,6 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             throw exception(COZE_ERROR, "返回结果为空");
         }
 
-        PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
         if (JSONUtil.isTypeJSONArray(content)) {
             Type listType = new TypeReference<List<Map<String, Object>>>() {
             }.getType();
@@ -115,6 +120,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             //处理一些场景的错误，并返回
             throw exception(new CozeErrorCode(content));
         }
+        executeRespVO.setStatus("completed");
         return executeRespVO;
     }
 }
