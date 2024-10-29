@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
@@ -16,22 +15,16 @@ import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
-import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeChatResult;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeMessage;
-import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
-import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
-import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
+import com.starcloud.ops.business.app.service.plugins.handler.PluginExecuteFactory;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -43,10 +36,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_ERROR;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_EXECUTE_ERROR;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_NOT_EXIST;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.URL_IS_NOT_IMAGES;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
 @Service
@@ -59,24 +49,13 @@ public class PluginsServiceImpl implements PluginsService {
     private AppService appService;
 
     @Resource
-    private PluginsDefinitionServiceImpl pluginsDefinitionService;
+    private PluginExecuteFactory pluginExecuteFactory;
 
 
     @Override
     @DataPermission(enable = false)
     public String executePlugin(PluginExecuteReqVO reqVO) {
-        String uuid = reqVO.getUuid();
-        PluginRespVO pluginRespVO = pluginsDefinitionService.detail(uuid);
-        String code = "";
-
-        switch (pluginRespVO.getType()) {
-            case "coze":
-                code = pluginsDefinitionService.executePluginCoze(reqVO, pluginRespVO);
-                break;
-            default:
-                throw exception(PLUGIN_EXECUTE_ERROR, "不支持的插件类型");
-        }
-        return code;
+        return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
     }
 
     /**
@@ -85,16 +64,7 @@ public class PluginsServiceImpl implements PluginsService {
     @Override
     @DataPermission(enable = false)
     public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
-        PluginRespVO pluginRespVO = pluginsDefinitionService.detail(pluginResultReqVO.getUuid());
-        PluginExecuteRespVO result = null;
-        switch (pluginRespVO.getType()) {
-            case "coze":
-                result = pluginsDefinitionService.getPluginResultCoze(pluginResultReqVO.getCode(), pluginRespVO);
-                break;
-            default:
-                throw exception(PLUGIN_EXECUTE_ERROR, "不支持的插件类型");
-        }
-        return result;
+        return pluginExecuteFactory.getHandlerByUid(pluginResultReqVO.getUuid()).getPluginResult(pluginResultReqVO);
     }
 
     @Override

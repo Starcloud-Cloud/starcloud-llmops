@@ -7,7 +7,8 @@ import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.Plugin
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
-import com.starcloud.ops.business.app.feign.dto.coze.SpaceInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.SpaceListInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -61,9 +62,14 @@ public interface PluginsDefinitionService {
     CozeBotInfo botInfo(String botId, String accessTokenId);
 
     /**
+     * bot token
+     */
+    String bearer(String accessTokenId);
+
+    /**
      * 空间中所有bot
      */
-    SpaceInfo spaceBot(String spaceId, String accessTokenId, Integer pageSize, Integer pageIndex);
+    BotListInfo spaceBot(String spaceId, String accessTokenId, Integer pageSize, Integer pageIndex);
 
     /**
      * 插件详情
@@ -87,4 +93,12 @@ public interface PluginsDefinitionService {
      * @return
      */
     VerifyResult verifyResult(String code, String accessTokenId);
+
+    /**
+     * 空间列表
+     */
+    SpaceListInfo spaceList(String accessTokenId, Integer pageSize, Integer pageIndex);
+
+    void updateTime(Long time, String pluginUid);
+
 }

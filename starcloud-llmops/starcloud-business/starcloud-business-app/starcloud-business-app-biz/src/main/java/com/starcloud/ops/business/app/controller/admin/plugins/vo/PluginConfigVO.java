@@ -20,6 +20,10 @@ public class PluginConfigVO {
     @NotBlank(message = "插件uid 不能为空")
     private String pluginUid;
 
+    @Schema(description = "绑定名称")
+    @NotBlank(message = "绑定名称 不能为空")
+    private String bindName;
+
     /**
      * 字段映射
      */

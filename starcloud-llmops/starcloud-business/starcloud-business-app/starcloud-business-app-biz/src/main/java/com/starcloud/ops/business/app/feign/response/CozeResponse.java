@@ -32,5 +32,8 @@ public class CozeResponse<T> implements java.io.Serializable {
     @JsonProperty("data")
     private T data;
 
+    @JsonProperty("debug_url")
+    private String debugUrl;
+
 
 }
