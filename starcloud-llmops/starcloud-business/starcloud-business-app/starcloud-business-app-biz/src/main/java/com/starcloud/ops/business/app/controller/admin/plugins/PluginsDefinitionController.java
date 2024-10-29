@@ -93,6 +93,15 @@ public class PluginsDefinitionController {
         return CommonResult.success(pluginsDefinitionService.botInfo(botId, accessTokenId));
     }
 
+    @GetMapping(value = "/spaceBots")
+    @Operation(summary = "bot列表")
+    public CommonResult<BotListInfo> BotList(@RequestParam("spaceId") String spaceId,
+                                             @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,
+                                             @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                             @RequestParam("accessTokenId") String accessTokenId) {
+        return CommonResult.success(pluginsDefinitionService.spaceBot(spaceId, accessTokenId, pageSize, pageIndex));
+    }
+
     @GetMapping(value = "/spaceList")
     @Operation(summary = "space列表")
     public CommonResult<SpaceListInfo> spaceBots(@RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,
