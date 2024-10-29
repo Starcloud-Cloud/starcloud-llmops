@@ -499,6 +499,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             creativePlanBatchService.updateStatus(batchUid);
             // 查询当前批次
             CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+            if (CreativePlanStatusEnum.CANCELED.name().equals(batch.getStatus())) {
+                log.info("将要更新计划为【取消】状态，planUid: {}", planUid);
+                updateStatus(planUid, CreativePlanStatusEnum.CANCELED.name());
+                log.info("更新计划状态【结束】，planUid: {}", planUid);
+                return;
+            }
             // 如果当前批次是完成状态，则计划完成
             if (CreativePlanStatusEnum.COMPLETE.name().equals(batch.getStatus())) {
                 log.info("将要更新计划为【完成】状态，planUid: {}", planUid);

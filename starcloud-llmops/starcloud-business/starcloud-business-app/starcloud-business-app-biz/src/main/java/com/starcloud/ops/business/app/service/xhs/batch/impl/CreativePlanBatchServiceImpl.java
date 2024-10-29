@@ -161,6 +161,11 @@ public class CreativePlanBatchServiceImpl implements CreativePlanBatchService {
         CreativePlanBatchDO creativePlanBatch = creativePlanBatchMapper.get(batchUid);
         AppValidate.notNull(creativePlanBatch, "创作计划批次不存在({})!", batchUid);
 
+        if (CreativePlanStatusEnum.CANCELED.name().equals(creativePlanBatch.getStatus())) {
+            log.info("创作批次不需要进行修改！状态: {}", creativePlanBatch.getStatus());
+            return;
+        }
+
         // 查询该批次下的所有创作内容任务
         CreativeContentListReqVO contentQuery = new CreativeContentListReqVO();
         contentQuery.setBatchUid(batchUid);
