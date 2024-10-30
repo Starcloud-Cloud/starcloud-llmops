@@ -193,7 +193,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             if (Objects.nonNull(configRespVO)) {
                 plugin.setConfigUid(configRespVO.getUid());
                 plugin.setSystemPlugin(PluginBindTypeEnum.isSys(configRespVO.getType()));
-                plugin.setPluginName(configRespVO.getBindName());
+                plugin.setBindName(configRespVO.getBindName());
             } else {
                 plugin.setBindName(plugin.getPluginName());
             }
