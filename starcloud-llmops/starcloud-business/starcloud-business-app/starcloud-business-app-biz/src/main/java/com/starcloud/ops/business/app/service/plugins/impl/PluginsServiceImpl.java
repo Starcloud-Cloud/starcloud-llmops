@@ -90,6 +90,16 @@ public class PluginsServiceImpl implements PluginsService {
     }
 
     @Override
+    public String verify(PluginTestReqVO reqVO) {
+        return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
+    }
+
+    @Override
+    public VerifyResult verifyResult(PluginTestResultReqVO resultReqVO) {
+        return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
+    }
+
+    @Override
     public XhsNoteDTO xhsOcr(XhsOcrReqVO reqVO) {
         XhsDetailConstants.validNoteUrl(reqVO.getXhsNoteUrl());
         Map<String, Object> variableMap = new HashMap<>();

@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.app.service.plugins.handler;
 
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginResultReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,9 +14,11 @@ public abstract class PluginExecuteHandler {
     @Resource
     private SocialUserService socialUserService;
 
-    static final String prefix_exectue = "coze_exectue_";
+    static final String PREFIX_EXECTUE = "coze_exectue_";
 
-    static final String prefix_start = "coze_start_";
+    static final String PREFIX_START = "coze_start_";
+
+    static final String VERIFY_PARAMS = "verify_params_";
 
     /**
      * 支持的插件平台
@@ -25,6 +26,17 @@ public abstract class PluginExecuteHandler {
      * @return
      */
     abstract String supportPlatform();
+
+    /**
+     * 验证
+     */
+    public abstract String verify(PluginTestReqVO reqVO);
+
+    /**
+     * 验证结果
+     *
+     */
+    public abstract VerifyResult verifyResult(PluginTestResultReqVO resultReqVO);
 
     /**
      * 异步执行插件
