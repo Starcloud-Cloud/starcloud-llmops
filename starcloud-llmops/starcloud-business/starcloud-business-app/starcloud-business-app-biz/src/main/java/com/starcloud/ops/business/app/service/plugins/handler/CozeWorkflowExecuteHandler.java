@@ -8,6 +8,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
+import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
@@ -116,12 +117,14 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
             listMap.forEach(this::cleanMap);
             verifyResult.setOutput(listMap);
+            verifyResult.setOutputType(OutputTypeEnum.list.getCode());
         } else if (JSONUtil.isTypeJSONObject(content)) {
             Type mapType = new TypeReference<Map<String, Object>>() {
             }.getType();
             Map<String, Object> objectMap = JSON.parseObject(content, mapType);
             cleanMap(objectMap);
             verifyResult.setOutput(objectMap);
+            verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
         } else {
             log.error("输出结果格式错误 {}", content);
             //处理一些场景的错误，并返回
