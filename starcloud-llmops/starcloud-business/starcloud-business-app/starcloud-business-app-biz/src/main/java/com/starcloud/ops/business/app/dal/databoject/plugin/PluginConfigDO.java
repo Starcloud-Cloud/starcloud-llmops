@@ -52,4 +52,6 @@ public class PluginConfigDO extends DeptBaseDO {
      */
     private Integer type;
 
+    private String bindName;
+
 }

@@ -7,7 +7,6 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
@@ -23,12 +22,10 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginDefinitionConvert;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
@@ -43,12 +40,7 @@ import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeChatResult;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeLastError;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeMessage;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeMessageResult;
-import com.starcloud.ops.business.app.feign.dto.coze.SpaceInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.*;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
@@ -142,132 +134,11 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
 
-    public String executePluginCoze(PluginExecuteReqVO executeReqVO, PluginRespVO reqVO) {
-
-        String accessTokenId = reqVO.getCozeTokenId();
-        String accessToken = bearer(accessTokenId);
-        long start = System.currentTimeMillis();
-
-        CozeChatRequest request = new CozeChatRequest();
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        request.setUserId(Objects.isNull(loginUserId) ?
-                UserContextHolder.getUserId().toString() : loginUserId.toString());
-        request.setBotId(reqVO.getEntityUid());
-        CozeMessage cozeMessage = new CozeMessage();
-        cozeMessage.setRole("user");
-        cozeMessage.setContentType("text");
-
-        String content = StrUtil.join("\r\n", Arrays.asList("必须使用下面的参数调用工作流:", JSONUtil.toJsonStr(executeReqVO.getInputParams())));
-        cozeMessage.setContent(content);
-
-        request.setMessages(Collections.singletonList(cozeMessage));
-
-        log.info("executePluginCoze request content: {}", content);
-
-        CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
-        if (chat.getCode() != 0) {
-            throw exception(COZE_ERROR, chat.getMsg());
-        }
-        log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
-        String code = IdUtil.fastSimpleUUID();
-        redisTemplate.boundValueOps(prefix_start + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
-        redisTemplate.boundValueOps(prefix_exectue + code).set(JSONUtil.toJsonStr(chat.getData()), 30, TimeUnit.MINUTES);
-        return code;
-    }
-
-
-    public PluginExecuteRespVO getPluginResultCoze(String code, PluginRespVO reqVO) {
-
-        String accessTokenId = reqVO.getCozeTokenId();
-        String cozeResult = redisTemplate.boundValueOps(prefix_exectue + code).get();
-
-        String accessToken = bearer(accessTokenId);
-        if (StringUtils.isBlank(cozeResult)) {
-            throw exception(COZE_ERROR, "请重新验证！");
-        }
-
-        CozeChatResult cozeChatResult = JSONUtil.toBean(cozeResult, CozeChatResult.class);
-        CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
-        log.info("coze result {}", JSONUtil.toJsonPrettyStr(retrieve));
-        if (retrieve.getCode() != 0) {
-            throw exception(COZE_ERROR, retrieve.getMsg());
-        }
-
-        PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
-
-        String status = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getStatus).orElse(StringUtils.EMPTY);
-        if (Objects.equals("failed", status)
-                || Objects.equals("requires_action", status)
-                || Objects.equals("canceled", status)
-
-        ) {
-            String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
-            throw exception(COZE_ERROR, error);
-        }
-
-        if (!Objects.equals("completed", status)) {
-            executeRespVO.setStatus(status);
-            return executeRespVO;
-        }
-
-        executeRespVO.setStatus("completed");
-        executeRespVO.setCompletedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCompletedAt).orElse(null));
-
-        CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
-
-        if (CollectionUtil.isEmpty(list.getData())) {
-            throw exception(COZE_ERROR, "未发现正确的执行记录");
-        }
-
-        log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
-
-        for (CozeMessageResult datum : list.getData()) {
-            if ("tool_response".equalsIgnoreCase(datum.getType())) {
-                String content = datum.getContent();
-                if (JSONUtil.isTypeJSONArray(content)) {
-                    Type listType = new TypeReference<List<Map<String, Object>>>() {
-                    }.getType();
-                    List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
-                    listMap.forEach(this::cleanMap);
-                    executeRespVO.setOutput(listMap);
-                } else if (JSONUtil.isTypeJSONObject(content)) {
-                    Type mapType = new TypeReference<Map<String, Object>>() {
-                    }.getType();
-                    Map<String, Object> objectMap = JSON.parseObject(content, mapType);
-                    cleanMap(objectMap);
-                    executeRespVO.setOutput(objectMap);
-                } else {
-
-                    log.error("输出结果格式错误 {}", content);
-
-                    //处理一些场景的错误，并返回
-                    throw exception(new CozeErrorCode(content));
-                }
-            }
-        }
-
-
-        if (Objects.isNull(executeRespVO.getOutput())) {
-            throw exception(INPUT_OUTPUT_ERROR, "未调用工作流");
-        }
-
-        String start = redisTemplate.boundValueOps(prefix_start + code).get();
-        if (NumberUtil.isLong(start)) {
-            redisTemplate.delete(prefix_start + code);
-            long end = System.currentTimeMillis();
-            Long time = end - Long.parseLong(start);
-            updateTime(time, reqVO.getUid());
-        }
-
-        log.info("getPluginResultCoze {}", JSONUtil.toJsonPrettyStr(executeRespVO));
-        return executeRespVO;
-    }
-
-
     /**
      * 更新插件执行时间
      */
-    private void updateTime(Long time, String pluginUid) {
+    @Override
+    public void updateTime(Long time, String pluginUid) {
         RLock lock = redissonClient.getLock(pluginUid);
         try {
             if (lock.tryLock(5, 5, TimeUnit.SECONDS)) {
@@ -406,6 +277,15 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     @Override
+    public SpaceListInfo spaceList(String accessTokenId, Integer pageSize, Integer pageIndex) {
+        CozeResponse<SpaceListInfo> spaceList = cozePublicClient.spaceList(bearer(accessTokenId), pageSize, pageIndex);
+        if (spaceList.getCode() != 0) {
+            throw exception(COZE_ERROR, spaceList.getMsg());
+        }
+        return spaceList.getData();
+    }
+
+    @Override
     public PluginRespVO create(PluginDefinitionVO pluginVO) {
         PluginDefinitionDO pluginConfig = pluginDefinitionMapper.selectByName(pluginVO.getPluginName());
         if (Objects.nonNull(pluginConfig)) {
@@ -416,7 +296,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
             CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), pluginConfigDO.getCozeTokenId());
             pluginConfigDO.setEntityName(cozeBotInfo.getName());
-        } else {
+        } else if (PlatformEnum.app_market.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
             AppMarketRespVO appMarketRespVO = appMarketService.get(pluginConfigDO.getEntityUid());
             pluginConfigDO.setEntityName(appMarketRespVO.getName());
         }
@@ -476,6 +356,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             if (Objects.nonNull(configRespVO)) {
                 plugin.setConfigUid(configRespVO.getUid());
                 plugin.setSystemPlugin(PluginBindTypeEnum.isSys(configRespVO.getType()));
+                plugin.setPluginName(configRespVO.getBindName());
+            } else {
+                plugin.setBindName(plugin.getPluginName());
             }
             Boolean enable = Optional.ofNullable(jobMap.get(plugin.getConfigUid())).map(JobDetailDTO::getEnable).orElse(Boolean.FALSE);
             plugin.setJobEnable(BooleanUtil.isTrue(enable));
@@ -530,7 +413,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginDefinitionDO.getType())) {
             CozeBotInfo cozeBotInfo = botInfo(pluginDefinitionDO.getEntityUid(), reqVO.getCozeTokenId());
             pluginDefinitionDO.setEntityName(cozeBotInfo.getName());
-        } else {
+        } else if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginDefinitionDO.getType())) {
             AppMarketRespVO appMarketRespVO = appMarketService.get(pluginDefinitionDO.getEntityUid());
             pluginDefinitionDO.setEntityName(appMarketRespVO.getName());
         }
@@ -556,9 +439,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     @Override
-    public SpaceInfo spaceBot(String spaceId, String accessTokenId, Integer pageSize, Integer pageIndex) {
+    public BotListInfo spaceBot(String spaceId, String accessTokenId, Integer pageSize, Integer pageIndex) {
         String accessToken = bearer(accessTokenId);
-        CozeResponse<SpaceInfo> listCozeResponse = cozePublicClient.spaceBots(spaceId, accessToken, pageSize, pageIndex);
+        CozeResponse<BotListInfo> listCozeResponse = cozePublicClient.spaceBots(spaceId, accessToken, pageSize, pageIndex);
         if (listCozeResponse.getCode() != 0) {
             throw exception(COZE_ERROR, listCozeResponse.getMsg());
         }
@@ -576,7 +459,8 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         return cozeResponse.getData();
     }
 
-    private String bearer(String accessTokenId) {
+    @Override
+    public String bearer(String accessTokenId) {
         SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(accessTokenId));
         if (Objects.isNull(socialUser) || StringUtils.isBlank(socialUser.getToken())) {
             throw exception(TOKEN_ERROR, accessTokenId);

@@ -9,7 +9,8 @@ import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.Plugin
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
-import com.starcloud.ops.business.app.feign.dto.coze.SpaceInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.SpaceListInfo;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -94,11 +95,19 @@ public class PluginsDefinitionController {
 
     @GetMapping(value = "/spaceBots")
     @Operation(summary = "bot列表")
-    public CommonResult<SpaceInfo> spaceBots(@RequestParam("spaceId") String spaceId,
+    public CommonResult<BotListInfo> BotList(@RequestParam("spaceId") String spaceId,
                                              @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,
                                              @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                              @RequestParam("accessTokenId") String accessTokenId) {
         return CommonResult.success(pluginsDefinitionService.spaceBot(spaceId, accessTokenId, pageSize, pageIndex));
+    }
+
+    @GetMapping(value = "/spaceList")
+    @Operation(summary = "space列表")
+    public CommonResult<SpaceListInfo> spaceBots(@RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,
+                                                 @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                 @RequestParam("accessTokenId") String accessTokenId) {
+        return CommonResult.success(pluginsDefinitionService.spaceList(accessTokenId, pageSize, pageIndex));
     }
 
     @PostMapping(value = "/verify")
