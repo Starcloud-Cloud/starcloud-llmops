@@ -1,18 +1,13 @@
 package com.starcloud.ops.business.app.service.plugins.handler;
 
-import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.Resource;
 import java.util.Map;
 
 @Slf4j
 public abstract class PluginExecuteHandler {
-
-    @Resource
-    private SocialUserService socialUserService;
 
     static final String PREFIX_EXECTUE = "coze_exectue_";
 
