@@ -356,6 +356,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             if (Objects.nonNull(configRespVO)) {
                 plugin.setConfigUid(configRespVO.getUid());
                 plugin.setSystemPlugin(PluginBindTypeEnum.isSys(configRespVO.getType()));
+                plugin.setPluginName(configRespVO.getBindName());
+            } else {
+                plugin.setBindName(plugin.getPluginName());
             }
             Boolean enable = Optional.ofNullable(jobMap.get(plugin.getConfigUid())).map(JobDetailDTO::getEnable).orElse(Boolean.FALSE);
             plugin.setJobEnable(BooleanUtil.isTrue(enable));
