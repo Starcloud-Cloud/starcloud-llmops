@@ -82,19 +82,6 @@ public interface PluginsDefinitionService {
     Map<String, Object> metadata();
 
     /**
-     * 验证机器人
-     */
-    String verify(PluginTestReqVO reqVO);
-
-    /**
-     * 验证结果
-     *
-     * @param code
-     * @return
-     */
-    VerifyResult verifyResult(String code, String accessTokenId);
-
-    /**
      * 空间列表
      */
     SpaceListInfo spaceList(String accessTokenId, Integer pageSize, Integer pageIndex);

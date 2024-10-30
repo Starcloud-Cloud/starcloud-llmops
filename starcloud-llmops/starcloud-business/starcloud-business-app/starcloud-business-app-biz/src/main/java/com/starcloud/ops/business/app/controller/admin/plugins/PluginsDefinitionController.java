@@ -3,15 +3,13 @@ package com.starcloud.ops.business.app.controller.admin.plugins;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginTestReqVO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.VerifyResult;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.SpaceListInfo;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
+import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +26,9 @@ public class PluginsDefinitionController {
 
     @Resource
     private PluginsDefinitionService pluginsDefinitionService;
+
+    @Resource
+    private PluginsService pluginsService;
 
 
     @GetMapping("/metadata")
@@ -113,14 +114,14 @@ public class PluginsDefinitionController {
     @PostMapping(value = "/verify")
     @Operation(summary = "验证")
     public CommonResult<String> verify(@RequestBody @Valid PluginTestReqVO reqVO) {
-        return CommonResult.success(pluginsDefinitionService.verify(reqVO));
+        return CommonResult.success(pluginsService.verify(reqVO));
     }
 
     @PostMapping(value = "/verifyResult")
     @Operation(summary = "验证结果")
     @OperateLog(enable = false)
-    public CommonResult<VerifyResult> verifyResult(@RequestParam("code") String code, @RequestParam("accessTokenId") String accessTokenId) {
-        return CommonResult.success(pluginsDefinitionService.verifyResult(code, accessTokenId));
+    public CommonResult<VerifyResult> verifyResult(@RequestBody @Valid PluginTestResultReqVO resultReqVO) {
+        return CommonResult.success(pluginsService.verifyResult(resultReqVO));
     }
 
 }

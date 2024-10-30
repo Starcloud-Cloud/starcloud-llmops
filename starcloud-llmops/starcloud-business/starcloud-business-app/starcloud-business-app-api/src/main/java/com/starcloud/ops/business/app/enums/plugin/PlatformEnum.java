@@ -17,7 +17,8 @@ public enum PlatformEnum implements IEnumable<String> {
 
     coze_workflow("coze_workflow", "扣子工作流"),
 
-    app_market("app_market", "应用市场");
+//    app_market("app_market", "应用市场")
+    ;
 
 
     private final String code;
