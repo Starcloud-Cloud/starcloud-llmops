@@ -40,6 +40,11 @@ public class UserUtils {
     public static final String ADMIN_ROLE = "MOFAAI_ADMIN";
 
     /**
+     * 应用管理员
+     */
+    public static final String MOFAAI_APP_ADMIN = "MOFAAI_APP_ADMIN";
+
+    /**
      * 后台运营角色
      */
     public static final String OPERATE_ROLE = "MOFAAI_DEV";

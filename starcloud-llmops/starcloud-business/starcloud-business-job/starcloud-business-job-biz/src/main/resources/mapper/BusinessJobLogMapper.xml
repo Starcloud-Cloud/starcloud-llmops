@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.job.biz.dal.mysql.BusinessJobLogMapper">
+
+    <select id="pluginLog" resultType="com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO">
+        SELECT p.plugin_name as pluginName,
+        m.`name` as libraryName,
+        l.trigger_type as triggerType,
+        l.success as success,
+        l.execute_result as executeResult,
+        l.execute_time as executeTime,
+        l.trigger_time as triggerTime
+        FROM llm_material_plugin_definition p
+        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid  collate utf8mb4_general_ci
+        INNER JOIN llm_material_library m ON c.library_uid = m.uid  collate utf8mb4_general_ci
+        INNER JOIN llm_business_job b ON c.uid = b.foreign_key collate utf8mb4_general_ci
+        INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
+        WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
+        order by l.id desc
+        LIMIT #{start},#{size}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        SELECT count(l.uid)
+        FROM llm_material_plugin_definition p
+        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid collate utf8mb4_general_ci
+        INNER JOIN llm_material_library m ON c.library_uid = m.uid collate utf8mb4_general_ci
+        INNER JOIN llm_business_job b ON c.uid = b.foreign_key collate utf8mb4_general_ci
+        INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
+        WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
+    </select>
+</mapper>

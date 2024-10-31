@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.plugin;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -13,7 +14,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @TableName("llm_material_plugin_config")
-public class PluginConfigDO extends TenantBaseDO {
+public class PluginConfigDO extends DeptBaseDO {
 
     /**
      * ID

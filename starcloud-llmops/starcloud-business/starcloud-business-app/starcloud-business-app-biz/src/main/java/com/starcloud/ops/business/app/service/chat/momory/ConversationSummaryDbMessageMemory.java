@@ -439,7 +439,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
 
             messageCreateReqVO.setCreator(userId);
             messageCreateReqVO.setEndUser(endUser);
-
+            messageCreateReqVO.setDeptId(this.getChatAppEntity().obtainDeptId(request.getUserId()));
             messageCreateReqVO.setMsgType(LogMessageTypeEnum.FUN_CALL.name());
 
         });
@@ -507,7 +507,7 @@ public class ConversationSummaryDbMessageMemory extends SummarizerMixin {
         messageCreateReqVO.setAppStep(AppModelEnum.CHAT.name());
         messageCreateReqVO.setCreator(userId);
         messageCreateReqVO.setEndUser(endUser);
-
+        messageCreateReqVO.setDeptId(this.getChatAppEntity().obtainDeptId(request.getUserId()));
 
         Map llmParams = (Map) baseMessage.getAdditionalArgs().getOrDefault("llm_params", new HashMap<>());
         BaseLLMUsage llmUsage = (BaseLLMUsage) baseMessage.getAdditionalArgs().getOrDefault("usage", new BaseLLMUsage());

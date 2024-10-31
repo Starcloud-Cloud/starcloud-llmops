@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.plan;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
@@ -20,7 +21,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @TableName(value = "llm_creative_plan", autoResultMap = true)
 @KeySequence("llm_creative_plan_seq")
-public class CreativePlanDO extends TenantBaseDO {
+public class CreativePlanDO extends DeptBaseDO {
 
     private static final long serialVersionUID = 8253406024334826647L;
 

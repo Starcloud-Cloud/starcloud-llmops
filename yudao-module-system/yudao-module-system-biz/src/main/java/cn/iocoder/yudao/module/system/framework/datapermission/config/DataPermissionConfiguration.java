@@ -18,7 +18,7 @@ public class DataPermissionConfiguration {
     public DeptDataPermissionRuleCustomizer sysDeptDataPermissionRuleCustomizer() {
         return rule -> {
             // dept
-            rule.addDeptColumn(AdminUserDO.class);
+//            rule.addDeptColumn(AdminUserDO.class);
             rule.addDeptColumn(DeptDO.class, "id");
             // user
             rule.addUserColumn(AdminUserDO.class, "id");

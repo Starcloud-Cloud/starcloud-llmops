@@ -19,6 +19,8 @@ import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
@@ -31,6 +33,8 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySer
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,8 +99,15 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
+
     @Override
     public Long createMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO createReqVO) {
+
+        MaterialLibraryDO libraryInfo = getLibraryInfo(createReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
         // 插入
         MaterialLibrarySliceDO sliceDO = BeanUtils.toBean(createReqVO, MaterialLibrarySliceDO.class);
 
@@ -122,6 +133,14 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public List<Long> createBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO createReqVO) {
+        Optional<Long> libraryId = createReqVO.getSaveReqVOS().stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst();
+
+        if (!libraryId.isPresent()) {
+            throw exception(MATERIAL_LIBRARY_SLICE_LIBRARY_ID_MISSING);
+        }
+        MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId.get());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
 
         if (createReqVO.getSaveReqVOS().isEmpty()) {
             return new ArrayList<>();
@@ -189,8 +208,14 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     @Override
     public void updateMaterialLibrarySlice(MaterialLibrarySliceSaveReqVO updateReqVO) {
+
+        MaterialLibraryDO libraryInfo = getLibraryInfo(updateReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
         // 校验存在
-        validateMaterialLibrarySliceExists(updateReqVO.getId());
+        MaterialLibrarySliceDO sliceDO = validateMaterialLibrarySliceExists(updateReqVO.getId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(sliceDO.getCreator()));
+
         // 更新
         MaterialLibrarySliceDO updateObj = BeanUtils.toBean(updateReqVO, MaterialLibrarySliceDO.class);
         materialLibrarySliceMapper.updateById(updateObj);
@@ -203,18 +228,26 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void updateBatchMaterialLibrarySlice(MaterialLibrarySliceBatchSaveReqVO updateReqVO) {
+
+        Optional<Long> libraryId = updateReqVO.getSaveReqVOS().stream().map(MaterialLibrarySliceSaveReqVO::getLibraryId).findFirst();
+
+        if (!libraryId.isPresent()) {
+            throw exception(MATERIAL_LIBRARY_SLICE_LIBRARY_ID_MISSING);
+        }
+        MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId.get());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_edit, Long.valueOf(libraryInfo.getCreator()));
+
+
         materialLibrarySliceMapper.updateBatch(BeanUtils.toBean(updateReqVO.getSaveReqVOS(), MaterialLibrarySliceDO.class));
     }
 
     @Override
     public void deleteMaterialLibrarySlice(Long id) {
         // 校验存在
-        validateMaterialLibrarySliceExists(id);
+        MaterialLibrarySliceDO sliceDO = validateMaterialLibrarySliceExists(id);
 
-        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
-        if (sliceDO == null) {
-            throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
-        }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_delete, Long.valueOf(sliceDO.getCreator()));
+
         // 删除
         materialLibrarySliceMapper.deleteById(id);
 
@@ -278,8 +311,12 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      */
     @Override
     public void deleteMaterialLibrarySliceByLibraryId(Long libraryId) {
+        // 校验存在
+        MaterialLibraryDO libraryInfo = getLibraryInfo(libraryId);
+
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_delete, Long.valueOf(libraryInfo.getCreator()));
+
         materialLibrarySliceMapper.deleteSliceByLibraryId(libraryId);
-        // materialLibraryService.updateMaterialLibraryFileCount(libraryId);
     }
 
     /**
@@ -292,7 +329,14 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         if (ids.isEmpty()) {
             return;
         }
-        MaterialLibrarySliceDO materialLibrarySliceDO = materialLibrarySliceMapper.selectById(ids.get(0));
+        LambdaQueryWrapper<MaterialLibrarySliceDO> wrapper = Wrappers.lambdaQuery(MaterialLibrarySliceDO.class);
+
+        wrapper.in(MaterialLibrarySliceDO::getId, ids);
+        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceMapper.selectList(wrapper);
+        List<Long> creators = sliceDOList.stream().map(MaterialLibrarySliceDO::getCreator).map(Long::valueOf).distinct().collect(Collectors.toList());
+
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_slice_delete, creators);
+
         materialLibrarySliceMapper.deleteBatchIds(ids);
     }
 
@@ -426,6 +470,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
             sliceData.setId(null);
             sliceData.setCreator(null);
             sliceData.setUpdater(null);
+            sliceData.setDeptId(null);
             sliceData.setLibraryId(libraryId);
             List<MaterialLibrarySliceDO.TableContent> datasList = sliceData.getContent();
             if (datasList != null) {
@@ -855,10 +900,12 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
      *
      * @param id 数据编号
      */
-    private void validateMaterialLibrarySliceExists(Long id) {
-        if (materialLibrarySliceMapper.selectById(id) == null) {
+    private MaterialLibrarySliceDO validateMaterialLibrarySliceExists(Long id) {
+        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(id);
+        if (sliceDO == null) {
             throw exception(MATERIAL_LIBRARY_SLICE_NOT_EXISTS);
         }
+        return sliceDO;
     }
 
 
@@ -899,6 +946,15 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
         return CollUtil.distinct(keys).stream()
                 .map(key -> getRedisKey(key, libraryId))
                 .collect(Collectors.toList());
+    }
+
+
+    private MaterialLibraryDO getLibraryInfo(Long libraryId) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.getMaterialLibrary(libraryId);
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+        return materialLibraryDO;
     }
 
 
