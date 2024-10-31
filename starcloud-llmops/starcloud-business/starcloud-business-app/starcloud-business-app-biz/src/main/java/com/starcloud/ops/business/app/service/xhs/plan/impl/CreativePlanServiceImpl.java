@@ -56,6 +56,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -180,6 +181,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
         return list.stream().map(CreativePlanConvert.INSTANCE::convert)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 创作计划海报列表
+     *
+     * @param uid 用户ID
+     * @return 海报列表
+     */
+    @Override
+    public List<PosterStyleDTO> planPosterList(String uid) {
+        CreativePlanRespVO plan = this.get(uid);
+        CreativePlanConfigurationDTO configuration = plan.getConfiguration();
+        return ListUtils.emptyIfNull(configuration.getImageStyleList());
     }
 
 

@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.Creat
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -87,6 +88,13 @@ public class CreativePlanController {
     @ApiOperationSupport(order = 50, author = "nacoyer")
     public CommonResult<List<CreativePlanRespVO>> list(@RequestParam(value = "limit", defaultValue = "100") Integer limit) {
         return CommonResult.success(creativePlanService.list(limit));
+    }
+
+    @PostMapping("/planPosterList")
+    @Operation(summary = "创作计划海报列表", description = "创作计划海报列表")
+    @ApiOperationSupport(order = 50, author = "nacoyer")
+    public CommonResult<List<PosterStyleDTO>> planPosterList(@Validated @RequestBody UidRequest request) {
+        return CommonResult.success(creativePlanService.planPosterList(request.getUid()));
     }
 
     @PostMapping("/query")
