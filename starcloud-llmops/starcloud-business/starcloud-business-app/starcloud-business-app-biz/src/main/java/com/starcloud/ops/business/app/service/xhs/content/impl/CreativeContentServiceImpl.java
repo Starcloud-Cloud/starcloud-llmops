@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -174,6 +175,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     @TenantIgnore
+    @DataPermission(enable = false)
     public List<CreativeContentRespVO> listTask(CreativeContentTaskReqVO query) {
         List<CreativeContentDO> list = creativeContentMapper.listTask(query);
         return CreativeContentConvert.INSTANCE.convertResponseList(list);
