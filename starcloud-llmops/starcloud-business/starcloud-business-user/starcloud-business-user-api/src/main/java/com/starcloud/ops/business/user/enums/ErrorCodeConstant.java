@@ -100,6 +100,10 @@ public interface ErrorCodeConstant {
 
     ErrorCode TOO_MANY_DEPT_NUM =  new ErrorCode(2000500009, "加入空间数超过 {} 个");
 
+    ErrorCode NOT_BIND_DEPT =  new ErrorCode(2000500010, "用户:{} 未绑定空间:{}");
+
+    ErrorCode NO_PERMISSION =  new ErrorCode(2000500011, "用户没有[{}]权限");
+
     // 用户通知
 
     ErrorCode NOT_SUPPORTED_NOTIFY_MEDIA =  new ErrorCode(2000600001, "不支持的消息媒介 {}");

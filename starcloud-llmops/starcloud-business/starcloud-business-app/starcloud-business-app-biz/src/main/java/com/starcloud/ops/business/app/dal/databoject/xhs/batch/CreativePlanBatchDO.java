@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.batch;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
 @ToString(callSuper = true)
 @TableName(value = "llm_creative_plan_batch", autoResultMap = true)
 @KeySequence("llm_creative_plan_batch_seq")
-public class CreativePlanBatchDO extends TenantBaseDO {
+public class CreativePlanBatchDO extends DeptBaseDO {
 
     private static final long serialVersionUID = -3967506144564738057L;
 

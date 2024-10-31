@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.job.biz.dal.dataobject;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -13,7 +14,7 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class BusinessJobDO extends TenantBaseDO {
+public class BusinessJobDO extends DeptBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -77,5 +78,10 @@ public class BusinessJobDO extends TenantBaseDO {
      * 启用/禁用  默认启用
      */
     private Boolean enable;
+
+    /**
+     * 剩余次数
+     */
+    private Integer remainCount;
 
 }

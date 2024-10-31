@@ -45,4 +45,12 @@ public class RoleApiImpl implements RoleApi {
 
         return roles.stream().map(RoleDO::getName).collect(Collectors.toList());
     }
+
+    @Override
+    public List<String> getRoleCodeList(Long userId) {
+        Set<Long> result = permissionService.getUserRoleIdListByUserId(userId);
+        List<RoleDO> roles = roleService.getRoleList(result);
+
+        return roles.stream().map(RoleDO::getCode).collect(Collectors.toList());
+    }
 }
