@@ -5,6 +5,7 @@
     <select id="pluginLog" resultType="com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO">
         SELECT p.plugin_name as pluginName,
         m.`name` as libraryName,
+        m.id as libraryId,
         l.trigger_type as triggerType,
         l.success as success,
         l.execute_result as executeResult,
