@@ -59,6 +59,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         LogAppMessageDO appMessage = LogAppMessageConvert.INSTANCE.convert(request);
         appMessage.setCreator(request.getCreator());
         appMessage.setUpdater(request.getCreator());
+        appMessage.setDeptId(request.getDeptId());
         appMessage.setCreateTime(request.getCreateTime());
         appMessage.setUpdateTime(request.getUpdateTime());
         appMessage.setTenantId(request.getTenantId());

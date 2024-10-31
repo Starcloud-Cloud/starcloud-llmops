@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.mission.dal.dataobject;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class SingleMissionDO extends TenantBaseDO {
+public class SingleMissionDO extends DeptBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;

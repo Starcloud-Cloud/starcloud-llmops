@@ -12,6 +12,7 @@ import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
 import com.starcloud.ops.business.job.biz.enums.TriggerTypeEnum;
 import com.starcloud.ops.business.job.biz.powerjob.PowerjobManager;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
+import com.starcloud.ops.business.job.utils.CronUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,14 +21,16 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.job.JobConstants.REMAIN_NUM;
 import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.EXIST_JOB;
 import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB_NOT_EXIST;
 
 @Slf4j
 @Service
-public class BusinessJobServiceImpl implements BusinessJobService{
+public class BusinessJobServiceImpl implements BusinessJobService {
 
     @Resource
     private PowerjobManager powerjobManager;
@@ -57,6 +60,7 @@ public class BusinessJobServiceImpl implements BusinessJobService{
         BusinessJobDO businessJobDO = BusinessJobConvert.INSTANCE.convert(businessJobBaseVO);
         businessJobDO.setUid(IdUtil.fastSimpleUUID());
         businessJobDO.setJobId(jobId);
+        businessJobDO.setRemainCount(REMAIN_NUM);
         businessJobMapper.insert(businessJobDO);
         return BusinessJobConvert.INSTANCE.convert(businessJobDO);
     }
@@ -68,6 +72,7 @@ public class BusinessJobServiceImpl implements BusinessJobService{
         BusinessJobDO businessJobDO = getByUid(reqVO.getUid());
         BusinessJobDO updateDO = BusinessJobConvert.INSTANCE.convert(reqVO);
         updateDO.setId(businessJobDO.getId());
+        updateDO.setRemainCount(REMAIN_NUM);
         powerjobManager.saveJob(reqVO, businessJobDO.getJobId());
         businessJobMapper.updateById(updateDO);
     }
@@ -94,6 +99,7 @@ public class BusinessJobServiceImpl implements BusinessJobService{
     public void start(String uid) {
         BusinessJobDO businessJobDO = getByUid(uid);
         businessJobDO.setEnable(true);
+        businessJobDO.setRemainCount(REMAIN_NUM);
         businessJobMapper.updateById(businessJobDO);
         powerjobManager.enable(businessJobDO.getJobId());
     }
@@ -105,6 +111,11 @@ public class BusinessJobServiceImpl implements BusinessJobService{
             throw exception(JOB_NOT_EXIST, "jobId", jobId);
         }
         return businessJobDO;
+    }
+
+    @Override
+    public void decreaseNum(String uid) {
+        businessJobMapper.decreaseNum(uid);
     }
 
     @Override
@@ -122,7 +133,7 @@ public class BusinessJobServiceImpl implements BusinessJobService{
     @Override
     public List<BusinessJobRespVO> getByForeignKey(List<String> foreignKeys) {
         List<BusinessJobDO> jobDOList = businessJobMapper.getByForeignKey(foreignKeys);
-        return  BusinessJobConvert.INSTANCE.convert(jobDOList);
+        return BusinessJobConvert.INSTANCE.convert(jobDOList);
     }
 
     private BusinessJobDO getByForeignKey0(String foreignKey) {

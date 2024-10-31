@@ -22,10 +22,7 @@ import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 基于部门的 {@link DataPermissionRule} 数据权限规则实现
@@ -132,6 +129,9 @@ public class DeptDataPermissionRule implements DataPermissionRule {
                     JsonUtils.toJsonString(loginUser), tableName, tableAlias, JsonUtils.toJsonString(deptDataPermission));
 //            throw new NullPointerException(String.format("LoginUser(%d) Table(%s/%s) 构建的条件为空",
 //                    loginUser.getId(), tableName, tableAlias.getName()));
+            if (Objects.equals(tableName, "system_users")) {
+                return null;
+            }
             return EXPRESSION_NULL;
         }
         if (deptExpression == null) {

@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.open.service.handler;
 
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.mp.enums.click.WeChatClickTypeEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -37,6 +38,7 @@ public class WeChatSpecialHandler implements WxMpMessageHandler {
     private DictDataService dictDataService;
 
     @Override
+    @DataPermission(enable = false)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到公共号指定菜单请求，内容：{}", wxMessage);
         AdminUserDO userDO = socialUserService.getSocialUser(wxMessage.getFromUser(), SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
