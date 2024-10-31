@@ -48,7 +48,6 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
-import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
@@ -58,7 +57,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -382,85 +380,63 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 基础校验
             request.validate(ValidateTypeEnum.EXECUTE);
+            // 查询创作内容，校验创作内容是否存在
+            CreativeContentDO content = creativeContentMapper.get(request.getUid());
+            AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
+            // 查询创作计划，校验创作计划是否存在
+            CreativePlanRespVO planResponse = creativePlanService.get(content.getPlanUid());
 
             // 获取执行参数
             CreativeContentExecuteParam executeParam = request.getExecuteParam();
             // 获取应用
             AppMarketRespVO appInformation = this.handlerAppInformation(request);
-
             // 素材步骤
-            WorkflowStepWrapperRespVO materialWrapper = appInformation.getStepByHandler(MaterialActionHandler.class.getSimpleName());
-            AppValidate.notNull(materialWrapper, "创作计划应用配置异常，资料库步骤是必须的！请联系管理员！");
-
+            WorkflowStepWrapperRespVO materialWrapper = this.materialStepWrapper(appInformation);
+            // 素材步骤的步骤ID
+            String materialStepId = materialWrapper.getStepCode();
+            // 获取海报生成步骤
+            WorkflowStepWrapperRespVO posterStepWrapper = this.posterStepWrapper(appInformation);
+            // 海报步骤的步骤ID
+            String posterStepId = posterStepWrapper.getStepCode();
+            // 素材字段配置列表
+            List<MaterialFieldConfigDTO> materialFieldList = this.materialFieldList(planResponse);
             // 获取素材库类型
-            String businessType = materialWrapper.getVariableToString(CreativeConstants.BUSINESS_TYPE);
-            // 判断修改业务类型
-            Boolean isPicture = MaterialDefineUtil.judgePicture(appInformation);
-            businessType = isPicture ? CreativeConstants.PICTURE : businessType;
-            materialWrapper.putVariable(CreativeConstants.BUSINESS_TYPE, businessType);
-
+            String businessType = businessType(planResponse, materialWrapper, appInformation);
+            appInformation.putVariable(materialStepId, CreativeConstants.BUSINESS_TYPE, businessType);
+            // 获取到素材使用模式
+            MaterialUsageModel materialUsageModel = materialUsageModel(materialWrapper);
+            appInformation.putVariable(materialStepId, CreativeConstants.MATERIAL_USAGE_MODEL, materialUsageModel.name());
             // 获取资料库的具体处理器
-            AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
-            AppValidate.notNull(materialHandler, "素材库类型不支持，请联系管理员{}！", businessType);
-
+            AbstractMaterialHandler materialHandler = materialHandler(businessType);
             // 素材库列表
             List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
             AppValidate.notEmpty(materialList, "素材库列表不能为空，请联系管理员！");
-
-            // 素材字段配置列表
-            List<MaterialFieldConfigDTO> fieldList = CreativeUtils.getMaterialFieldByStepWrapper(request);
-            AppValidate.notEmpty(fieldList, "素材字段配置不能为空，请联系管理员！");
-
-            // 海报步骤
-            WorkflowStepWrapperRespVO posterWrapper = appInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
-            AppValidate.notNull(posterWrapper, "创作计划应用配置异常，海报步骤是必须的！请联系管理员！");
-
-            PosterStyleDTO posterStyle = CreativeUtils.getPosterStyleByStepWrapper(posterWrapper);
-            AppValidate.notNull(posterStyle, "图片生成配置不能为空！请配置图片生成后重试！");
-
-            // 查询创作内容并且校验
-            CreativeContentDO content = creativeContentMapper.get(request.getUid());
-            AppValidate.notNull(content, "创作内容不存在！");
-
-            // 从应用市场获取最新的系统配置合并
-            posterStyle = CreativeUtils.mergeImagePosterStyle(posterStyle, appInformation);
-            // 处理一下海报风格
-            posterStyle = CreativeUtils.handlerPosterStyle(posterStyle);
-
-            // 素材步骤的步骤ID
-            String materialStepId = materialWrapper.getField();
-            // 海报步骤的步骤ID
-            String posterStepId = posterWrapper.getField();
-
-            materialHandler.validatePosterStyle(posterStyle);
+            // 获取海报风格
+            PosterStyleDTO posterStyle = handlerPosterStyle(posterStepWrapper, appInformation);
 
             // 构建素材库元数据
             MaterialMetadata materialMetadata = new MaterialMetadata();
-            materialMetadata.setPlanUid(request.getPlanUid());
+            materialMetadata.setPlanUid(planResponse.getUid());
             materialMetadata.setAppUid(appInformation.getUid());
             materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
             materialMetadata.setPlanSource(CreativePlanSourceEnum.of(request.getSource()));
             materialMetadata.setMaterialType(businessType);
             materialMetadata.setMaterialStepId(materialStepId);
             materialMetadata.setPosterStepId(posterStepId);
-            materialMetadata.setMaterialUsageModel(MaterialUsageModel.FILTER_USAGE);
-            materialMetadata.setMaterialFieldList(fieldList);
+            materialMetadata.setMaterialUsageModel(materialUsageModel);
+            materialMetadata.setMaterialFieldList(materialFieldList);
 
-
-            Map<String, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList,
-                    Collections.emptyMap(),
-                    materialMetadata);
-
+            Map<String, PosterStyleDTO> posterStyleMap = Collections.singletonMap(content.getConversationUid(), posterStyle);
+            Map<String, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, posterStyleMap, materialMetadata);
             // 获取该风格下，处理之后的素材列表
             List<Map<String, Object>> usageMaterialList = materialMap.get(0);
-
+            // 处理海报风格
             PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, materialMetadata);
 
             // 将处理后的海报风格填充到执行参数中
             appInformation.putVariable(posterStepId, CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
             // 将素材库的素材列表填充上传素材步骤变量中
             appInformation.putVariable(materialStepId, CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
-
             executeParam.setAppInformation(appInformation);
 
             // 更新创作内容为最新的版本
@@ -584,7 +560,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             return;
         }
         LocalDateTime now = LocalDateTime.now();
-        long elapsed = Duration.between(content.getStartTime(), now).toMillis();
+        LocalDateTime start = Objects.isNull(content.getStartTime()) ? now : content.getStartTime();
+        long elapsed = Duration.between(start, now).toMillis();
 
         LambdaUpdateWrapper<CreativeContentDO> wrapper = Wrappers.lambdaUpdate(CreativeContentDO.class);
         wrapper.set(CreativeContentDO::getStatus, CreativeContentStatusEnum.CANCELED.name());
@@ -696,4 +673,109 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         return app;
     }
 
+    /**
+     * 获取上传素材步骤
+     *
+     * @param appInformation 应用信息
+     * @return 上传素材步骤
+     */
+    private WorkflowStepWrapperRespVO materialStepWrapper(AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO materialStepWrapper = appInformation.getStepByHandler(MaterialActionHandler.class);
+        AppValidate.notNull(materialStepWrapper, "创作内容执行失败，素材上传步骤是必须的！请检查您的配置或联系管理员！");
+        return materialStepWrapper;
+    }
+
+    /**
+     * 获取图片生成步骤
+     *
+     * @param appInformation 应用信息
+     * @return 图片生成步骤
+     */
+    private WorkflowStepWrapperRespVO posterStepWrapper(AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO posterStepWrapper = appInformation.getStepByHandler(PosterActionHandler.class);
+        AppValidate.notNull(posterStepWrapper, "创作内容执行失败，图片生成步骤是必须的！请检查您的配置或联系管理员！");
+        return posterStepWrapper;
+    }
+
+    /**
+     * 获取素材字段配置信息
+     *
+     * @param planResponse 计划
+     * @return 素材字段配置信息
+     */
+    private List<MaterialFieldConfigDTO> materialFieldList(CreativePlanRespVO planResponse) {
+        try {
+            List<MaterialFieldConfigDTO> materialFieldList = CreativeUtils.getMaterialFieldByStepWrapper(planResponse);
+            AppValidate.notEmpty(materialFieldList, "创作内容执行失败：素材字段配置不能为空，请联系管理员！");
+            return materialFieldList;
+        } catch (ServiceException exception) {
+            log.error("获取素材字段配置失败", exception);
+            throw ServiceExceptionUtil.invalidParamException(exception.getMessage());
+        } catch (Exception exception) {
+            log.error("获取素材字段配置失败", exception);
+            throw ServiceExceptionUtil.invalidParamException("创作内容执行失败：获取素材字段配置失败，请联系管理员！");
+        }
+    }
+
+    /**
+     * 获取业务类型
+     *
+     * @param planResponse        计划
+     * @param materialStepWrapper 素材步骤
+     * @param appInformation      应用信息
+     * @return 业务类型
+     */
+    private String businessType(CreativePlanRespVO planResponse, WorkflowStepWrapperRespVO materialStepWrapper, AppMarketRespVO appInformation) {
+        // 获取素材库类型
+        String businessType = materialStepWrapper.getVariableToString(CreativeConstants.BUSINESS_TYPE);
+
+        boolean isPicture;
+        // 判断修改业务类型
+        if (CreativePlanSourceEnum.isApp(planResponse.getSource())) {
+            isPicture = CreativeUtils.judgePicture(appInformation.getUid());
+        } else {
+            isPicture = CreativeUtils.judgePicture(planResponse.getUid());
+        }
+
+        businessType = isPicture ? CreativeConstants.PICTURE : businessType;
+        return businessType;
+    }
+
+    /**
+     * 素材库使用模式
+     *
+     * @param materialStepWrapper 素材步骤
+     * @return 素材库使用模式
+     */
+    private MaterialUsageModel materialUsageModel(WorkflowStepWrapperRespVO materialStepWrapper) {
+        return CreativeUtils.getMaterialUsageModelByStepWrapper(materialStepWrapper);
+    }
+
+    /**
+     * 获取到素材库处理器
+     *
+     * @param businessType 业务类型
+     * @return 素材库处理器
+     */
+    private AbstractMaterialHandler materialHandler(String businessType) {
+        AbstractMaterialHandler materialHandler = materialHandlerHolder.getHandler(businessType);
+        AppValidate.notNull(materialHandler, "创作内容执行失败：素材库类型不支持，请联系管理员{}！", businessType);
+        return materialHandler;
+    }
+
+    /**
+     * 处理海报风格
+     *
+     * @param posterStepWrapper 海报步骤
+     * @param appInformation    应用信息
+     * @return 海报风格
+     */
+    private PosterStyleDTO handlerPosterStyle(WorkflowStepWrapperRespVO posterStepWrapper, AppMarketRespVO appInformation) {
+        PosterStyleDTO posterStyle = CreativeUtils.getPosterStyleByStepWrapper(posterStepWrapper);
+        AppValidate.notNull(posterStyle, "创作内容执行失败: 图片生成配置不能为空！请配置图片生成后重试！");
+        // 从应用市场获取最新的系统配置合并
+        posterStyle = CreativeUtils.mergeImagePosterStyle(posterStyle, appInformation);
+        // 处理一下海报风格
+        return CreativeUtils.handlerPosterStyle(posterStyle);
+    }
 }

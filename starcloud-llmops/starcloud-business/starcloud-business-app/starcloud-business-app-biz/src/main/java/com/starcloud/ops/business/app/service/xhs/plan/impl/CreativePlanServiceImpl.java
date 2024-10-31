@@ -56,6 +56,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -180,6 +181,19 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
         return list.stream().map(CreativePlanConvert.INSTANCE::convert)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 创作计划海报列表
+     *
+     * @param uid 用户ID
+     * @return 海报列表
+     */
+    @Override
+    public List<PosterStyleDTO> planPosterList(String uid) {
+        CreativePlanRespVO plan = this.get(uid);
+        CreativePlanConfigurationDTO configuration = plan.getConfiguration();
+        return ListUtils.emptyIfNull(configuration.getImageStyleList());
     }
 
 
@@ -499,6 +513,12 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             creativePlanBatchService.updateStatus(batchUid);
             // 查询当前批次
             CreativePlanBatchRespVO batch = creativePlanBatchService.get(batchUid);
+            if (CreativePlanStatusEnum.CANCELED.name().equals(batch.getStatus())) {
+                log.info("将要更新计划为【取消】状态，planUid: {}", planUid);
+                updateStatus(planUid, CreativePlanStatusEnum.CANCELED.name());
+                log.info("更新计划状态【结束】，planUid: {}", planUid);
+                return;
+            }
             // 如果当前批次是完成状态，则计划完成
             if (CreativePlanStatusEnum.COMPLETE.name().equals(batch.getStatus())) {
                 log.info("将要更新计划为【完成】状态，planUid: {}", planUid);
