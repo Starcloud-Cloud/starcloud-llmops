@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.feign;
 
 import com.starcloud.ops.business.app.feign.dto.coze.*;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
+import com.starcloud.ops.business.app.feign.request.coze.CozeWorkflowRequest;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.validation.annotation.Validated;
@@ -32,9 +33,9 @@ public interface CozePublicClient {
      * @return
      */
     @GetMapping("/v1/space/published_bots_list")
-    CozeResponse<SpaceInfo> spaceBots(@RequestParam(value = "space_id") String spaceId,
-                                      @RequestHeader("Authorization") String accessToken,
-                                      @RequestParam(value = "page_size") Integer pageSize, @RequestParam(value = "page_index") Integer pageIndex);
+    CozeResponse<BotListInfo> spaceBots(@RequestParam(value = "space_id") String spaceId,
+                                        @RequestHeader("Authorization") String accessToken,
+                                        @RequestParam(value = "page_size") Integer pageSize, @RequestParam(value = "page_index") Integer pageIndex);
 
     /**
      * 扣子机器人聊天
@@ -71,4 +72,26 @@ public interface CozePublicClient {
     CozeResponse<List<CozeMessageResult>> messageList(@RequestParam(value = "conversation_id") String conversationId,
                                                       @RequestParam(value = "chat_id") String chatId,
                                                       @RequestHeader("Authorization") String accessToken);
+
+    /**
+     * 空间列表
+     */
+
+
+    /**
+     * 查询空间列表
+     */
+    @GetMapping("/v1/workspaces")
+    CozeResponse<SpaceListInfo> spaceList(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestParam(value = "page_size") Integer pageSize,
+            @RequestParam(value = "page_index") Integer pageIndex);
+
+
+    /**
+     * 执行工作流
+     */
+    @PostMapping("/v1/workflow/run")
+    CozeResponse<String> runWorkflow(@Validated @RequestBody CozeWorkflowRequest request,
+                                             @RequestHeader("Authorization") String accessToken);
 }

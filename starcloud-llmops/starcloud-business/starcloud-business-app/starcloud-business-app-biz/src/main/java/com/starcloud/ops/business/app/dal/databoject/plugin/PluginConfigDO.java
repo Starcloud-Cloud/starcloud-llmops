@@ -51,4 +51,6 @@ public class PluginConfigDO extends TenantBaseDO {
      */
     private Integer type;
 
+    private String bindName;
+
 }

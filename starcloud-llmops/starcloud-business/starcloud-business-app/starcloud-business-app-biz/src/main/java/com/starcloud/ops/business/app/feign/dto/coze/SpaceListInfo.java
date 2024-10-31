@@ -6,10 +6,10 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class SpaceInfo {
+public class SpaceListInfo {
 
-    @JsonProperty("space_bots")
-    private List<SpaceBot> spaceBots;
+    @JsonProperty("total_count")
+    private Integer totalCount;
 
-    private Integer total;
+    private List<SpaceDetail> workspaces;
 }

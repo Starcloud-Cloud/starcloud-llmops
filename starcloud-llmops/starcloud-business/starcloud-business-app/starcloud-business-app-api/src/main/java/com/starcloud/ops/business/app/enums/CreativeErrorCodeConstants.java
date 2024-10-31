@@ -339,5 +339,9 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode INPUT_OUTPUT_ERROR = new ErrorCode(760100013, "coze执行结果获取异常, {}");
 
+    ErrorCode PLATFORM_NOT_SUPPORT = new ErrorCode(760100014, "不支持的插件类型, {}");
+
+    ErrorCode EXECUTE_POOL_FULL = new ErrorCode(760100015, "线程池已满，请稍后重试");
+
 
 }
