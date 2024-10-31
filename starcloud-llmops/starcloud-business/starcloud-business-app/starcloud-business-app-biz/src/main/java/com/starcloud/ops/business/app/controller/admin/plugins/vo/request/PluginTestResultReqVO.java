@@ -8,22 +8,14 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 
 @Data
-@Schema(description = "校验机器人")
-public class PluginTestReqVO {
+@Schema(description = "请求验证结果")
+public class PluginTestResultReqVO {
 
     @NotBlank(message = "实现方式不能为空")
     @InEnum(value = PlatformEnum.class, field = InEnum.EnumField.CODE, message = "实现类型[{value}]必须在: [{values}] 范围内！")
     private String type;
 
-    @Schema(description = "机器人id/工作流id")
-    @NotBlank(message = "实现id不能为空")
-    private String entityUid;
+    String code;
 
-    @NotBlank(message = "令牌id不能为空")
-    private String accessTokenId;
-
-    @Schema(description = "入参")
-    @NotBlank(message = "入参不能为空")
-    private String content;
-
+    String accessTokenId;
 }

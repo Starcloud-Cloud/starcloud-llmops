@@ -76,7 +76,9 @@ public class CozeStandaloneProcessor extends StandaloneBasicProcessor {
         String executeParams = pluginConfigVO.getExecuteParams();
         PluginExecuteReqVO executeReqVO = new PluginExecuteReqVO();
         executeReqVO.setUuid(pluginUid);
-        executeReqVO.setInputParams(executeParams);
+        if (StringUtils.isNotBlank(executeParams)) {
+            executeReqVO.setInputParams(JSONUtil.parseObj(executeParams));
+        }
         Object content = pluginsService.syncExecute(executeReqVO);
 
         // 字段映射落库
