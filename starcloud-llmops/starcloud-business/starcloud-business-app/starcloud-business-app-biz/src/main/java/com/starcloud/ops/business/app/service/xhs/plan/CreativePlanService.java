@@ -158,7 +158,7 @@ public interface CreativePlanService {
     /**
      * 创作计划海报列表
      *
-     * @param uid 用户ID
+     * @param uid 计划ID
      * @return 海报列表
      */
     List<PosterStyleDTO> planPosterList(String uid);

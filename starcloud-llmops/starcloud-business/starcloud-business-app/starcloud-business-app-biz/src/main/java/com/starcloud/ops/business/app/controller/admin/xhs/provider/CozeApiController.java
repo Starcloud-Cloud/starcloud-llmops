@@ -1,7 +1,11 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.provider;
 
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.base.vo.request.BatchUidRequest;
@@ -20,6 +24,8 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Arrays;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +43,7 @@ import java.util.Map;
  * @version 1.0.0
  * @since 2023-11-07
  */
+@Slf4j
 @RestController
 @RequestMapping("/creative/provider/coze")
 @Tag(name = "coze接口提供", description = "")
@@ -48,6 +55,8 @@ public class CozeApiController {
     @Resource
     private CreativePlanExecuteManager creativePlanExecuteManager;
 
+    @Resource
+    private DictDataService dictDataService;
 
     @Resource
     private CreativeContentService creativeContentService;
@@ -56,14 +65,11 @@ public class CozeApiController {
     @GetMapping("/appList")
     @Operation(summary = "获取可执行的应用列表", description = "获取可执行的应用列表")
     @ApiOperationSupport(order = 50, author = "nacoyer")
-    public CommonResult<List<String>> appList() {
+    public CommonResult<List<Object>> appList() {
 
-        List<String> result = new ArrayList();
+        DictDataDO dictDataDO = dictDataService.parseDictData("provider_coze_appList", "appList" );
 
-        result.add("sd");
-        result.add("333");
-
-        return CommonResult.success(result);
+        return CommonResult.success(JSONUtil.toList(dictDataDO.getRemark(), Object.class));
     }
 
 
@@ -84,15 +90,16 @@ public class CozeApiController {
 
 
 
-    @GetMapping("/page")
-    @Operation(summary = "分页查询")
-    public CommonResult<PageResult<CreativeContentRespVO>> page(@Valid CreativeContentPageReqVO req) {
+    @GetMapping("/detail")
+    @Operation(summary = "应用批次执行详情")
+    public CommonResult<List<CreativeContentRespVO>> page(@Valid CreativeContentPageReqVO req) {
 
-        req.setPageSize(20);
+        req.setPageSize(30);
         req.setPageNo(1);
 
         PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
-        return CommonResult.success(result);
+
+        return CommonResult.success(result.getList());
     }
 
 

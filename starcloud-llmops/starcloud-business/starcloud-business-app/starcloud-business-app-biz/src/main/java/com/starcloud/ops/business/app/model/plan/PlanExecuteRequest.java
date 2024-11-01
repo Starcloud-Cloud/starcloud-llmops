@@ -16,6 +16,9 @@ public class PlanExecuteRequest implements Serializable {
 
     private static final long serialVersionUID = -8952228169156691678L;
 
+
+    private String appUid;
+
     /**
      * 计划UID
      */

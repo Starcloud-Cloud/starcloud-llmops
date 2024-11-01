@@ -1,6 +1,9 @@
 package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.TypeReference;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -9,7 +12,6 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -119,19 +121,27 @@ public class CreativePlanExecuteManager {
     public PlanExecuteResult run(PlanExecuteRequest request) {
 
         PlanExecuteResult planExecuteResult = this.execute(request);
+        String appUid = request.getAppUid();
 
         String planUid = planExecuteResult.getPlanUid();
         String batchUid = planExecuteResult.getBatchUid();
 
         CreativePlanGetQuery creativePlanGetQuery = new CreativePlanGetQuery();
         creativePlanGetQuery.setUid(planUid);
-        creativePlanGetQuery.setAppUid("");
+        creativePlanGetQuery.setAppUid(appUid);
         creativePlanGetQuery.setSource("coze");
+
+
+        if (StrUtil.isNotBlank(planExecuteResult.getWarning())) {
+            throw ServiceExceptionUtil.invalidParamException(planExecuteResult.getWarning());
+        }
 
         //轮训查询执行状态，知道完成或失败
         while (true) {
 
             CreativePlanRespVO plan = creativePlanService.getOrCreate(creativePlanGetQuery);
+
+            log.info("getOrCreate status: {}", plan.getStatus());
 
             if (Objects.equals(plan.getStatus(), CreativePlanStatusEnum.COMPLETE.name())) {
 
@@ -148,7 +158,7 @@ public class CreativePlanExecuteManager {
             }
 
             try {
-                Thread.sleep(500);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -180,7 +190,10 @@ public class CreativePlanExecuteManager {
                 throw new InterruptedException();
             }
 
-            JSONUtil.toBean(request.getMaterialListJson(), request.getMaterialList().getClass());
+            if (StrUtil.isNotBlank(request.getMaterialListJson())) {
+                request.setMaterialList(JSONUtil.toBean(request.getMaterialListJson(), new TypeReference<List<Map<String, Object>>>() {} , false));
+            }
+
 
             List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
             // 素材校验
