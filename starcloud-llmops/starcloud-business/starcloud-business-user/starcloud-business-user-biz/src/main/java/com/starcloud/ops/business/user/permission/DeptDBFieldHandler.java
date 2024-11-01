@@ -47,10 +47,8 @@ public class DeptDBFieldHandler extends DefaultDBFieldHandler {
             return;
         }
 
-        Long userId = null;
-        if (Objects.isNull(loginUser) || Objects.isNull(loginUser.getId())) {
-            userId = UserContextHolder.getUserId();
-        } else {
+        Long userId = UserContextHolder.getUserId();
+        if (Objects.isNull(userId) && Objects.nonNull(loginUser)) {
             userId = loginUser.getId();
         }
 
