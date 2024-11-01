@@ -21,20 +21,26 @@ public class PlanExecuteRequest implements Serializable {
      */
     private String planUid;
 
-
     /**
      * 是否异步
      */
     private Boolean async;
 
     /**
-     * 素材列表
+     * 选择执行海报风格ID
      */
-    private List<Map<String, Object>> materialList;
-
+    private String posterStyleId;
 
     /**
      * 素材列表 JSON 格式
      */
     private String materialListJson;
+
+
+    private List<Map<String, Object>> materialList;
+
+    /**
+     * 生成海报数量
+     */
+    private Integer totalCount;
 }
