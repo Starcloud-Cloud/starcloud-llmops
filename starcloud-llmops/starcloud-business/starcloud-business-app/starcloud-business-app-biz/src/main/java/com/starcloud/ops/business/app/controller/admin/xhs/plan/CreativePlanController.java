@@ -145,8 +145,9 @@ public class CreativePlanController {
     @Operation(summary = "执行创作计划", description = "执行创作计划")
     @ApiOperationSupport(order = 90, author = "nacoyer")
     public CommonResult<PlanExecuteResult> run(@Validated @RequestBody PlanExecuteRequest request) {
-        return CommonResult.success(creativePlanExecuteManager.execute(request));
+        return CommonResult.success(creativePlanExecuteManager.run(request));
     }
+
 
     @PostMapping("/cancel")
     @Operation(summary = "取消创作计划", description = "取消创作计划")

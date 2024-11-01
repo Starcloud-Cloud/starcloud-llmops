@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -15,6 +16,9 @@ import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
@@ -53,6 +57,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,6 +108,53 @@ public class CreativePlanExecuteManager {
      */
     private static String lockKey(String planUid) {
         return PLAN_EXECUTE_LOCK_PREFIX + planUid;
+    }
+
+
+    /**
+     * 同步执行
+     * @param request
+     * @return
+     */
+    public PlanExecuteResult run(PlanExecuteRequest request) {
+
+        PlanExecuteResult planExecuteResult = this.execute(request);
+
+        String planUid = planExecuteResult.getPlanUid();
+        String batchUid = planExecuteResult.getBatchUid();
+
+        CreativePlanGetQuery creativePlanGetQuery = new CreativePlanGetQuery();
+        creativePlanGetQuery.setUid(planUid);
+        creativePlanGetQuery.setAppUid("");
+        creativePlanGetQuery.setSource("coze");
+
+        //轮训查询执行状态，知道完成或失败
+        while (true) {
+
+            CreativePlanRespVO plan = creativePlanService.getOrCreate(creativePlanGetQuery);
+
+            if (Objects.equals(plan.getStatus(), CreativePlanStatusEnum.COMPLETE.name())) {
+
+                CreativeContentPageReqVO creativeContentPageReqVO = new CreativeContentPageReqVO();
+                creativeContentPageReqVO.setBatchUid(batchUid);
+                creativeContentPageReqVO.setPageNo(1);
+                creativeContentPageReqVO.setPageSize(30);
+
+                PageResult<CreativeContentRespVO> result =  creativeContentService.page(creativeContentPageReqVO);
+
+                planExecuteResult.setContentRespVOList(result.getList());
+
+                return planExecuteResult;
+            }
+
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+               throw new RuntimeException(e);
+            }
+        }
+
+
     }
 
     /**

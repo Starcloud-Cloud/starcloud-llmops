@@ -21,8 +21,20 @@ public class PlanExecuteRequest implements Serializable {
      */
     private String planUid;
 
+
+    /**
+     * 是否异步
+     */
+    private Boolean async;
+
     /**
      * 素材列表
      */
     private List<Map<String, Object>> materialList;
+
+
+    /**
+     * 素材列表 JSON 格式
+     */
+    private String materialListJson;
 }

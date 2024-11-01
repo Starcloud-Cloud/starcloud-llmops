@@ -19,6 +19,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import tech.powerjob.worker.core.processor.ProcessResult;
 import tech.powerjob.worker.core.processor.TaskContext;
 import tech.powerjob.worker.core.processor.sdk.BasicProcessor;
@@ -46,7 +47,7 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
     @Resource
     private RedissonClient redissonClient;
 
-    @Resource
+    @Autowired(required = false)
     private PowerjobManager powerjobManager;
 
     @Override
