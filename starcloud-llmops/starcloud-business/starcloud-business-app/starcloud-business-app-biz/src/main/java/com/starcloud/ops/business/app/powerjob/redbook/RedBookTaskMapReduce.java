@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.powerjob.redbook;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.job.TenantJob;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
@@ -55,6 +56,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      * @return 执行结果
      */
     @Override
+    @DataPermission(enable = false)
     protected BaseTaskResult execute(PowerJobTaskContext context) {
 
         if (isRootTask()) {
@@ -82,6 +84,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      */
     @TenantJob
     @Override
+    @DataPermission(enable = false)
     protected BaseTaskResult runRoot(PowerJobTaskContext context) {
 
         // 获取任务执行参数
@@ -163,6 +166,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      * @return 执行结果
      */
     @SuppressWarnings("unused")
+    @DataPermission(enable = false)
     public BaseTaskResult runSub(BaseTaskContext context, SubTask subTask) {
         try {
 
@@ -227,6 +231,7 @@ public class RedBookTaskMapReduce extends BaseMapReduceTask {
      */
     @Override
     @TenantIgnore
+    @DataPermission(enable = false)
     public ProcessResult reduce(TaskContext taskContext, List<TaskResult> taskResults) {
         // 更新创作状态交给 creativeContentService.batchExecute 去处理。
 //
