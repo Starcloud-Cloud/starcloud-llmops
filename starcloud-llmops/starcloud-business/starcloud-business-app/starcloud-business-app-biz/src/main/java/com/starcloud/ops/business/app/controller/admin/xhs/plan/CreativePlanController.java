@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -137,7 +136,10 @@ public class CreativePlanController {
     public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
         PlanExecuteRequest planExecuteRequest = new PlanExecuteRequest();
         planExecuteRequest.setPlanUid(request.getUid());
-        planExecuteRequest.setMaterialList(Collections.emptyList());
+        planExecuteRequest.setAsync(Boolean.FALSE);
+        planExecuteRequest.setMaterialListJson(null);
+        planExecuteRequest.setPosterStyleId(null);
+        planExecuteRequest.setTotalCount(null);
         return CommonResult.success(creativePlanExecuteManager.execute(planExecuteRequest));
     }
 

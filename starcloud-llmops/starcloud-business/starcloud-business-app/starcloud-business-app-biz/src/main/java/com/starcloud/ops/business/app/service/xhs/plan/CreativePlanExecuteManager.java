@@ -8,6 +8,7 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -51,23 +52,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * 创作计划执行管理
@@ -113,6 +111,7 @@ public class CreativePlanExecuteManager {
 
     /**
      * 同步执行
+     *
      * @param request
      * @return
      */
@@ -140,7 +139,7 @@ public class CreativePlanExecuteManager {
                 creativeContentPageReqVO.setPageNo(1);
                 creativeContentPageReqVO.setPageSize(30);
 
-                PageResult<CreativeContentRespVO> result =  creativeContentService.page(creativeContentPageReqVO);
+                PageResult<CreativeContentRespVO> result = creativeContentService.page(creativeContentPageReqVO);
 
                 planExecuteResult.setContentRespVOList(result.getList());
 
@@ -150,7 +149,7 @@ public class CreativePlanExecuteManager {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
-               throw new RuntimeException(e);
+                throw new RuntimeException(e);
             }
         }
 
@@ -171,8 +170,6 @@ public class CreativePlanExecuteManager {
         }
 
         String planUid = request.getPlanUid();
-        List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
-        // 素材校验
 
         RLock lock = redissonClient.getLock(lockKey(planUid));
 
@@ -186,7 +183,7 @@ public class CreativePlanExecuteManager {
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
 
             // 创作内容任务数据整合处理
-            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse, materialList);
+            ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse, request);
             // 新的总数。
             int total = getTotal(planResponse, CollectionUtil.emptyIfNull(batchRequest.getContentRequestList()).size());
             planResponse.setTotalCount(total);
@@ -266,17 +263,17 @@ public class CreativePlanExecuteManager {
      * @return 创作内容请求列表
      */
     private ContentBatchRequest buildContentRequestList(CreativePlanRespVO planResponse,
-                                                        List<Map<String, Object>> materials) {
+                                                        PlanExecuteRequest request) {
 
         /*
          * 相关数据处理准备
          */
         // 处理数据并且获取素材库元数据
-        MaterialMetadata metadata = this.handlerAndGetMetadata(planResponse);
+        MaterialMetadata metadata = this.handlerAndGetMetadata(planResponse, request);
         // 获取素材库处理器
         AbstractMaterialHandler handler = materialHandler(metadata.getMaterialType());
         // 获取素材库素材列表
-        List<Map<String, Object>> materialList = this.materialList(planResponse, materials);
+        List<Map<String, Object>> materialList = this.materialList(planResponse, request.getMaterialListJson());
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         // 获取海报风格配置
@@ -288,8 +285,8 @@ public class CreativePlanExecuteManager {
          * 计算需要生成的任务总数
          */
         String message = "";
-        // 计算需要生成的任务总数
-        int totalCount = planResponse.getTotalCount();
+        // 计算需要生成的任务总数, 先从请求中获取，如果没有，使用计划中的总数
+        int totalCount = Optional.ofNullable(request.getTotalCount()).orElse(planResponse.getTotalCount());
         // 如果是选择执行，重新计算任务总数。
         if (MaterialUsageModel.SELECT.equals(metadata.getMaterialUsageModel())) {
             // 根据素材总数和风格进行计算可以生产任务的总数。
@@ -471,12 +468,12 @@ public class CreativePlanExecuteManager {
      * @param planResponse 计划
      * @return 素材库元数据
      */
-    private MaterialMetadata handlerAndGetMetadata(CreativePlanRespVO planResponse) {
+    private MaterialMetadata handlerAndGetMetadata(CreativePlanRespVO planResponse, PlanExecuteRequest request) {
 
         // 计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         // 处理海报风格配置
-        List<PosterStyleDTO> posterStyleList = this.posterStyleList(configuration);
+        List<PosterStyleDTO> posterStyleList = this.posterStyleList(configuration, request.getPosterStyleId());
 
         // 获取计划应用信息
         AppMarketRespVO appInformation = this.handlerAppInformation(planResponse);
@@ -529,12 +526,22 @@ public class CreativePlanExecuteManager {
      * @return 素材列表
      */
     private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse,
-                                                   List<Map<String, Object>> materials) {
+                                                   String materialJson) {
         try {
             log.info("开始获取素材库列表");
             // 如果上传素材不为空，直接返回
-            if (CollectionUtil.isNotEmpty(materials)) {
-                return materials;
+            if (StringUtils.isNotBlank(materialJson)) {
+                try {
+                    TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
+                    };
+                    List<Map<String, Object>> materialList = JsonUtils.parseObject(materialJson, reference);
+                    if (CollectionUtil.isNotEmpty(materialList)) {
+                        // 校验素材列表
+                        return materialList;
+                    }
+                } catch (Exception exception) {
+                    // ignore
+                }
             }
 
             List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
@@ -641,65 +648,40 @@ public class CreativePlanExecuteManager {
     }
 
     /**
-     * 获取待执行的海报风格
-     *
-     * @param posterStepId   海报步骤ID
-     * @param appInformation 应用信息
-     * @return 海报风格
-     */
-    private PosterStyleDTO getExecutePosterStyle(String posterStepId, AppMarketRespVO appInformation) {
-        String posterStyleString = appInformation.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE);
-        if (StringUtils.isBlank(posterStyleString) || "{}".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-            return null;
-        }
-
-        try {
-            return JsonUtils.parseObject(posterStyleString, PosterStyleDTO.class);
-        } catch (Exception exception) {
-            return null;
-        }
-    }
-
-    /**
      * 获取创作内容任务的海报风格列表
      *
      * @param configuration 创作计划配置
      * @return 海报风格列表
      */
-    private List<PosterStyleDTO> posterStyleList(CreativePlanConfigurationDTO configuration) {
+    private List<PosterStyleDTO> posterStyleList(CreativePlanConfigurationDTO configuration, String posterStyleId) {
         List<PosterStyleDTO> posterStyleList = configuration.getImageStyleList();
-        // 合并海报风格列表, 从系统配置的海报风格中获取最新的海报风格
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            throw ServiceExceptionUtil.invalidParamException("计划执行失败：海报风格配置不能为空，请联系管理员！");
+        }
+
+        // 如果选择了海报风格，直接返回选择的海报风格
+        if (StringUtils.isNotBlank(posterStyleId)) {
+            for (PosterStyleDTO posterStyle : posterStyleList) {
+                if (posterStyleId.equals(posterStyle.getUuid())) {
+                    List<PosterStyleDTO> list = new ArrayList<>();
+                    list.add(posterStyle);
+
+                    List<PosterStyleDTO> merged = CreativeUtils.mergeImagePosterStyleList(list, configuration.getAppInformation());
+                    List<PosterStyleDTO> result = CreativeUtils.preHandlerPosterStyleList(merged);
+                    if (CollectionUtil.isNotEmpty(result)) {
+                        return result;
+                    }
+                }
+            }
+        }
+
+        // 否则直接获取配置中的。
         List<PosterStyleDTO> merged = CreativeUtils.mergeImagePosterStyleList(posterStyleList, configuration.getAppInformation());
         List<PosterStyleDTO> list = CreativeUtils.preHandlerPosterStyleList(merged);
         if (CollectionUtil.isEmpty(list)) {
             throw ServiceExceptionUtil.invalidParamException("计划执行失败：海报风格配置不能为空，请联系管理员！");
         }
         return list;
-    }
-
-    /**
-     * 从内容任务中获取，海报配置信息。
-     *
-     * @param contentCreateRequestList 内容人物列表
-     * @param posterStepId             海报步骤
-     * @return 海报列表
-     */
-    @NotNull
-    private List<PosterStyleDTO> getPosterStyleListFromRequest(List<CreativeContentCreateReqVO> contentCreateRequestList, String posterStepId) {
-        return CollectionUtil.emptyIfNull(contentCreateRequestList).stream().map(item -> {
-            Optional<String> posterStyleOptional = Optional.ofNullable(item).map(CreativeContentCreateReqVO::getExecuteParam).map(CreativeContentExecuteParam::getAppInformation).map(appResponse -> appResponse.getVariableToString(posterStepId, CreativeConstants.POSTER_STYLE));
-
-            if (!posterStyleOptional.isPresent()) {
-                return null;
-            }
-
-            try {
-                return JsonUtils.parseObject(posterStyleOptional.get(), PosterStyleDTO.class);
-            } catch (Exception e) {
-                return null;
-            }
-
-        }).collect(Collectors.toList());
     }
 
 }

@@ -3,8 +3,6 @@ package com.starcloud.ops.business.app.model.plan;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author nacoyer
@@ -21,20 +19,23 @@ public class PlanExecuteRequest implements Serializable {
      */
     private String planUid;
 
-
     /**
      * 是否异步
      */
     private Boolean async;
 
     /**
-     * 素材列表
+     * 选择执行海报风格ID
      */
-    private List<Map<String, Object>> materialList;
-
+    private String posterStyleId;
 
     /**
      * 素材列表 JSON 格式
      */
     private String materialListJson;
+
+    /**
+     * 生成海报数量
+     */
+    private Integer totalCount;
 }
