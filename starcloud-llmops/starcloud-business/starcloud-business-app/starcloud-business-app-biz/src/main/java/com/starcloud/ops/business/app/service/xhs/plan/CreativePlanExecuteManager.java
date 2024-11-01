@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -171,9 +172,6 @@ public class CreativePlanExecuteManager {
         }
 
         String planUid = request.getPlanUid();
-        List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
-        // 素材校验
-
         RLock lock = redissonClient.getLock(lockKey(planUid));
 
         try {
@@ -181,6 +179,11 @@ public class CreativePlanExecuteManager {
             if (!lock.tryLock(1, TimeUnit.MINUTES)) {
                 throw new InterruptedException();
             }
+
+            JSONUtil.toBean(request.getMaterialListJson(), request.getMaterialList().getClass());
+
+            List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
+            // 素材校验
 
             // 获取并且校验计划
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);

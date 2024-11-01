@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.xhs;
 
+import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.iocoder.yudao.framework.dict.config.YudaoDictAutoConfiguration;
 import cn.iocoder.yudao.framework.errorcode.config.YudaoErrorCodeAutoConfiguration;
 import cn.iocoder.yudao.framework.jackson.config.YudaoJacksonAutoConfiguration;
@@ -10,6 +11,7 @@ import cn.iocoder.yudao.framework.social.config.YudaoSocialAutoConfiguration;
 import cn.iocoder.yudao.framework.test.core.ut.BaseDbUnitTest;
 import cn.iocoder.yudao.module.infra.api.file.FileApi;
 import cn.iocoder.yudao.module.starcloud.adapter.ruoyipro.AdapterRuoyiProConfiguration;
+import com.binarywang.spring.starter.wxjava.miniapp.properties.WxMaProperties;
 import com.binarywang.spring.starter.wxjava.mp.properties.WxMpProperties;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
@@ -90,6 +92,12 @@ public class XhsCreativeContentServiceTest extends BaseDbUnitTest {
     @Autowired
     private CreativePlanService creativePlanService;
 
+
+    @MockBean
+    private WxMaService wxMaService;
+
+    @MockBean
+    private WxMaProperties wxMaProperties;
 
 
 
