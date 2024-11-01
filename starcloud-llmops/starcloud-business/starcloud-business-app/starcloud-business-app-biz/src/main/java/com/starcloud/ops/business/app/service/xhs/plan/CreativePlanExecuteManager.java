@@ -180,11 +180,6 @@ public class CreativePlanExecuteManager {
                 throw new InterruptedException();
             }
 
-            JSONUtil.toBean(request.getMaterialListJson(), request.getMaterialList().getClass());
-
-            List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
-            // 素材校验
-
             // 获取并且校验计划
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
 
@@ -279,7 +274,7 @@ public class CreativePlanExecuteManager {
         // 获取素材库处理器
         AbstractMaterialHandler handler = materialHandler(metadata.getMaterialType());
         // 获取素材库素材列表
-        List<Map<String, Object>> materialList = this.materialList(planResponse, request.getMaterialListJson());
+        List<Map<String, Object>> materialList = this.materialList(planResponse, request);
         // 获取计划配置信息
         CreativePlanConfigurationDTO configuration = planResponse.getConfiguration();
         // 获取海报风格配置
@@ -532,15 +527,20 @@ public class CreativePlanExecuteManager {
      * @return 素材列表
      */
     private List<Map<String, Object>> materialList(CreativePlanRespVO planResponse,
-                                                   String materialJson) {
+                                                   PlanExecuteRequest request) {
         try {
             log.info("开始获取素材库列表");
-            // 如果上传素材不为空，直接返回
-            if (StringUtils.isNotBlank(materialJson)) {
+            // 列表不为空，首先使用列表
+            if (CollectionUtil.isNotEmpty(request.getMaterialList())) {
+                return request.getMaterialList();
+            }
+
+            // 列表为空，json不为空，解析json
+            if (StringUtils.isNotBlank(request.getMaterialListJson())) {
                 try {
                     TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
                     };
-                    List<Map<String, Object>> materialList = JsonUtils.parseObject(materialJson, reference);
+                    List<Map<String, Object>> materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
                     if (CollectionUtil.isNotEmpty(materialList)) {
                         // 校验素材列表
                         return materialList;
@@ -550,6 +550,7 @@ public class CreativePlanExecuteManager {
                 }
             }
 
+            // 查询数据库
             List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
             // 素材库步骤不为空的话，上传素材不能为空
             AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
