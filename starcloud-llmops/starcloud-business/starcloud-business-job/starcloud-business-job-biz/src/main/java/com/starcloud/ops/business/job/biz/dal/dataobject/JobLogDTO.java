@@ -11,6 +11,8 @@ public class JobLogDTO {
 
     private String libraryName;
 
+    private Long libraryId;
+
     private String type;
 
     private Integer triggerType;
