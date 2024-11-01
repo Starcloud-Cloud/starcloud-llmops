@@ -7,11 +7,14 @@ import com.google.common.collect.Lists;
 import com.starcloud.ops.business.app.api.base.vo.request.BatchUidRequest;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanExecuteManager;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.framework.common.api.dto.Option;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +47,10 @@ public class CozeApiController {
 
     @Resource
     private CreativePlanExecuteManager creativePlanExecuteManager;
+
+
+    @Resource
+    private CreativeContentService creativeContentService;
 
 
     @GetMapping("/appList")
@@ -76,12 +84,17 @@ public class CozeApiController {
 
 
 
-    @GetMapping("/getByAppUid")
-    @Operation(summary = "获取创作计划详情", description = "获取创作计划详情")
-    @ApiOperationSupport(order = 40, author = "nacoyer")
-    public CommonResult<CreativePlanRespVO> getByAppUid(@Validated CreativePlanGetQuery query) {
-        return CommonResult.success(creativePlanService.getOrCreate(query));
+    @GetMapping("/page")
+    @Operation(summary = "分页查询")
+    public CommonResult<PageResult<CreativeContentRespVO>> page(@Valid CreativeContentPageReqVO req) {
+
+        req.setPageSize(20);
+        req.setPageNo(1);
+
+        PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
+        return CommonResult.success(result);
     }
+
 
 
 }
