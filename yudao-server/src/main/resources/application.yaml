@@ -293,6 +293,7 @@ minidao :
 
 
 powerjob:
-  client: false
+  client:
+    enabled: false
   worker:
     enabled: false
