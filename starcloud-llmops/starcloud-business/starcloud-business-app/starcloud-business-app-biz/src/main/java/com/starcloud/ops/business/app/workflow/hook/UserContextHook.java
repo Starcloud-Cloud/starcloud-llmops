@@ -56,17 +56,22 @@ public class UserContextHook implements ThreadSwitchHook<UserContextHook.UserCon
         SecurityFrameworkUtils.setAuthentication(context.getAuthentication());
     }
 
-//    @Override
-//    public void clear(UserContext context, ScopeDataQuery scopeDataQuery) {
-//        if (ObjectUtils.isEmpty(context)) {
-//            return;
-//        }
-//
-//        TenantContextHolder.setIgnore(false);
-//        TenantContextHolder.setTenantId(null);
-//        SecurityFrameworkUtils.setAuthentication(null);
-//
-//    }
+    /**
+     * 需要情况，因为 mofaai, mofabiji 的应用执行都会复用 线程。导致用户态会影响，部门权限获取错误导致SQL错误（小红薯执行，但是部门一直跳转到租户2的部门ID）
+     * @param context
+     * @param scopeDataQuery
+     */
+    @Override
+    public void clear(UserContext context, ScopeDataQuery scopeDataQuery) {
+        if (ObjectUtils.isEmpty(context)) {
+            return;
+        }
+
+        TenantContextHolder.setIgnore(false);
+        TenantContextHolder.setTenantId(null);
+        SecurityFrameworkUtils.setAuthentication(null);
+
+    }
 
     @Override
     public int getOrder() {
