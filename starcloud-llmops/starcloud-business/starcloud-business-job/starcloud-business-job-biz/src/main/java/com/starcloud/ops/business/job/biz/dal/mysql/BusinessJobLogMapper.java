@@ -38,5 +38,4 @@ public interface BusinessJobLogMapper extends BaseMapperX<BusinessJobLogDO> {
     List<JobLogDTO> pluginLog(@Param("start") Integer start, @Param("size") Integer size);
 
     List<BindAppDetail> appDetail(@Param("libraryIdList")List<Long> libraryIdList);
-
 }

@@ -96,7 +96,6 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
             return PageResult.empty();
         }
         List<JobLogDTO> result = businessJobLogMapper.pluginLog(PageUtils.getStart(pageParam), pageParam.getPageSize());
-
         List<Long> libraryIdList = result.stream().map(JobLogDTO::getLibraryId).collect(Collectors.toList());
         Map<Long, BindAppDetail> libraryAppMap = businessJobLogMapper.appDetail(libraryIdList).stream().collect(Collectors.toMap(BindAppDetail::getLibraryId, Function.identity()));
 
@@ -108,6 +107,7 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
                 return;
             }
             jobLogDTO.setBindAppType(bindAppDetail.getBindAppType());
+            jobLogDTO.setAppName(bindAppDetail.getAppName());
             if (Objects.equals(bindAppDetail.getBindAppType(), 30)) {
                 jobLogDTO.setAppMarketUid(bindAppDetail.getAppMarketUid());
 
@@ -117,7 +117,6 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
                 jobLogDTO.setAppUid(bindAppDetail.getBindAppUid());
             }
         });
-
         return PageResult.of(result, count);
     }
 }

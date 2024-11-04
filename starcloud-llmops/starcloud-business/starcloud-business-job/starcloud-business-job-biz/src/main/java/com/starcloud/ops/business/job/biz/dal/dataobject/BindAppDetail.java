@@ -6,6 +6,8 @@ import lombok.Data;
 public class BindAppDetail {
     private Long libraryId;
 
+    private String appName;
+
     private String bindAppUid;
 
     private String appMarketUid;
