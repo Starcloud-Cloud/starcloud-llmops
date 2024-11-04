@@ -323,6 +323,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 执行结果
      */
     @Override
+    @DataPermission(enable = false)
     public CreativeContentExecuteRespVO execute(CreativeContentExecuteReqVO request) {
         CreativeContentExecuteRespVO response = creativeExecuteManager.execute(request);
         creativePlanService.updatePlanStatus(response.getPlanUid(), response.getBatchUid());
@@ -336,6 +337,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 执行结果
      */
     @Override
+    @DataPermission(enable = false)
     public List<CreativeContentExecuteRespVO> batchExecute(List<CreativeContentExecuteReqVO> request) {
         // 进行批量执行
         log.info("批量执行创作内容，数量为{}: ", request.size());
