@@ -148,6 +148,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
 //                 更新已有插件
                 pluginConfigDO.setExecuteParams(updateConfig.getExecuteParams());
                 pluginConfigDO.setFieldMap(updateConfig.getFieldMap());
+                pluginConfigDO.setBindName(updateConfig.getBindName());
                 pluginConfigMapper.updateById(pluginConfigDO);
 //                businessJobApi.updateJob(updateConfig.getUid(), pluginConfigDO.getUid(), pluginConfigDO.getLibraryUid());
             } else {
