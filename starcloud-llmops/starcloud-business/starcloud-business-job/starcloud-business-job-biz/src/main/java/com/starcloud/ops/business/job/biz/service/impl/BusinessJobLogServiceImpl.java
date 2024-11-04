@@ -110,7 +110,6 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
             jobLogDTO.setAppName(bindAppDetail.getAppName());
             if (Objects.equals(bindAppDetail.getBindAppType(), 30)) {
                 jobLogDTO.setAppMarketUid(bindAppDetail.getAppMarketUid());
-
             } else if (Objects.equals(bindAppDetail.getBindAppType(), 20)) {
                 jobLogDTO.setAppMarketUid(bindAppDetail.getBindAppUid());
             } else if (Objects.equals(bindAppDetail.getBindAppType(), 10)) {

@@ -34,7 +34,7 @@
     </select>
     <select id="appDetail" resultType="com.starcloud.ops.business.job.biz.dal.dataobject.BindAppDetail">
         select b.library_id as libraryId,
-        b.app_uid as appUid,p.app_uid as appMarketUid,b.app_type as bindAppType,
+        b.app_uid as bindAppUid,p.app_uid as appMarketUid,b.app_type as bindAppType,
         (CASE b.app_type
         WHEN 10 THEN
         a.name
