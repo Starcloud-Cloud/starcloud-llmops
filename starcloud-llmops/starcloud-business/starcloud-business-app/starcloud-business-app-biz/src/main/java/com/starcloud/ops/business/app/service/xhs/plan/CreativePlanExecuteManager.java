@@ -117,10 +117,6 @@ public class CreativePlanExecuteManager {
 
         PlanExecuteResult planExecuteResult = this.execute(request);
 
-        if (StrUtil.isNotBlank(planExecuteResult.getWarning())) {
-            throw ServiceExceptionUtil.invalidParamException(planExecuteResult.getWarning());
-        }
-
         return planExecuteResult;
 
     }
