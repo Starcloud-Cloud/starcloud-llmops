@@ -61,14 +61,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 创作计划执行管理
@@ -189,13 +184,6 @@ public class CreativePlanExecuteManager {
             if (!lock.tryLock(1, TimeUnit.MINUTES)) {
                 throw new InterruptedException();
             }
-
-            if (StrUtil.isNotBlank(request.getMaterialListJson())) {
-                request.setMaterialList(JSONUtil.toBean(request.getMaterialListJson(), new TypeReference<List<Map<String, Object>>>() {} , false));
-            }
-
-            List<Map<String, Object>> materialList = CollectionUtil.emptyIfNull(request.getMaterialList());
-            // 素材校验
 
             // 获取并且校验计划
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
@@ -547,28 +535,50 @@ public class CreativePlanExecuteManager {
                                                    PlanExecuteRequest request) {
         try {
             log.info("开始获取素材库列表");
+
+            List<Map<String, Object>> materialList = new ArrayList<>();
             // 列表不为空，首先使用列表
             if (CollectionUtil.isNotEmpty(request.getMaterialList())) {
-                return request.getMaterialList();
+
+                materialList =  request.getMaterialList();
+
+            } else {
+
+                // 列表为空，json不为空，解析json
+                if (StringUtils.isNotBlank(request.getMaterialListJson())) {
+                    try {
+                        TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
+                        };
+                        materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
+
+                    } catch (Exception exception) {
+                        // ignore
+                    }
+                }
+
             }
 
-            // 列表为空，json不为空，解析json
-            if (StringUtils.isNotBlank(request.getMaterialListJson())) {
-                try {
-                    TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
-                    };
-                    List<Map<String, Object>> materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
-                    if (CollectionUtil.isNotEmpty(materialList)) {
-                        // 校验素材列表
-                        return materialList;
-                    }
-                } catch (Exception exception) {
-                    // ignore
+            if (CollectionUtil.isNotEmpty(materialList)) {
+                // 校验素材列表
+                //字段映射支持
+                if (request.getMaterialKeyMap() != null) {
+
+                    materialList = materialList.stream().map(map -> {
+                        Map<String, Object> newMap = new HashMap<>();
+                        request.getMaterialKeyMap().forEach((key, value) -> {
+                            if (map.containsKey(key)) {
+                                newMap.put(value, map.get(key));
+                            }
+                        });
+                        return newMap;
+                    }).collect(Collectors.toList());
                 }
+
+                return materialList;
             }
 
             // 查询数据库
-            List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(planResponse);
+            materialList = creativeMaterialManager.getMaterialList(planResponse);
             // 素材库步骤不为空的话，上传素材不能为空
             AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
             return materialList;

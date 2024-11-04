@@ -42,6 +42,13 @@ public class PlanExecuteRequest implements Serializable {
 
     private List<Map<String, Object>> materialList;
 
+
+    /**
+     * 素材key映射
+     */
+    private Map<String, String> materialKeyMap;
+
+
     /**
      * 生成海报数量
      */
