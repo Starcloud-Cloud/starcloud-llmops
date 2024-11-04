@@ -290,3 +290,10 @@ user-config :
 minidao :
   base-package: org.jeecg.modules.jmreport.desreport.dao*
   db-type: mysql
+
+
+powerjob:
+  client:
+    enabled: false
+  worker:
+    enabled: false

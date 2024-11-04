@@ -70,7 +70,8 @@ public interface BusinessJobLogConvert {
     default void convert(JobLogDTO jobLogDTO) {
         String executeResult = jobLogDTO.getExecuteResult();
         try {
-            if (jobLogDTO.getSuccess()) {
+            if (jobLogDTO.getSuccess() && StringUtils.isNotBlank(executeResult)) {
+
                 CozeProcessResultDTO bean = JSONUtil.toBean(executeResult, CozeProcessResultDTO.class);
                 jobLogDTO.setCount(bean.getCount());
                 jobLogDTO.setExecuteResult(JSONUtil.toJsonStr(bean.getData()));

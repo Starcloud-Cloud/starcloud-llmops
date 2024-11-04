@@ -12,7 +12,6 @@ import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.exception.plugins.CozeErrorCode;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeChatResult;
 import com.starcloud.ops.business.app.feign.dto.coze.WorkflowResult;
 import com.starcloud.ops.business.app.feign.request.coze.CozeWorkflowRequest;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;

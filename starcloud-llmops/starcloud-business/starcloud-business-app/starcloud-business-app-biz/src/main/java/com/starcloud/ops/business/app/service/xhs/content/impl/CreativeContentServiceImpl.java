@@ -6,6 +6,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -174,6 +175,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     @TenantIgnore
+    @DataPermission(enable = false)
     public List<CreativeContentRespVO> listTask(CreativeContentTaskReqVO query) {
         List<CreativeContentDO> list = creativeContentMapper.listTask(query);
         return CreativeContentConvert.INSTANCE.convertResponseList(list);
@@ -321,6 +323,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 执行结果
      */
     @Override
+    @DataPermission(enable = false)
     public CreativeContentExecuteRespVO execute(CreativeContentExecuteReqVO request) {
         CreativeContentExecuteRespVO response = creativeExecuteManager.execute(request);
         creativePlanService.updatePlanStatus(response.getPlanUid(), response.getBatchUid());
@@ -334,6 +337,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      * @return 执行结果
      */
     @Override
+    @DataPermission(enable = false)
     public List<CreativeContentExecuteRespVO> batchExecute(List<CreativeContentExecuteReqVO> request) {
         // 进行批量执行
         log.info("批量执行创作内容，数量为{}: ", request.size());

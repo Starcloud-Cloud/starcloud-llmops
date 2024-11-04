@@ -18,6 +18,7 @@
         INNER JOIN llm_business_job b ON c.uid = b.foreign_key
         INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
         LEFT JOIN system_users u ON b.creator = u.id
+
         WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
         order by l.id desc
         LIMIT #{start},#{size}
@@ -42,4 +43,5 @@
             #{libraryId}
         </foreach>
     </select>
+
 </mapper>

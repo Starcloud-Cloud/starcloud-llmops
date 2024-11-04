@@ -123,6 +123,10 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
 
         log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
 
+        if (list.getCode() != 0) {
+            throw exception(COZE_ERROR, list.getMsg());
+        }
+
         if (CollectionUtil.isEmpty(list.getData())) {
             throw exception(COZE_ERROR, "未发现正确的执行记录");
         }
@@ -248,6 +252,9 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
         executeRespVO.setStatus("completed");
         executeRespVO.setCompletedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCompletedAt).orElse(null));
         CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
+        if (list.getCode() != 0) {
+            throw exception(COZE_ERROR, list.getMsg());
+        }
 
         if (CollectionUtil.isEmpty(list.getData())) {
             throw exception(COZE_ERROR, "未发现正确的执行记录");
