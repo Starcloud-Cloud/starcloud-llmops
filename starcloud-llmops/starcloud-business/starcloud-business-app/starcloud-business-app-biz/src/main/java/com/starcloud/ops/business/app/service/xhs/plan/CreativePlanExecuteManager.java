@@ -116,49 +116,8 @@ public class CreativePlanExecuteManager {
     public PlanExecuteResult run(PlanExecuteRequest request) {
 
         PlanExecuteResult planExecuteResult = this.execute(request);
-        String appUid = request.getAppUid();
 
-        String planUid = planExecuteResult.getPlanUid();
-        String batchUid = planExecuteResult.getBatchUid();
-
-        CreativePlanGetQuery creativePlanGetQuery = new CreativePlanGetQuery();
-        creativePlanGetQuery.setUid(planUid);
-        creativePlanGetQuery.setAppUid(appUid);
-        creativePlanGetQuery.setSource("coze");
-
-
-        if (StrUtil.isNotBlank(planExecuteResult.getWarning())) {
-            throw ServiceExceptionUtil.invalidParamException(planExecuteResult.getWarning());
-        }
-
-        //轮训查询执行状态，知道完成或失败
-        while (true) {
-
-            CreativePlanRespVO plan = creativePlanService.getOrCreate(creativePlanGetQuery);
-
-            log.info("getOrCreate status: {}", plan.getStatus());
-
-            if (Objects.equals(plan.getStatus(), CreativePlanStatusEnum.COMPLETE.name())) {
-
-                CreativeContentPageReqVO creativeContentPageReqVO = new CreativeContentPageReqVO();
-                creativeContentPageReqVO.setBatchUid(batchUid);
-                creativeContentPageReqVO.setPageNo(1);
-                creativeContentPageReqVO.setPageSize(30);
-
-                PageResult<CreativeContentRespVO> result = creativeContentService.page(creativeContentPageReqVO);
-
-                planExecuteResult.setContentRespVOList(result.getList());
-
-                return planExecuteResult;
-            }
-
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
+        return planExecuteResult;
 
     }
 
