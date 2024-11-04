@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobLogBaseVO;
@@ -15,6 +16,7 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.request.LibraryJob
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.CozeJobLogRespVO;
 import com.starcloud.ops.business.job.biz.convert.BusinessJobLogConvert;
+import com.starcloud.ops.business.job.biz.dal.dataobject.BindAppDetail;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobLogDO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO;
 import com.starcloud.ops.business.job.biz.dal.mysql.BusinessJobLogMapper;
@@ -26,7 +28,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -92,7 +96,27 @@ public class BusinessJobLogServiceImpl implements BusinessJobLogService {
             return PageResult.empty();
         }
         List<JobLogDTO> result = businessJobLogMapper.pluginLog(PageUtils.getStart(pageParam), pageParam.getPageSize());
-        result.forEach(BusinessJobLogConvert.INSTANCE::convert);
+        List<Long> libraryIdList = result.stream().map(JobLogDTO::getLibraryId).collect(Collectors.toList());
+        Map<Long, BindAppDetail> libraryAppMap = businessJobLogMapper.appDetail(libraryIdList).stream().collect(Collectors.toMap(BindAppDetail::getLibraryId, Function.identity()));
+
+        result.forEach(jobLogDTO -> {
+            BusinessJobLogConvert.INSTANCE.convert(jobLogDTO);
+            Long libraryId = jobLogDTO.getLibraryId();
+            BindAppDetail bindAppDetail = libraryAppMap.get(libraryId);
+            if (Objects.isNull(bindAppDetail)) {
+                return;
+            }
+            jobLogDTO.setBindAppType(bindAppDetail.getBindAppType());
+            jobLogDTO.setAppName(bindAppDetail.getAppName());
+            if (Objects.equals(bindAppDetail.getBindAppType(), 30)) {
+                jobLogDTO.setAppMarketUid(bindAppDetail.getAppMarketUid());
+
+            } else if (Objects.equals(bindAppDetail.getBindAppType(), 20)) {
+                jobLogDTO.setAppMarketUid(bindAppDetail.getBindAppUid());
+            } else if (Objects.equals(bindAppDetail.getBindAppType(), 10)) {
+                jobLogDTO.setAppUid(bindAppDetail.getBindAppUid());
+            }
+        });
         return PageResult.of(result, count);
     }
 }
