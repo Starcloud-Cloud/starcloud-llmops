@@ -46,11 +46,18 @@ public class PlanExecuteRequest implements Serializable {
     /**
      * 素材key映射
      */
-    private Map<String, String> materialKeyMap;
+    private List<KeyValueObject> materialKeyMap;
 
 
     /**
      * 生成海报数量
      */
     private Integer totalCount;
+
+
+    @Data
+    public static class KeyValueObject {
+        private String key;
+        private String target;
+    }
 }
