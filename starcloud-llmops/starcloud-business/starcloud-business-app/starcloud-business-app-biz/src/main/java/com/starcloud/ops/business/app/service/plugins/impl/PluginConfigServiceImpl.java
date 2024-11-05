@@ -2,15 +2,21 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.convert.plugin.PluginConfigConvert;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginConfigMapper;
+import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
+import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +29,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PLUGIN_CONFIG_NOT_EXIST;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.SYSTEM_PLUGIN;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 @Slf4j
 @Service
@@ -34,7 +39,13 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     private PluginConfigMapper pluginConfigMapper;
 
     @Resource
+    private PluginDefinitionMapper pluginDefinitionMapper;
+
+    @Resource
     private BusinessJobApi businessJobApi;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     @Override
     public PluginConfigRespVO create(PluginConfigVO pluginConfigVO) {
@@ -42,6 +53,15 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         if (Objects.nonNull(oldConfig)) {
             return PluginConfigConvert.INSTANCE.convert(oldConfig);
         }
+
+        DataPermissionUtils.executeIgnore(() -> {
+            PluginDefinitionDO pluginDefinitionDO = pluginDefinitionMapper.selectByUid(pluginConfigVO.getPluginUid());
+            if (Objects.isNull(pluginDefinitionDO)) {
+                throw exception(PLUGIN_NOT_EXIST, pluginConfigVO.getPluginUid());
+            }
+            deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_add, Long.valueOf(pluginDefinitionDO.getCreator()));
+        });
+
         PluginConfigDO pluginConfigDO = PluginConfigConvert.INSTANCE.convert(pluginConfigVO);
         pluginConfigDO.setUid(IdUtil.fastSimpleUUID());
         pluginConfigDO.setType(PluginBindTypeEnum.owner.getCode());
@@ -61,6 +81,10 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid, boolean forced) {
         PluginConfigDO pluginConfigDO = getByUid(uid);
+        if (!forced) {
+            deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_delete, Long.valueOf(pluginConfigDO.getCreator()));
+        }
+
         if (!forced && Objects.equals(PluginBindTypeEnum.sys.getCode(), pluginConfigDO.getType())) {
             throw exception(SYSTEM_PLUGIN);
         }
@@ -121,10 +145,11 @@ public class PluginConfigServiceImpl implements PluginConfigService {
             // 删除后剩余需新增插件
             PluginConfigDO updateConfig = sourceConfigMap.remove(pluginConfigDO.getPluginUid());
             if (Objects.nonNull(updateConfig)) {
-//                 不更新已有插件
-//                pluginConfigDO.setExecuteParams(updateConfig.getExecuteParams());
-//                pluginConfigDO.setFieldMap(updateConfig.getFieldMap());
-//                pluginConfigMapper.updateById(pluginConfigDO);
+//                 更新已有插件
+                pluginConfigDO.setExecuteParams(updateConfig.getExecuteParams());
+                pluginConfigDO.setFieldMap(updateConfig.getFieldMap());
+                pluginConfigDO.setBindName(updateConfig.getBindName());
+                pluginConfigMapper.updateById(pluginConfigDO);
 //                businessJobApi.updateJob(updateConfig.getUid(), pluginConfigDO.getUid(), pluginConfigDO.getLibraryUid());
             } else {
                 if (!Objects.equals(PluginBindTypeEnum.owner.getCode(), pluginConfigDO.getType())) {
@@ -147,6 +172,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         configDO.setLibraryUid(targetUid);
         configDO.setPluginUid(sourceDO.getPluginUid());
         configDO.setType(typeEnum.getCode());
+        configDO.setBindName(sourceDO.getBindName());
         pluginConfigMapper.insert(configDO);
 //        复制插件不再copy定时任务
 //        businessJobApi.copyJob(sourceDO.getUid(), configDO.getUid(), configDO.getLibraryUid());

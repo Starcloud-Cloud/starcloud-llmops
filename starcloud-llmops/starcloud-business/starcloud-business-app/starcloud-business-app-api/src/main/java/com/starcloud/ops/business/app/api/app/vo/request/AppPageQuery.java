@@ -61,4 +61,5 @@ public class AppPageQuery extends PageQuery {
     @Schema(description = "应用场景")
     private List<String> scenes;
 
+
 }

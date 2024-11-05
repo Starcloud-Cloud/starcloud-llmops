@@ -8,6 +8,8 @@ import com.starcloud.ops.business.job.biz.controller.admin.vo.JobLogBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.CozeJobLogRespVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobLogDO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.PluginDetailVO;
+import com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO;
+import com.starcloud.ops.business.job.biz.enums.TriggerTypeEnum;
 import com.starcloud.ops.business.job.biz.processor.dto.CozeProcessResultDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
@@ -62,6 +64,23 @@ public interface BusinessJobLogConvert {
         } catch (Exception e) {
             respVO.setCount(0);
             respVO.setExecuteResult(e.getMessage());
+        }
+    }
+
+    default void convert(JobLogDTO jobLogDTO) {
+        String executeResult = jobLogDTO.getExecuteResult();
+        try {
+            if (jobLogDTO.getSuccess() && StringUtils.isNotBlank(executeResult)) {
+                CozeProcessResultDTO bean = JSONUtil.toBean(executeResult, CozeProcessResultDTO.class);
+                jobLogDTO.setCount(bean.getCount());
+                jobLogDTO.setExecuteResult(JSONUtil.toJsonStr(bean.getData()));
+                jobLogDTO.setType(TriggerTypeEnum.of(jobLogDTO.getTriggerType()).getDesc());
+            } else {
+                jobLogDTO.setCount(0);
+            }
+        } catch (Exception e) {
+            jobLogDTO.setCount(0);
+            jobLogDTO.setExecuteResult(e.getMessage());
         }
     }
 }

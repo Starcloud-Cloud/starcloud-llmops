@@ -43,4 +43,13 @@ public interface PluginsService {
      */
     Object syncExecute(PluginExecuteReqVO reqVO);
 
+    /**
+     * 验证插件
+     */
+    String verify(PluginTestReqVO reqVO);
+
+    /**
+     * 验证结果
+     */
+    VerifyResult verifyResult(PluginTestResultReqVO resultReqVO);
 }

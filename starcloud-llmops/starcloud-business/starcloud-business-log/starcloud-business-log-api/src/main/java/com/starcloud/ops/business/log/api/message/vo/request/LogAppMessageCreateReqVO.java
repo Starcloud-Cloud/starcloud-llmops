@@ -38,6 +38,11 @@ public class LogAppMessageCreateReqVO extends LogAppMessageBaseVO {
     private String updater;
 
     /**
+     * 部门ID
+     */
+    private Long deptId;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

@@ -23,6 +23,8 @@ import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySer
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
 import com.starcloud.ops.business.app.util.PinyinUtils;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -67,9 +69,13 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Lazy
     private MaterialLibrarySliceService materialLibrarySliceService;
 
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
+
     @Override
     public Long createMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO createReqVO) {
         MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(createReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_column_edit, Long.valueOf(materialLibraryDO.getCreator()));
 
         if (!MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
             throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL);
@@ -93,6 +99,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     public void updateMaterialLibraryTableColumn(MaterialLibraryTableColumnSaveReqVO updateReqVO) {
 
         MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(updateReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_column_edit, Long.valueOf(materialLibraryDO.getCreator()));
 
         if (!MaterialFormatTypeEnum.isExcel(materialLibraryDO.getFormatType())) {
             throw exception(MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_NO_EXCEL);
@@ -112,7 +119,10 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public void deleteMaterialLibraryTableColumn(Long id) {
         // 校验存在
-        validateMaterialLibraryTableColumnExists(id);
+        MaterialLibraryTableColumnDO materialLibraryTableColumnDO = validateMaterialLibraryTableColumnExists(id);
+
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(materialLibraryTableColumnDO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_column_delete, Long.valueOf(materialLibraryDO.getCreator()));
         // 删除
         materialLibraryTableColumnMapper.deleteById(id);
     }
@@ -125,6 +135,8 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     @Override
     public void deleteMaterialLibraryTableColumnByLibraryId(Long libraryId) {
 
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(libraryId);
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_column_delete, Long.valueOf(materialLibraryDO.getCreator()));
         // 删除
         List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnMapper.selectMaterialLibraryTableColumnByLibrary(libraryId);
         if (CollUtil.isEmpty(tableColumnDOList)) {
@@ -169,6 +181,11 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
      */
     @Override
     public void updateBatchByLibraryId(MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
+
+
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.validateMaterialLibraryExists(batchSaveReqVO.getLibraryId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_column_edit, Long.valueOf(materialLibraryDO.getCreator()));
+
         List<MaterialLibraryTableColumnSaveReqVO> saveReqVOS = batchSaveReqVO.getTableColumnSaveReqVOList();
         List<MaterialLibraryTableColumnDO> newList = BeanUtils.toBean(saveReqVOS, MaterialLibraryTableColumnDO.class);
         // 第一步，对比新老数据，获得添加、修改、删除的列表
@@ -328,7 +345,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             for (MaterialLibraryTableColumnDO addColumn : addColumns) {
                 MaterialLibraryTableColumnDO columnDO = BeanUtils.toBean(addColumn,
                         MaterialLibraryTableColumnDO.class,
-                        "id", "libraryId", "createTime", "updateTime", "creator", "updater");
+                        "id", "libraryId", "createTime", "updateTime", "creator", "updater", "deptId");
                 columnDO.setLibraryId(targetLibraryId);
                 columnDOList.add(columnDO);
             }
@@ -344,7 +361,7 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             for (MaterialLibraryTableColumnDO updateColumn : updateColumns) {
                 MaterialLibraryTableColumnDO columnDO = targetColumnMaps.get(updateColumn.getColumnCode());
                 BeanUtil.copyProperties(updateColumn, columnDO,
-                        "id", "libraryId", "createTime", "updateTime", "creator", "updater");
+                        "id", "libraryId", "createTime", "updateTime", "creator", "updater", "deptId");
                 columnDOList.add(columnDO);
             }
             materialLibraryTableColumnMapper.updateBatch(columnDOList);
@@ -400,10 +417,12 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
     }
 
 
-    private void validateMaterialLibraryTableColumnExists(Long id) {
-        if (materialLibraryTableColumnMapper.selectById(id) == null) {
+    private MaterialLibraryTableColumnDO validateMaterialLibraryTableColumnExists(Long id) {
+        MaterialLibraryTableColumnDO materialLibraryTableColumnDO = materialLibraryTableColumnMapper.selectById(id);
+        if (materialLibraryTableColumnDO == null) {
             throw exception(MATERIAL_LIBRARY_TABLE_COLUMN_NOT_EXISTS);
         }
+        return materialLibraryTableColumnDO;
     }
 
     /**
@@ -430,6 +449,15 @@ public class MaterialLibraryTableColumnServiceImpl implements MaterialLibraryTab
             return pinyinFirstCharUnique(columnCode + RandomUtil.randomString(BASE_CHAR_NUMBER_LOWER, 1), columnCodeExistList);
         }
         return columnCode;
+    }
+
+
+    private MaterialLibraryDO getLibraryInfo(Long libraryId) {
+        MaterialLibraryDO materialLibraryDO = materialLibraryService.getMaterialLibrary(libraryId);
+        if (materialLibraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+        return materialLibraryDO;
     }
 
 
