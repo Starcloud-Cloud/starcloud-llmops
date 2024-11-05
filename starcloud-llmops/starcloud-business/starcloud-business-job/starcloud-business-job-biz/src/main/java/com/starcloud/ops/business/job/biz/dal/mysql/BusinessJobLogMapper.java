@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.JobLogPageReqVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.LibraryJobLogPageReqVO;
+import com.starcloud.ops.business.job.biz.dal.dataobject.BindAppDetail;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobLogDO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO;
 import org.apache.ibatis.annotations.Mapper;
@@ -35,4 +36,6 @@ public interface BusinessJobLogMapper extends BaseMapperX<BusinessJobLogDO> {
     Long count();
 
     List<JobLogDTO> pluginLog(@Param("start") Integer start, @Param("size") Integer size);
+
+    List<BindAppDetail> appDetail(@Param("libraryIdList")List<Long> libraryIdList);
 }
