@@ -118,6 +118,12 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
         // 更新素材
         materialService.updateMaterialByGroup(materialGroupDO.getId(), newMaterialReqVO);
+
+        if (updateReqVO.getOvertStatus()) {
+            this.publish(updateReqVO.getUid());
+        } else {
+            this.cancelPublish(updateReqVO.getUid());
+        }
     }
 
     @Override
