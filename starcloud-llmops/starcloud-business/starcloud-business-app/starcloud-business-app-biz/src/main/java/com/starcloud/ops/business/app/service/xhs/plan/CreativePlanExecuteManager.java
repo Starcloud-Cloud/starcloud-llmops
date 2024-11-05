@@ -504,7 +504,9 @@ public class CreativePlanExecuteManager {
                         materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
 
                     } catch (Exception exception) {
-                        // ignore
+
+                        log.warn("getMaterialListJson is fail: {}", request.getMaterialListJson(), exception);
+
                     }
                 }
 
@@ -524,6 +526,8 @@ public class CreativePlanExecuteManager {
                         });
                         return newMap;
                     }).collect(Collectors.toList());
+
+                    log.info("materialList getMaterialKeyMap: {}", materialList);
                 }
 
                 return materialList;
