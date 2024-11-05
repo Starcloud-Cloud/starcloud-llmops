@@ -94,7 +94,7 @@ public interface AppMapper extends BaseMapperX<AppDO> {
      */
     default AppDO create(AppDO appDO) {
         // 校验应用名称是否重复
-        AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appDO.getName());
+        // AppValidate.isFalse(duplicateName(appDO.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, appDO.getName());
         appDO.setDeleted(Boolean.FALSE);
         appDO.setPublishUid(null);
         appDO.setLastPublish(null);
@@ -113,9 +113,9 @@ public interface AppMapper extends BaseMapperX<AppDO> {
         AppDO appDO = this.get(app.getUid(), Boolean.TRUE);
         AppValidate.notNull(appDO, ErrorCodeConstants.APP_NON_EXISTENT, app.getUid());
         // 名称修改了，需要校验名称是否重复
-        if (!appDO.getName().equals(app.getName())) {
-            AppValidate.isFalse(duplicateName(app.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, app.getName());
-        }
+//        if (!appDO.getName().equals(app.getName())) {
+//            AppValidate.isFalse(duplicateName(app.getName()), ErrorCodeConstants.APP_NAME_DUPLICATE, app.getName());
+//        }
         app.setDeleted(Boolean.FALSE);
         app.setId(appDO.getId());
         this.updateById(app);
