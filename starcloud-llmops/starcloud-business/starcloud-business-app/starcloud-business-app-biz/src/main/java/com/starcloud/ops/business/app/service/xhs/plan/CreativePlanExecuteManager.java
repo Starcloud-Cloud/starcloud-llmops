@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -501,7 +502,7 @@ public class CreativePlanExecuteManager {
                     try {
                         TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
                         };
-                        materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
+                        materialList = JSONUtil.toBean(request.getMaterialListJson(), reference, false);
 
                     } catch (Exception exception) {
 
