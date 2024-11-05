@@ -54,7 +54,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
             return PluginConfigConvert.INSTANCE.convert(oldConfig);
         }
 
-        DataPermissionUtils.executeIgnore(() ->{
+        DataPermissionUtils.executeIgnore(() -> {
             PluginDefinitionDO pluginDefinitionDO = pluginDefinitionMapper.selectByUid(pluginConfigVO.getPluginUid());
             if (Objects.isNull(pluginDefinitionDO)) {
                 throw exception(PLUGIN_NOT_EXIST, pluginConfigVO.getPluginUid());
@@ -148,6 +148,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
 //                 更新已有插件
                 pluginConfigDO.setExecuteParams(updateConfig.getExecuteParams());
                 pluginConfigDO.setFieldMap(updateConfig.getFieldMap());
+                pluginConfigDO.setBindName(updateConfig.getBindName());
                 pluginConfigMapper.updateById(pluginConfigDO);
 //                businessJobApi.updateJob(updateConfig.getUid(), pluginConfigDO.getUid(), pluginConfigDO.getLibraryUid());
             } else {
@@ -171,6 +172,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         configDO.setLibraryUid(targetUid);
         configDO.setPluginUid(sourceDO.getPluginUid());
         configDO.setType(typeEnum.getCode());
+        configDO.setBindName(sourceDO.getBindName());
         pluginConfigMapper.insert(configDO);
 //        复制插件不再copy定时任务
 //        businessJobApi.copyJob(sourceDO.getUid(), configDO.getUid(), configDO.getLibraryUid());

@@ -6,6 +6,13 @@ import java.time.LocalDateTime;
 
 @Data
 public class JobLogDTO {
+    private String appName;
+
+    private String appUid;
+
+    private String appMarketUid;
+
+    private Integer bindAppType;
 
     private String pluginName;
 
@@ -27,5 +34,6 @@ public class JobLogDTO {
 
     private LocalDateTime triggerTime;
 
+    private String creator;
 
 }
