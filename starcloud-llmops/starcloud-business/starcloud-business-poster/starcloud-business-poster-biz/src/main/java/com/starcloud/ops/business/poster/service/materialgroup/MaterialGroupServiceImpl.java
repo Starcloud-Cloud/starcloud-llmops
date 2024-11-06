@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPublishReqVO;
@@ -17,6 +18,8 @@ import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGr
 import com.starcloud.ops.business.poster.dal.mysql.materialgroup.MaterialGroupMapper;
 import com.starcloud.ops.business.poster.service.material.MaterialService;
 import com.starcloud.ops.business.poster.service.materialcategory.MaterialCategoryService;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.business.user.util.UserUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.CATEGORY_LEVEL;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
 
@@ -49,6 +54,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
     @Resource
     private MaterialService materialService;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     @Override
     public String createMaterialGroup(MaterialGroupSaveReqVO createReqVO) {
@@ -101,12 +109,16 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
      */
     @Override
     public void updateMaterialGroupByUid(MaterialGroupSaveReqVO updateReqVO) {
+
         // 校验存在
         MaterialGroupDO materialGroupDO = getMaterialGroupByUid(updateReqVO.getUid());
 
+        // 增加团队权限校验
         if (materialGroupDO == null) {
-            throw exception(MATERIAL_GROUP_NOT_EXISTS);
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_edit, Long.valueOf(materialGroupDO.getCreator()));
+
         // 更新
         MaterialGroupDO updateObj = BeanUtils.toBean(updateReqVO, MaterialGroupDO.class);
 
@@ -149,6 +161,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialGroupDO == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_delete, Long.valueOf(materialGroupDO.getCreator()));
 
         if (materialGroupDO.getOvertStatus()) {
             throw exception(MATERIAL_DELETE_FAIL_PUBLISH);
@@ -196,20 +209,23 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     public PageResult<MaterialGroupRespVO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO) {
 
 
-        // 2. 分页查询
-        IPage<MaterialGroupRespVO> pageResult = materialGroupMapper.selectPage(
+        // 1. 获取系统模板
+
+        IPage<MaterialGroupRespVO> systemPageResult = materialGroupMapper.selectSystemPage(
                 MyBatisUtils.buildPage(pageReqVO), pageReqVO);
 
+
+        pageReqVO.setCreateId(getLoginUserId());
+        // 2. 获取我的模板
+        IPage<MaterialGroupRespVO> peoplePageResult = materialGroupMapper.selectPeoplePage(
+                MyBatisUtils.buildPage(pageReqVO), pageReqVO);
+
+        systemPageResult.getRecords().addAll(peoplePageResult.getRecords());
+        systemPageResult.setTotal(systemPageResult.getTotal() + peoplePageResult.getTotal());
+
         // 3. 拼接数据并返回
-        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
+        return new PageResult<>(systemPageResult.getRecords(), systemPageResult.getTotal());
 
-
-        // List<MaterialGroupRespVO> groupRespVOS = materialGroupMapper.selectPage(pageReqVO,
-        //         PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
-        // return new PageResult<>(groupRespVOS, count);
-
-
-        // return materialGroupMapper.selectPage(pageReqVO, PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
     }
 
     /**

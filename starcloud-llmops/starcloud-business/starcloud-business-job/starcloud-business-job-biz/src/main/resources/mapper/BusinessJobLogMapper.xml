@@ -45,8 +45,8 @@
         END ) as appName
         FROM
         llm_material_library_app_bind b
-        LEFT JOIN llm_app a ON b.app_uid = a.uid and b.app_type = 10
-        LEFT JOIN llm_app_market m on b.app_uid = m.uid and b.app_type = 20
+        LEFT JOIN llm_app a ON b.app_uid = a.uid COLLATE utf8mb4_unicode_ci and b.app_type = 10
+        LEFT JOIN llm_app_market m on b.app_uid = m.uid COLLATE utf8mb4_unicode_ci  and b.app_type = 20
         LEFT JOIN llm_creative_plan p on b.app_uid = p.uid collate utf8mb4_general_ci and b.app_type = 30
         WHERE b.library_id in
         <foreach collection="libraryIdList" open="(" close=")" item="libraryId" separator=",">
