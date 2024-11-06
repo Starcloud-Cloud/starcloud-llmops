@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.CATEGORY_LEVEL;
 import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
 
@@ -196,20 +197,23 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
     public PageResult<MaterialGroupRespVO> getMaterialGroupPage(MaterialGroupPageReqVO pageReqVO) {
 
 
-        // 2. 分页查询
-        IPage<MaterialGroupRespVO> pageResult = materialGroupMapper.selectPage(
+        // 1. 获取系统模板
+
+        IPage<MaterialGroupRespVO> systemPageResult = materialGroupMapper.selectSystemPage(
                 MyBatisUtils.buildPage(pageReqVO), pageReqVO);
 
+
+        pageReqVO.setCreateId(getLoginUserId());
+        // 2. 获取我的模板
+        IPage<MaterialGroupRespVO> peoplePageResult = materialGroupMapper.selectPeoplePage(
+                MyBatisUtils.buildPage(pageReqVO), pageReqVO);
+
+        systemPageResult.getRecords().addAll(peoplePageResult.getRecords());
+        systemPageResult.setTotal(systemPageResult.getTotal() + peoplePageResult.getTotal());
+
         // 3. 拼接数据并返回
-        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
+        return new PageResult<>(systemPageResult.getRecords(), systemPageResult.getTotal());
 
-
-        // List<MaterialGroupRespVO> groupRespVOS = materialGroupMapper.selectPage(pageReqVO,
-        //         PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
-        // return new PageResult<>(groupRespVOS, count);
-
-
-        // return materialGroupMapper.selectPage(pageReqVO, PageUtils.getStart(pageReqVO), pageReqVO.getPageSize());
     }
 
     /**
