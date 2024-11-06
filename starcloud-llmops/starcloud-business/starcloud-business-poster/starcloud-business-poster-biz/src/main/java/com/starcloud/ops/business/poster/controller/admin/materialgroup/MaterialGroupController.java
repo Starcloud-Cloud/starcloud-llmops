@@ -85,7 +85,7 @@ public class MaterialGroupController {
 
 
     @GetMapping("u/copy")
-    @Operation(summary = "获得海报素材分组分页")
+    @Operation(summary = "复制分组")
     public CommonResult<Boolean> copy(@RequestParam("uid") String uid) {
         materialGroupService.copyGroup(uid);
         return success(true);
