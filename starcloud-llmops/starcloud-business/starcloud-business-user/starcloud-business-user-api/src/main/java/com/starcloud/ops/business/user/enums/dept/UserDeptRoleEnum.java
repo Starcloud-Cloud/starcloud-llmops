@@ -18,6 +18,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.DEPT_ROLE_
 public enum UserDeptRoleEnum {
 
     NORMAL(100, "普通用户", Sets.newHashSet(
+
     )),
 
     ADMIN(500, "管理员", Sets.newHashSet(
@@ -29,10 +30,12 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.material_library_edit.getPermission(),
             DeptPermissionEnum.material_library_column_edit.getPermission(),
             DeptPermissionEnum.material_library_slice_edit.getPermission(),
+            DeptPermissionEnum.material_group_edit.getPermission(),
 
             DeptPermissionEnum.material_library_delete.getPermission(),
             DeptPermissionEnum.material_library_column_delete.getPermission(),
-            DeptPermissionEnum.material_library_slice_delete.getPermission()
+            DeptPermissionEnum.material_library_slice_delete.getPermission(),
+            DeptPermissionEnum.material_group_delete.getPermission()
     )),
 
     SUPER_ADMIN(1000, "创建者", Sets.newHashSet(
@@ -55,7 +58,9 @@ public enum UserDeptRoleEnum {
             DeptPermissionEnum.material_library_column_delete.getPermission(),
 
             DeptPermissionEnum.material_library_slice_edit.getPermission(),
-            DeptPermissionEnum.material_library_slice_delete.getPermission()
+            DeptPermissionEnum.material_library_slice_delete.getPermission(),
+            DeptPermissionEnum.material_group_edit.getPermission(),
+            DeptPermissionEnum.material_group_delete.getPermission()
     )),
     ;
 
