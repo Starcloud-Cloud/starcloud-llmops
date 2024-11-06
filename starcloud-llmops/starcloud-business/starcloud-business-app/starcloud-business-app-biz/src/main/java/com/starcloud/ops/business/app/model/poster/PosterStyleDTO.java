@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.model.poster;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -95,6 +96,16 @@ public class PosterStyleDTO implements java.io.Serializable {
     @Valid
     @NotEmpty(message = "请选择图片模板！")
     private List<PosterTemplateDTO> templateList;
+
+    /**
+     * 示例图片
+     */
+    @Schema(description = "示例图片")
+    public String getExample() {
+        return CollectionUtil.emptyIfNull(this.posterTemplateList()).stream()
+                .filter(posterTemplateDTO -> StrUtil.isNotBlank(posterTemplateDTO.getExample()))
+                .findFirst().map(PosterTemplateDTO::getExample).orElse("");
+    }
 
     /**
      * 获取海报模板列表<br>

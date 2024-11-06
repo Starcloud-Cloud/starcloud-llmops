@@ -14,6 +14,7 @@ import com.starcloud.ops.business.job.biz.powerjob.PowerjobManager;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
 import com.starcloud.ops.business.job.utils.CronUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +33,8 @@ import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB
 @Service
 public class BusinessJobServiceImpl implements BusinessJobService {
 
-    @Resource
+//    @Resource
+    @Autowired(required = false)
     private PowerjobManager powerjobManager;
 
     @Resource

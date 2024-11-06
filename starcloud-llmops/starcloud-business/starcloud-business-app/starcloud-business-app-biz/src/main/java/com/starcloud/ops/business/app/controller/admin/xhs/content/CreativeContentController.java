@@ -120,6 +120,14 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.detail(uid));
     }
 
+    @GetMapping("/share")
+    @Operation(summary = "分享创作内容")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<CreativeContentRespVO> share(@RequestParam("uid") String uid) {
+        return CommonResult.success(creativeContentService.detail(uid));
+    }
+
     @PostMapping("batchExecute")
     @Operation(summary = "批量执行", description = "批量执行")
     @ApiOperationSupport(order = 110, author = "nacoyer")

@@ -146,6 +146,7 @@ yudao:
       - /health
       - /v3/**
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，不需要登录
+      - /admin-api/llm/xhs/content/share
   websocket:
     enable: true # websocket的开关
     path: /infra/ws # 路径
@@ -205,6 +206,7 @@ yudao:
       - /admin-api/llm/chat/config/detail/*
       - /admin-api/llm/notification/metadata
       - /admin-api/llm/xhs/customer/**
+      - /admin-api/llm/xhs/content/share
     ignore-tables:
       - system_tenant
       - system_tenant_package
@@ -290,3 +292,10 @@ user-config :
 minidao :
   base-package: org.jeecg.modules.jmreport.desreport.dao*
   db-type: mysql
+
+
+powerjob:
+  client:
+    enabled: false
+  worker:
+    enabled: false
