@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.xhs.material.strategy.metadata;
 
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
@@ -74,5 +75,10 @@ public class MaterialMetadata implements java.io.Serializable {
      * 素材字段配置
      */
     private List<MaterialFieldConfigDTO> materialFieldList;
+
+    /**
+     * 应用信息
+     */
+    private AppMarketRespVO appInformation;
 
 }
