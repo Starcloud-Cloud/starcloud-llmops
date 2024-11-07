@@ -66,6 +66,7 @@ public class WeChatOpenController {
                         @RequestParam(name = "timestamp", required = false) String timestamp,
                         @RequestParam(name = "nonce", required = false) String nonce,
                         @RequestParam(name = "encrypt_type", required = false) String type) {
+        log.info("[mp callback][appId({})]", appId);
         MpAccountDO account = mpAccountService.getAccountFromCache(appId);
         WxMpXmlMessage wxMpXmlMessage = WxMpXmlMessage.fromXml(content);
         if (account == null) {
