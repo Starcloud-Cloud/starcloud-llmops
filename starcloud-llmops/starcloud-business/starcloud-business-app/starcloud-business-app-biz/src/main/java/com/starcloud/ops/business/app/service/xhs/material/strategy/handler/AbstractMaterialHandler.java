@@ -227,6 +227,13 @@ public abstract class AbstractMaterialHandler {
             needMaterialSize.add(computeNeedMaterialSize(posterStyle, metadata.getAppInformation()));
         }
 
+        needMaterialSize = needMaterialSize.stream()
+                .filter(item -> Objects.nonNull(item) && item > 0)
+                .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(needMaterialSize)) {
+            throw ServiceExceptionUtil.invalidParamException("您生成的笔记不依赖素材！请使用【立即生成】功能！");
+        }
+
         // 获取素材字段配置
         String group = getGroupField(metadata.getMaterialFieldList());
 
