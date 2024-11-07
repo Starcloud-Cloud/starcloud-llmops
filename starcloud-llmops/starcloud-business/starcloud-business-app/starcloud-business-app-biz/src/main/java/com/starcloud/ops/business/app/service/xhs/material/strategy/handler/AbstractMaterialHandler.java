@@ -296,7 +296,8 @@ public abstract class AbstractMaterialHandler {
                 if (currentNeed > currentMaterialSize) {
                     // 如果是第一次循环，并且是第一个海报风格，说明素材数量不足
                     if (loopCount == 1 && i == 0) {
-                        throw ServiceExceptionUtil.invalidParamException("选择的素材数量不足以生成一篇笔记，请重新选择后重试！");
+                        throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记【"
+                                + currentMaterialSize + "/" + currentNeed + "】，请添加素材后重试！");
                     }
                     // 其他情况，给提示，即第totalCount + 1 个海报风格的素材数量不足
                     return PlanTotalCount.of(totalCount, "选择的素材数量不足以生成第 " + (totalCount + 1) + " 篇笔记，我们将会为您生成 " + totalCount + " 篇笔记。");
@@ -429,8 +430,9 @@ public abstract class AbstractMaterialHandler {
                     .filter(Objects::nonNull)
                     .map(item -> {
                         Integer matcher = matcherMax(String.valueOf(item.getValue()));
+                        // 如果没有匹配到，说明不需要素材。
                         if (matcher == -1) {
-                            return -1;
+                            return 0;
                         }
                         return matcher + 1;
                     }).max(Comparator.comparingInt(Integer::intValue)).orElse(0);
@@ -464,7 +466,8 @@ public abstract class AbstractMaterialHandler {
             PosterStyleDTO posterStyle = entry.getValue();
             Integer size = computePosterStyleNeedMaterialSize(posterStyle);
             if (materialList.size() < size && index == 0) {
-                throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记，请添加素材后重试！");
+                throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记【"
+                        + materialList.size() + "/" + size + "】，请添加素材后重试！");
             }
             needSizeMap.put(entry.getKey(), size);
             index++;
@@ -518,7 +521,8 @@ public abstract class AbstractMaterialHandler {
             PosterStyleDTO posterStyle = entry.getValue();
             Integer size = computePosterStyleNeedMaterialSize(posterStyle);
             if (materialList.size() < size && index == 0) {
-                throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记，请添加素材后重试！");
+                throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记【"
+                        + materialList.size() + "/" + size + "】，请添加素材后重试！");
             }
             needSizeMap.put(entry.getKey(), size);
             index++;
