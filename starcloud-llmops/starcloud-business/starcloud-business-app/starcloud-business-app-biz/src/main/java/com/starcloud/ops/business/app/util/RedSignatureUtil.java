@@ -104,8 +104,10 @@ public class RedSignatureUtil {
      * @param args
      * @throws Exception
      */
-    public static void main(String[] args) throws Exception {
-        String signature = buildSignature("red.r9zp39hyPVPdOm58", "nonce", "1692102691696", "052a768a7bb340bd9c45c82956937ec9");
+    public static void main(String[] args){
+        //String signature = buildSignature("red.r9zp39hyPVPdOm58", "nonce", "1692102691696", "052a768a7bb340bd9c45c82956937ec9");
+
+        Map<String, String>  signature = RedSignatureUtil.buildSignature();
         System.out.println(signature);
     }
 
