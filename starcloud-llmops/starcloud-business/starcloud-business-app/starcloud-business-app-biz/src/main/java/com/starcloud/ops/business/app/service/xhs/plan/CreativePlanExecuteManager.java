@@ -2,12 +2,9 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -20,9 +17,6 @@ import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
@@ -508,10 +502,12 @@ public class CreativePlanExecuteManager {
                     try {
                         TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
                         };
-                        materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
+                        materialList = JSONUtil.toBean(request.getMaterialListJson(), reference, false);
 
                     } catch (Exception exception) {
-                        // ignore
+
+                        log.warn("getMaterialListJson is fail: {}", request.getMaterialListJson(), exception);
+
                     }
                 }
 
@@ -524,13 +520,15 @@ public class CreativePlanExecuteManager {
 
                     materialList = materialList.stream().map(map -> {
                         Map<String, Object> newMap = new HashMap<>();
-                        request.getMaterialKeyMap().forEach((key, value) -> {
-                            if (map.containsKey(key)) {
-                                newMap.put(value, map.get(key));
+                        request.getMaterialKeyMap().forEach((PlanExecuteRequest.KeyValueObject keyValueObject) -> {
+                            if (map.containsKey(keyValueObject.getKey())) {
+                                newMap.put(keyValueObject.getTarget(), map.get(keyValueObject.getKey()));
                             }
                         });
                         return newMap;
                     }).collect(Collectors.toList());
+
+                    log.info("materialList getMaterialKeyMap: {}", materialList);
                 }
 
                 return materialList;
