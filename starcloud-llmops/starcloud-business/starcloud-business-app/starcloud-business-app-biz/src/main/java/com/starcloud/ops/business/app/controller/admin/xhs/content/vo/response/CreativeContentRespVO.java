@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response;
 
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.RedBookSignature;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -73,6 +76,28 @@ public class CreativeContentRespVO implements java.io.Serializable {
      */
     @Schema(description = "执行响应")
     private CreativeContentExecuteResult executeResult;
+
+//
+//    /**
+//     * 生成的内容
+//     * @return
+//     */
+//    @Schema(description = "生成的内容")
+//    public CopyWritingContent getContent() {
+//        return this.getExecuteResult().getCopyWriting();
+//    }
+//
+//
+//    /**
+//     * 生成的图片列表
+//     * @return
+//     */
+//    @Schema(description = "图片")
+//    public List<ImageContent> getImageList() {
+//         return this.getExecuteResult().getImageList();
+//    }
+
+
 
     /**
      * 执行开始时间
@@ -145,10 +170,4 @@ public class CreativeContentRespVO implements java.io.Serializable {
      */
     @Schema(description = "执行进度")
     private AppExecuteProgress progress;
-
-    /**
-     * 小红书签名
-     */
-    @Schema(description = "小红书签名")
-    private RedBookSignature signature;
 }

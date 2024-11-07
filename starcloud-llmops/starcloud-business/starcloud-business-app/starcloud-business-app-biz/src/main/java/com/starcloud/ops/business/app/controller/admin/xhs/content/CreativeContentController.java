@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.util.RedSignatureUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -28,7 +29,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -124,8 +127,18 @@ public class CreativeContentController {
     @Operation(summary = "分享创作内容")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<CreativeContentRespVO> share(@RequestParam("uid") String uid) {
-        return CommonResult.success(creativeContentService.share(uid));
+    public CommonResult<HashMap<String, Object>> share(@RequestParam("uid") String uid) {
+
+        CreativeContentRespVO creativeContentRespVO = creativeContentService.detail(uid);
+
+        Map<String, String> verifyConfig = RedSignatureUtil.buildSignature();
+
+        return CommonResult.success(
+                new HashMap<String, Object>(){{
+                    put("data", creativeContentRespVO);
+                    put("verifyConfig", verifyConfig);
+                }}
+        );
     }
 
     @PostMapping("batchExecute")

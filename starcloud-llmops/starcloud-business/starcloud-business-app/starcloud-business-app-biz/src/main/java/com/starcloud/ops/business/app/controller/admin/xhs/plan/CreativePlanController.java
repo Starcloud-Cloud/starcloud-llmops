@@ -6,6 +6,8 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.starcloud.ops.business.app.api.base.vo.request.BatchUidRequest;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.image.dto.UploadImageInfoDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreateSameAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanListQuery;
@@ -35,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.util.Collections;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -76,13 +78,6 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.getOrCreate(query));
     }
 
-    @GetMapping("/page")
-    @Operation(summary = "分页查询创作计划列表", description = "分页查询创作计划列表")
-    @ApiOperationSupport(order = 50, author = "nacoyer")
-    public CommonResult<PageResult<CreativePlanRespVO>> page(CreativePlanPageQuery query) {
-        return CommonResult.success(creativePlanService.page(query));
-    }
-
     @GetMapping("/list")
     @Operation(summary = "创作计划列表", description = "创作计划列表")
     @ApiOperationSupport(order = 50, author = "nacoyer")
@@ -90,12 +85,6 @@ public class CreativePlanController {
         return CommonResult.success(creativePlanService.list(limit));
     }
 
-    @PostMapping("/planPosterList")
-    @Operation(summary = "创作计划海报列表", description = "创作计划海报列表")
-    @ApiOperationSupport(order = 50, author = "nacoyer")
-    public CommonResult<List<PosterStyleDTO>> planPosterList(@Validated @RequestBody UidRequest request) {
-        return CommonResult.success(creativePlanService.planPosterList(request.getUid()));
-    }
 
     @PostMapping("/query")
     @Operation(summary = "创作计划列表", description = "创作计划列表")
@@ -137,16 +126,14 @@ public class CreativePlanController {
     public CommonResult<PlanExecuteResult> execute(@Validated @RequestBody UidRequest request) {
         PlanExecuteRequest planExecuteRequest = new PlanExecuteRequest();
         planExecuteRequest.setPlanUid(request.getUid());
-        planExecuteRequest.setMaterialList(Collections.emptyList());
+        planExecuteRequest.setAsync(Boolean.FALSE);
+        planExecuteRequest.setMaterialListJson(null);
+        planExecuteRequest.setPosterStyleId(null);
+        planExecuteRequest.setTotalCount(null);
         return CommonResult.success(creativePlanExecuteManager.execute(planExecuteRequest));
     }
 
-    @PostMapping("/run")
-    @Operation(summary = "执行创作计划", description = "执行创作计划")
-    @ApiOperationSupport(order = 90, author = "nacoyer")
-    public CommonResult<PlanExecuteResult> run(@Validated @RequestBody PlanExecuteRequest request) {
-        return CommonResult.success(creativePlanExecuteManager.execute(request));
-    }
+
 
     @PostMapping("/cancel")
     @Operation(summary = "取消创作计划", description = "取消创作计划")

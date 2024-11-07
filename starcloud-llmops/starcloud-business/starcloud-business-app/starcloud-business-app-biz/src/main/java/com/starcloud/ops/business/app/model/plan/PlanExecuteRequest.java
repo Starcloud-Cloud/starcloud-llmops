@@ -16,13 +16,48 @@ public class PlanExecuteRequest implements Serializable {
 
     private static final long serialVersionUID = -8952228169156691678L;
 
+
+    private String appUid;
+
     /**
      * 计划UID
      */
     private String planUid;
 
     /**
-     * 素材列表
+     * 是否异步
      */
+    private Boolean async;
+
+    /**
+     * 选择执行海报风格ID
+     */
+    private String posterStyleId;
+
+    /**
+     * 素材列表 JSON 格式
+     */
+    private String materialListJson;
+
+
     private List<Map<String, Object>> materialList;
+
+
+    /**
+     * 素材key映射
+     */
+    private List<KeyValueObject> materialKeyMap;
+
+
+    /**
+     * 生成海报数量
+     */
+    private Integer totalCount;
+
+
+    @Data
+    public static class KeyValueObject {
+        private String key;
+        private String target;
+    }
 }
