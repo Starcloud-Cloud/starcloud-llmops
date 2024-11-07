@@ -6,10 +6,12 @@ import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.controller.admin.account.vo.MpAccountCreateReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.account.MpAccountDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.account.MpAccountService;
+import cn.iocoder.yudao.module.system.controller.admin.dict.vo.data.DictDataExportReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
@@ -36,6 +38,7 @@ import com.starcloud.ops.business.open.controller.admin.vo.request.WeChatBindReq
 import com.starcloud.ops.business.open.controller.admin.vo.response.WeChatBindRespVO;
 import com.starcloud.ops.business.open.service.WechatService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
+import com.starcloud.ops.business.user.service.MpAppManager;
 import com.starcloud.ops.business.user.service.impl.EndUserServiceImpl;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import com.starcloud.ops.framework.common.api.enums.StateEnum;
@@ -55,7 +58,7 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.limits.enums.ErrorCodeConstants.USER_BENEFITS_USELESS_INSUFFICIENT;
-import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_APP;
+import static com.starcloud.ops.business.user.enums.DictTypeConstants.*;
 
 
 @Slf4j
@@ -209,8 +212,7 @@ public class WechatServiceImpl implements WechatService {
 
     @Override
     public Boolean isInternalAccount(String wxAppId) {
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
-        return wxAppId.equals(dictDataDO.getValue());
+        return wxAppId.equals(MpAppManager.getMpAppId(TenantContextHolder.getTenantId()));
     }
 
     @Override
@@ -279,14 +281,13 @@ public class WechatServiceImpl implements WechatService {
     }
 
     private ChatRequestVO preChatRequest(String fromUser, String chatAppId, String query) {
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
         String appId = MpContextHolder.getAppId();
         ChatRequestVO chatRequestVO = new ChatRequestVO();
         chatRequestVO.setAppUid(chatAppId);
         chatRequestVO.setQuery(query);
         chatRequestVO.setScene(AppSceneEnum.MP.name());
 
-        if (appId.equals(dictDataDO.getValue())) {
+        if (isInternalAccount(appId)) {
 //            改为扣应用所有者权益
             AdminUserDO userDO = socialUserService.getSocialUser(fromUser, SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
 //            chatRequestVO.setUserId(userDO.getId());
