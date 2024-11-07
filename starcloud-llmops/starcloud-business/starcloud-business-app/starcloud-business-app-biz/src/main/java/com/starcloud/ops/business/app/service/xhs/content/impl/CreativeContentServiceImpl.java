@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.xhs.content.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -49,6 +50,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
+import com.starcloud.ops.business.app.model.content.RedBookSignature;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
@@ -58,6 +60,8 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.app.util.XhsSignatureUtil;
+import com.starcloud.ops.business.core.config.xhs.RedBookProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -117,6 +121,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Resource
     private CreativeThreadPoolHolder creativeThreadPoolHolder;
 
+    @Resource
+    private RedBookProperties redBookProperties;
+
     /**
      * 获取创作内容详情
      *
@@ -141,6 +148,29 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
         AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
         return this.convertWithProgress(creativeContent);
+    }
+
+    /**
+     * 小红书内容分享
+     *
+     * @param uid 创作内容UID
+     * @return 创作内容详情
+     */
+    @Override
+    public CreativeContentRespVO share(String uid) {
+        CreativeContentDO creativeContent = creativeContentMapper.get(uid);
+        AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
+
+        // 计算小红书签名
+        String nonce = RandomUtil.randomString(32);
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String appKey = redBookProperties.getAppKey();
+        String appSecret = redBookProperties.getAppSecret();
+        RedBookSignature signature = XhsSignatureUtil.signature(appKey, nonce, timestamp, appSecret);
+
+        CreativeContentRespVO response = this.convertWithProgress(creativeContent);
+        response.setSignature(signature);
+        return response;
     }
 
     /**

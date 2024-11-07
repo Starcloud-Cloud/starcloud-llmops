@@ -36,6 +36,14 @@ public interface CreativeContentService {
     CreativeContentRespVO detail(String uid);
 
     /**
+     * 小红书内容分享
+     *
+     * @param uid 创作内容UID
+     * @return 创作内容详情
+     */
+    CreativeContentRespVO share(String uid);
+
+    /**
      * 查询创作内容列表
      *
      * @param query 查询条件

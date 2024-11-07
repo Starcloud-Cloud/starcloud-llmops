@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
+import com.starcloud.ops.business.app.model.content.RedBookSignature;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -144,4 +145,10 @@ public class CreativeContentRespVO implements java.io.Serializable {
      */
     @Schema(description = "执行进度")
     private AppExecuteProgress progress;
+
+    /**
+     * 小红书签名
+     */
+    @Schema(description = "小红书签名")
+    private RedBookSignature signature;
 }

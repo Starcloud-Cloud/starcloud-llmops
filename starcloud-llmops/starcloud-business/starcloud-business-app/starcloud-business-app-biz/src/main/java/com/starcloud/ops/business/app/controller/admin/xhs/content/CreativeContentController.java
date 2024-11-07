@@ -125,7 +125,7 @@ public class CreativeContentController {
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<CreativeContentRespVO> share(@RequestParam("uid") String uid) {
-        return CommonResult.success(creativeContentService.detail(uid));
+        return CommonResult.success(creativeContentService.share(uid));
     }
 
     @PostMapping("batchExecute")
