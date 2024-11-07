@@ -62,15 +62,14 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             // 第二步，保存粉丝信息
             MpUserDO mpUserDO = mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
 
-            if (StringUtils.isNotBlank(wxMessage.getTicket())) {
-                redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
-            }
-
             if (wechatUserManager.socialExist(wxMpUser.getOpenId())) {
                 log.info("已存在用户，直接登录");
                 return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
             }
             wechatUserManager.createSocialUser(wxMpUser, wxMessage);
+            if (StringUtils.isNotBlank(wxMessage.getTicket())) {
+                redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+            }
             sendSocialMsgService.asynSendWxRegisterMsg(mpUserDO);
             return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
         } catch (Exception e) {
