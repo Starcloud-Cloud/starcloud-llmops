@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.google.common.collect.Maps;
@@ -24,7 +25,7 @@ public class RedSignatureUtil {
 
         long tt = System.currentTimeMillis();
 
-        String nonce = SecureUtil.md5(String.valueOf(tt));
+        String nonce = RandomUtil.randomString(22);
         Map<String, String> verifyConfig = new HashMap<>();
 
         try {
