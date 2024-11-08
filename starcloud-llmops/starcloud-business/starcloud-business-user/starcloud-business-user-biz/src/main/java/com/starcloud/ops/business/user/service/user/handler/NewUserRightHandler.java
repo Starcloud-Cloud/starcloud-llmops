@@ -50,7 +50,7 @@ public class NewUserRightHandler implements NewUserHandler {
      */
     @Override
     public void afterUserRegister(AdminUserDO adminUserDO, AdminUserDO inviteUserDO) {
-        log.info("【新用户注册 邀请人权益发放】，准备为邀请人发送邀请权益");
+        log.info("【新用户注册 新用户权益发放】，准备为邀请人发送邀请权益");
 
         AdminUserRightsBizTypeEnum bizTypeEnum;
         // 邀请人为空
@@ -68,7 +68,7 @@ public class NewUserRightHandler implements NewUserHandler {
             commonDTO.setRightsBasicDTO(new UserRightsBasicDTO()
                             .setMagicBean(99999)
                             .setMagicImage(99999)
-                            .setMatrixBean(5)
+                            .setMatrixBean(10)
                             .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
                             .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                     .setLevelBasicDTO(new UserLevelBasicDTO()
