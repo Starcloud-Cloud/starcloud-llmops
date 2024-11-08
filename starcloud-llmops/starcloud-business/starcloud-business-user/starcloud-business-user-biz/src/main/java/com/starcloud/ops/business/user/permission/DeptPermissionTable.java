@@ -8,18 +8,18 @@ public class DeptPermissionTable {
 
 
     /**
-     继承 {@link cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO}
-
-
-     ALTER TABLE table_name ADD COLUMN dept_id BIGINT AFTER tenant_id;
-     ALTER TABLE table_name ADD INDEX idx_dept (dept_id) USING BTREE;
-
-
-     UPDATE
-     table_name a
-     INNER JOIN system_users b ON a.creator = b.id
-     SET a.dept_id = b.dept_id
-     WHERE
+     * 继承 {@link cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO}
+     * <p>
+     * <p>
+     * ALTER TABLE table_name ADD COLUMN dept_id BIGINT AFTER tenant_id;
+     * ALTER TABLE table_name ADD INDEX idx_dept (dept_id) USING BTREE;
+     * <p>
+     * <p>
+     * UPDATE
+     * table_name a
+     * INNER JOIN system_users b ON a.creator = b.id
+     * SET a.dept_id = b.dept_id
+     * WHERE
      */
 
 
@@ -44,13 +44,9 @@ public class DeptPermissionTable {
                 "llm_creative_scheme",
                 "llm_creative_plan_batch",
                 "llm_creative_content",
-                "llm_log_app_conversation",
-                "llm_log_app_message",
-                "llm_log_app_message_annotations",
-                "llm_log_app_message_feedbacks",
-                "llm_log_app_message_save",
                 "poster_material_group",
                 "poster_material"
+
         );
     }
 }
