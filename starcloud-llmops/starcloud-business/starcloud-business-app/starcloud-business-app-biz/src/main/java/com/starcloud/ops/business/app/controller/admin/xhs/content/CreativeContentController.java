@@ -127,19 +127,22 @@ public class CreativeContentController {
     @Operation(summary = "分享创作内容")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<HashMap<String, Object>> share(@RequestParam("uid") String uid) {
+    public CommonResult<CreativeContentRespVO> share(@RequestParam("uid") String uid) {
 
         CreativeContentRespVO creativeContentRespVO = creativeContentService.detail(uid);
-
-        Map<String, String> verifyConfig = RedSignatureUtil.buildSignature();
-
-        return CommonResult.success(
-                new HashMap<String, Object>(){{
-                    put("data", creativeContentRespVO);
-                    put("verifyConfig", verifyConfig);
-                }}
-        );
+        return CommonResult.success(creativeContentRespVO);
     }
+
+
+    @GetMapping("/shareBuildSignature")
+    @Operation(summary = "获取小红书签名")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<Map<String, String>> shareBuildSignature() {
+
+       return CommonResult.success(RedSignatureUtil.buildSignature());
+    }
+
 
     @PostMapping("batchExecute")
     @Operation(summary = "批量执行", description = "批量执行")
