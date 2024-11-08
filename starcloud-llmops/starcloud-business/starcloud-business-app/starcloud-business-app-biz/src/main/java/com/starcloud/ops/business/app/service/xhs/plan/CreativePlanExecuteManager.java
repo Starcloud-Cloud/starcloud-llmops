@@ -62,12 +62,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -163,6 +157,10 @@ public class CreativePlanExecuteManager {
             return transactionTemplate.execute(transactionStatus -> {
                 // 新增一条计划批次
                 String batchUid = this.createPlanBatch(planResponse);
+
+                if (CollectionUtil.isEmpty(batchRequest.getContentRequestList())) {
+                    throw ServiceExceptionUtil.invalidParamException("计划执行失败：计算后创作内容任务为空，请联系管理员！");
+                }
 
                 // 批量创建创作内容任务
                 this.batchCreateContent(batchRequest.getContentRequestList(), batchUid);
@@ -332,10 +330,6 @@ public class CreativePlanExecuteManager {
             contentExecute.setAppInformation(executeAppInformation);
             contentCreateRequest.setExecuteParam(contentExecute);
             handleContentRequestList.add(contentCreateRequest);
-        }
-
-        if (CollectionUtil.isEmpty(handleContentRequestList)) {
-            throw ServiceExceptionUtil.invalidParamException("计划执行失败：计算后的任务总数为0，请检查您的配置或联系管理员！");
         }
 
         ContentBatchRequest contentBatchRequest = new ContentBatchRequest();
