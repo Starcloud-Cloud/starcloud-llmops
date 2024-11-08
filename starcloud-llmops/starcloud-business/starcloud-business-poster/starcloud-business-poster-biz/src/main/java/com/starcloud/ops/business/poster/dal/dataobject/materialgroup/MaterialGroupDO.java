@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.poster.dal.dataobject.materialgroup;
 
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -19,7 +20,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaterialGroupDO extends BaseDO {
+public class MaterialGroupDO extends DeptBaseDO {
 
     /**
      * 主键id

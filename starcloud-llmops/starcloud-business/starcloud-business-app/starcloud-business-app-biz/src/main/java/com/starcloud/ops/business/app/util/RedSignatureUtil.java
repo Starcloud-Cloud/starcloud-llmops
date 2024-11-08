@@ -16,9 +16,9 @@ import java.util.TreeMap;
 @Slf4j
 public class RedSignatureUtil {
 
-    private static String APP_KEY = "red.r9zp39hyPVPdOm58";
+    private static String APP_KEY = "red.2AiITQapXH8WFKFH";
 
-    private static String APP_SECRET = "052a768a7bb340bd9c45c82956937ec9";
+    private static String APP_SECRET = "527e9b5dbea294144613f52681a49ae8";
 
 
     public static Map<String, String> buildSignature() {

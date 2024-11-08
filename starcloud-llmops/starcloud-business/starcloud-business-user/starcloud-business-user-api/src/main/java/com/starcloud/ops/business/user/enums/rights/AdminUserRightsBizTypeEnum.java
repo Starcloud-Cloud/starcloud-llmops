@@ -20,7 +20,7 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     ADMIN_ADD(1, "管理员增加", "管理员修改权益，增加 {} 魔法豆，{} 图片", true, false, 0, 0, 0),
     REGISTER(2, "普通注册", "普通注册获得 {} 魔法豆，{} 图片", true, true, 10, 5,0),
     INVITE_TO_REGISTER(3, "邀请注册", "邀请注册获得 {} 魔法豆，{} 图片", true, true, 10, 5, 0),
-    USER_INVITE(4, "用户推广", "用户推广获得 {} 魔法豆，{} 图片", true, true, 5, 2,5),
+    USER_INVITE(4, "用户推广", "用户推广获得 {} 魔法豆，{} 图片", true, true, 5, 2,10),
     USER_INVITE_REPEAT(5, "邀请达人", "邀请达标获得 {} 魔法豆，{} 图片", true, true, 5, 2,0),
     SIGN(6, "签到", "签到获得 {} 魔法豆，{} 图片", true, true, 2, 1,0),
     REDEEM_CODE(7, "兑换码", "使用兑换码获得 {} 魔法豆，{} 图片", false, false, 0, 0,0),
