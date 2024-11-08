@@ -91,9 +91,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (updateReqVO.getOvertStatus()) {
             this.publish(updateReqVO.getUid());
         } else {
-            if (updateObj.getOvertStatus()){
+            if (updateObj.getOvertStatus())
                 this.cancelPublish(updateReqVO.getUid());
-            }
+
         }
     }
 
