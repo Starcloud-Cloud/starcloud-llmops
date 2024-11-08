@@ -15,7 +15,6 @@ public class DeptPermissionPosterConfiguration {
         return rule -> {
             // dept
             rule.addDeptColumn(MaterialGroupDO.class);
-            rule.addDeptColumn(MaterialDO.class);
         };
     }
 }
