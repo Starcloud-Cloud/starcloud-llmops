@@ -4,11 +4,17 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceCountReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.SliceUsageCountReqVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
@@ -22,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -51,11 +58,6 @@ public abstract class AbstractMaterialHandler {
      * 提取素材索引正则
      */
     private static final Pattern PATTERN = Pattern.compile("\\.docs\\[(\\d+)]");
-
-    /**
-     * 生成数据相关正则
-     */
-    private static final Pattern DATA_PATTERN = Pattern.compile("\\.data|\\.title|\\.content|\\.tagList");
 
     /**
      * 分组字段
@@ -89,21 +91,9 @@ public abstract class AbstractMaterialHandler {
         return max;
     }
 
-    /**
-     * 匹配数据
-     *
-     * @param input 输入
-     * @return 返回匹配结果
-     */
-    protected static Integer matchData(String input) {
-        if (StringUtils.isBlank(input)) {
-            return -1;
-        }
-        Matcher matcher = DATA_PATTERN.matcher(input);
-        if (matcher.find()) {
-            return 1;
-        }
-        return -1;
+    protected static Integer matchMaxOrZero(String input) {
+        Integer max = matcherMax(input);
+        return max == -1 ? 0 : max + 1;
     }
 
     /**
@@ -222,17 +212,6 @@ public abstract class AbstractMaterialHandler {
     }
 
     /**
-     * 计算每个海报风格需要的素材数量 <p>
-     * 如果需要不同的分组逻辑，子类重写此方法即可
-     *
-     * @param posterStyleList 海报风格列表
-     * @return 每个海报风格需要的素材数量
-     */
-    protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
-        return this.defaultComputeNeedMaterialSize(posterStyleList);
-    }
-
-    /**
      * 计算生成任务总数量。的
      *
      * @param materialList    素材列表
@@ -242,8 +221,19 @@ public abstract class AbstractMaterialHandler {
     public PlanTotalCount calculateTotalCount(List<Map<String, Object>> materialList,
                                               List<PosterStyleDTO> posterStyleList,
                                               MaterialMetadata metadata) {
-        // 计算每个海报风格需要的素材数量
-        List<Integer> needMaterialSize = computeNeedMaterialSize(posterStyleList);
+
+        List<Integer> needMaterialSize = new ArrayList<>();
+        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
+            needMaterialSize.add(computeNeedMaterialSize(posterStyle, metadata.getAppInformation()));
+        }
+
+        needMaterialSize = needMaterialSize.stream()
+                .filter(item -> Objects.nonNull(item) && item > 0)
+                .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(needMaterialSize)) {
+            throw ServiceExceptionUtil.invalidParamException("您生成的笔记不依赖素材！请使用【立即生成】功能！");
+        }
+
         // 获取素材字段配置
         String group = getGroupField(metadata.getMaterialFieldList());
 
@@ -338,9 +328,9 @@ public abstract class AbstractMaterialHandler {
         // 1. 如果所有的素材，分组字段值都为空，则按照默认复制逻辑复制即可。
         if (CollectionUtil.isEmpty(groupMaterial)) {
             if (MaterialUsageModel.SELECT.equals(usageModel)) {
-                return this.defaultMaterialListMap(copyMaterialList, posterStyleMap);
+                return this.defaultMaterialListMap(copyMaterialList, posterStyleMap, metadata);
             }
-            return this.defaultCopyMaterialListMap(copyMaterialList, posterStyleMap);
+            return this.defaultCopyMaterialListMap(copyMaterialList, posterStyleMap, metadata);
         }
 
         // 将同一组的素材分组，并且保持原有的顺序。
@@ -387,63 +377,15 @@ public abstract class AbstractMaterialHandler {
         // 将没有分组的素材按照默认复制逻辑复制
         Map<String, List<Map<String, Object>>> noGroupMap;
         if (MaterialUsageModel.SELECT.equals(usageModel)) {
-            noGroupMap = this.defaultMaterialListMap(noGroupMaterial, noHandlerMap);
+            noGroupMap = this.defaultMaterialListMap(noGroupMaterial, noHandlerMap, metadata);
         } else {
-            noGroupMap = this.defaultCopyMaterialListMap(noGroupMaterial, noHandlerMap);
+            noGroupMap = this.defaultCopyMaterialListMap(noGroupMaterial, noHandlerMap, metadata);
         }
 
         // 将分组的素材和没有分组的素材合并
         resultMap.putAll(noGroupMap);
 
         return resultMap;
-    }
-
-    /**
-     * 获取风格海报素材选择最大索引列表
-     *
-     * @param posterStyleList 海报列表
-     * @return 风格海报素材选择最大索引列表
-     */
-    protected List<Integer> defaultComputeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
-        List<Integer> materialIndexList = new ArrayList<>();
-        for (PosterStyleDTO posterStyle : CollectionUtil.emptyIfNull(posterStyleList)) {
-            materialIndexList.add(computePosterStyleNeedMaterialSize(posterStyle));
-        }
-        return materialIndexList;
-    }
-
-    /**
-     * 计算海报风格需要的素材数量
-     *
-     * @param posterStyle 海报风格
-     * @return 需要的素材数量
-     */
-    protected Integer computePosterStyleNeedMaterialSize(PosterStyleDTO posterStyle) {
-        // posterTemplateList 不会为空，前面已经做过校验
-        List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
-        List<Integer> materialIndexList = new ArrayList<>();
-        for (PosterTemplateDTO template : posterTemplateList) {
-            // 计算每一个模板需要的素材数量，即每一个模板中选择的素材的最大索引 +1
-            // 如果整个图片模板未曾引用过素材，则整个模板需要的素材数量为 0
-            Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList())
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(item -> {
-                        Integer matcher = matcherMax(String.valueOf(item.getValue()));
-                        // 如果没有匹配到，说明不需要素材。
-                        if (matcher == -1) {
-                            return 0;
-                        }
-                        return matcher + 1;
-                    }).max(Comparator.comparingInt(Integer::intValue)).orElse(0);
-
-            materialIndexList.add(maxIndex);
-        }
-        // 返回最大的索引值，即为需要的素材数量
-        return CollectionUtil.emptyIfNull(materialIndexList)
-                .stream()
-                .max(Comparator.comparingInt(Integer::intValue))
-                .orElse(0);
     }
 
     /**
@@ -455,7 +397,8 @@ public abstract class AbstractMaterialHandler {
      * @return 分组后的资料库列表
      */
     protected Map<String, List<Map<String, Object>>> defaultCopyMaterialListMap(List<Map<String, Object>> materialList,
-                                                                                Map<String, PosterStyleDTO> posterStyleMap) {
+                                                                                Map<String, PosterStyleDTO> posterStyleMap,
+                                                                                MaterialMetadata metadata) {
         // 结果集合
         Map<String, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
@@ -464,7 +407,7 @@ public abstract class AbstractMaterialHandler {
         int index = 0;
         for (Map.Entry<String, PosterStyleDTO> entry : posterStyleMap.entrySet()) {
             PosterStyleDTO posterStyle = entry.getValue();
-            Integer size = computePosterStyleNeedMaterialSize(posterStyle);
+            Integer size = computeNeedMaterialSize(posterStyle, metadata.getAppInformation());
             if (materialList.size() < size && index == 0) {
                 throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记【"
                         + materialList.size() + "/" + size + "】，请添加素材后重试！");
@@ -510,7 +453,8 @@ public abstract class AbstractMaterialHandler {
      * @return 分组后的资料库列表
      */
     protected Map<String, List<Map<String, Object>>> defaultMaterialListMap(List<Map<String, Object>> materialList,
-                                                                            Map<String, PosterStyleDTO> posterStyleMap) {
+                                                                            Map<String, PosterStyleDTO> posterStyleMap,
+                                                                            MaterialMetadata metadata) {
         // 结果集合
         Map<String, List<Map<String, Object>>> resultMap = new LinkedHashMap<>();
 
@@ -519,7 +463,7 @@ public abstract class AbstractMaterialHandler {
         int index = 0;
         for (Map.Entry<String, PosterStyleDTO> entry : posterStyleMap.entrySet()) {
             PosterStyleDTO posterStyle = entry.getValue();
-            Integer size = computePosterStyleNeedMaterialSize(posterStyle);
+            Integer size = computeNeedMaterialSize(posterStyle, metadata.getAppInformation());
             if (materialList.size() < size && index == 0) {
                 throw ServiceExceptionUtil.invalidParamException("素材数量不足以生成一篇笔记【"
                         + materialList.size() + "/" + size + "】，请添加素材后重试！");
@@ -571,4 +515,123 @@ public abstract class AbstractMaterialHandler {
 
         return groupField.getFieldName();
     }
+
+    /**
+     * 计算需要的素材数量
+     *
+     * @param posterStyle    海报风格
+     * @param appInformation 应用信息
+     * @return 需要的素材数量
+     */
+    protected Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
+        Integer posterNeedSize = computePosterStyleNeedMaterialSize(posterStyle);
+        Integer appNeedSize = computeAppInformationNeedSize(appInformation);
+        return Math.max(posterNeedSize, appNeedSize);
+    }
+
+    /**
+     * 计算海报风格需要的素材数量
+     *
+     * @param posterStyle 海报风格
+     * @return 需要的素材数量
+     */
+    protected Integer computePosterStyleNeedMaterialSize(PosterStyleDTO posterStyle) {
+        // 计算图片配置需要的素材数量。
+        List<PosterTemplateDTO> posterTemplateList = CollectionUtil.emptyIfNull(posterStyle.getTemplateList());
+        List<Integer> materialIndexList = new ArrayList<>();
+        for (PosterTemplateDTO template : posterTemplateList) {
+            // 计算每一个模板需要的素材数量，即每一个模板中选择的素材的最大索引 +1
+            // 如果整个图片模板未曾引用过素材，则整个模板需要的素材数量为 0
+            Integer maxIndex = CollectionUtil.emptyIfNull(template.getVariableList())
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(item -> matchMaxOrZero(String.valueOf(item.getValue())))
+                    .max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+
+            materialIndexList.add(maxIndex);
+        }
+        // 图片配置需要的素材数量。
+        return CollectionUtil.emptyIfNull(materialIndexList)
+                .stream()
+                .max(Comparator.comparingInt(Integer::intValue))
+                .orElse(0);
+    }
+
+    /**
+     * 计算应用配置需要的素材数量
+     *
+     * @param appInformation 应用信息
+     * @return 应用配置需要的素材数量
+     */
+    protected Integer computeAppInformationNeedSize(AppMarketRespVO appInformation) {
+        // 计算生成步骤需要的最大的素材数量
+        Integer completionStepNeedSize = computeAppCompletionStepNeedSize(appInformation);
+        // 计算笔记生成步骤需要的最大的素材数量
+        Integer noteStepNeedSize = computeAppNoteStepNeedSize(appInformation);
+        return Math.max(completionStepNeedSize, noteStepNeedSize);
+    }
+
+    /**
+     * 计算生成步骤需要的最大的素材数量
+     *
+     * @param appInformation 应用信息
+     * @return 最大的素材数量
+     */
+    private Integer computeAppCompletionStepNeedSize(AppMarketRespVO appInformation) {
+        List<WorkflowStepWrapperRespVO> completionStepList = listCompletionStep(appInformation);
+        if (CollectionUtil.isEmpty(completionStepList)) {
+            return 0;
+        }
+        List<Integer> needCount = new ArrayList<>();
+        for (WorkflowStepWrapperRespVO stepWrapper : completionStepList) {
+            String generate = stepWrapper.getVariableToString(CreativeConstants.GENERATE_MODE);
+            if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
+                String parodyRequirement = stepWrapper.getVariableToString(CreativeConstants.PARODY_REQUIREMENT);
+                needCount.add(matchMaxOrZero(parodyRequirement));
+            } else if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generate)) {
+                String customRequirement = stepWrapper.getVariableToString(CreativeConstants.CUSTOM_REQUIREMENT);
+                needCount.add(matchMaxOrZero(customRequirement));
+            } else {
+                needCount.add(0);
+            }
+        }
+        return needCount.stream().max(Comparator.comparingInt(Integer::intValue)).orElse(0);
+    }
+
+    /**
+     * 计算笔记生成步骤需要的最大的素材数量
+     *
+     * @param appInformation 应用信息
+     * @return 最大的素材数量
+     */
+    private Integer computeAppNoteStepNeedSize(AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO notStepWrapper = appInformation.getStepByHandler(AssembleActionHandler.class);
+        // 获取标题变量值
+        String title = notStepWrapper.getVariableToString(CreativeConstants.TITLE);
+        Integer titleNeedSize = matchMaxOrZero(title);
+
+        // 获取内容变量值
+        String content = notStepWrapper.getVariableToString(CreativeConstants.CONTENT);
+        Integer contentNeedSize = matchMaxOrZero(content);
+        return Math.max(titleNeedSize, contentNeedSize);
+    }
+
+    /**
+     * 获取生成相关步骤
+     *
+     * @param appInformation 应用信息
+     * @return 生成相关步骤
+     */
+    private List<WorkflowStepWrapperRespVO> listCompletionStep(AppMarketRespVO appInformation) {
+        if (Objects.isNull(appInformation) || Objects.isNull(appInformation.getWorkflowConfig())) {
+            return Collections.emptyList();
+        }
+
+        List<WorkflowStepWrapperRespVO> workflowStepList = appInformation.getWorkflowConfig().stepWrapperList();
+        return workflowStepList.stream()
+                .filter(step -> CustomActionHandler.class.getSimpleName().equalsIgnoreCase(step.getHandler()))
+                .collect(Collectors.toList());
+    }
+
+
 }
