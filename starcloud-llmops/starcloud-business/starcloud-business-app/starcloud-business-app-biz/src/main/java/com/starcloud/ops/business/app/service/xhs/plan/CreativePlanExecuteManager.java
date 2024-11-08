@@ -255,7 +255,9 @@ public class CreativePlanExecuteManager {
          */
         String message = "";
         // 计算需要生成的任务总数, 先从请求中获取，如果没有，使用计划中的总数
-        int totalCount = Optional.ofNullable(request.getTotalCount()).orElse(planResponse.getTotalCount());
+        int totalCount = Optional.ofNullable(request.getTotalCount())
+                .filter(total -> total > 0)
+                .orElse(planResponse.getTotalCount());
         // 如果是选择执行，重新计算任务总数。
         if (MaterialUsageModel.SELECT.equals(metadata.getMaterialUsageModel())) {
             // 根据素材总数和风格进行计算可以生产任务的总数。
