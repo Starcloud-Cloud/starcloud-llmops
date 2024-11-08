@@ -37,6 +37,9 @@ public enum DeptPermissionEnum {
     material_library_slice_edit("material.library.slice.edit", "素材库数据编辑"),
     material_library_slice_delete("material.library.slice.delete", "素材库数据删除"),
 
+    material_group_edit("material.group.edit", "海报编辑"),
+    material_group_delete("material.group.delete", "海报删除"),
+
     ;
 
     private final String permission;
