@@ -138,9 +138,9 @@ public class CreativeContentController {
     @Operation(summary = "获取小红书签名")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<Map<String, String>> shareBuildSignature() {
+    public CommonResult<Map<String, Object>> shareBuildSignature() {
 
-       return CommonResult.success(RedSignatureUtil.buildSignature());
+       return CommonResult.success(RedSignatureUtil.buildSignatureApi());
     }
 
 
