@@ -16,16 +16,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class AppLogDeptPermissionConfiguration {
 
-    @Bean("deptSpaceLogPermissionRuleCustomize")
-    public DeptDataPermissionRuleCustomizer deptSpacePermissionRuleCustomizer() {
-        return rule -> {
-            // dept
-            rule.addDeptColumn(LogAppConversationDO.class);
-            rule.addDeptColumn(LogAppMessageDO.class);
-            rule.addDeptColumn(LogAppMessageAnnotationsDO.class);
-            rule.addDeptColumn(LogAppMessageFeedbacksDO.class);
-            rule.addDeptColumn(LogAppMessageSaveDO.class);
-
-        };
-    }
+//    @Bean("deptSpaceLogPermissionRuleCustomize")
+//    public DeptDataPermissionRuleCustomizer deptSpacePermissionRuleCustomizer() {
+//        return rule -> {
+//            // dept
+//            rule.addDeptColumn(LogAppConversationDO.class);
+//            rule.addDeptColumn(LogAppMessageDO.class);
+//            rule.addDeptColumn(LogAppMessageAnnotationsDO.class);
+//            rule.addDeptColumn(LogAppMessageFeedbacksDO.class);
+//            rule.addDeptColumn(LogAppMessageSaveDO.class);
+//
+//        };
+//    }
 }
