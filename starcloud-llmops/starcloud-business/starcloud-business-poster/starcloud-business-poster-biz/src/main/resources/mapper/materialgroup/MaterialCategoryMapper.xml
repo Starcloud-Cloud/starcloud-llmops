@@ -73,7 +73,7 @@
         n.create_time, count(m.id) as materialCount
         from poster_material_group n
         left join poster_material m on m.group_id = n.id
-        where n.deleted = false and n.status = true and m.deleted = false and m.status = true and n.creator = #{reqVO.createId}  and n.associated_id is null
+        where n.deleted = false and n.status = true and m.deleted = false and m.status = true  and n.associated_id is null
         <if test="reqVO.name != null and reqVO.name != ''">
             and n.name = #{reqVO.name}
         </if>
