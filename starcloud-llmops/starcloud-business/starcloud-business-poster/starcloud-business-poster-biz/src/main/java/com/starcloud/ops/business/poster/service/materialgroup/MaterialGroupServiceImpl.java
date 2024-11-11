@@ -209,7 +209,11 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
      */
     @Override
     public MaterialGroupDO getMaterialGroupByUid(String uid) {
-        return materialGroupMapper.selectOne(MaterialGroupDO::getUid, uid);
+
+        AtomicReference<MaterialGroupDO> materialGroup = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> materialGroup.set(materialGroupMapper.selectOne(MaterialGroupDO::getUid, uid))
+        );
+        return materialGroup.get();
     }
 
     @Override
