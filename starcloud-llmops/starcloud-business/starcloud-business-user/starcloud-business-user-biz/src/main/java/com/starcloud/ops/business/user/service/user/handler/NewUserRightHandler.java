@@ -68,7 +68,7 @@ public class NewUserRightHandler implements NewUserHandler {
             commonDTO.setRightsBasicDTO(new UserRightsBasicDTO()
                             .setMagicBean(99999)
                             .setMagicImage(99999)
-                            .setMatrixBean(10)
+                            .setMatrixBean(500)
                             .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
                             .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                     .setLevelBasicDTO(new UserLevelBasicDTO()
