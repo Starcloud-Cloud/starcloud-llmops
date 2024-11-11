@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
@@ -37,6 +38,20 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
     public void validatePosterStyle(PosterStyleDTO posterStyle) {
         AppValidate.notNull(posterStyle, "创作方案配置异常！海报风格不能为空！");
         AppValidate.notEmpty(posterStyle.getTemplateList(), "创作方案配置异常！海报模板不能为空！");
+    }
+
+    /**
+     * 计算需要的素材数量
+     *
+     * @param posterStyle    海报风格
+     * @param appInformation 应用信息
+     * @return 需要的素材数量
+     */
+    @Override
+    protected Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
+        return Optional.ofNullable(posterStyle)
+                .map(PosterStyleDTO::getTotalImageCount)
+                .orElse(0);
     }
 
     /**
@@ -90,6 +105,9 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
                 if (MapUtils.isEmpty(pictureMaterial)) {
                     throw new IllegalArgumentException("素材列表数据异常！素材数据不能为空！");
                 }
+                // 去掉系统字段
+                pictureMaterial.remove("__id__");
+                pictureMaterial.remove("__usageCount__");
                 if (pictureMaterial.size() != 1) {
                     throw new IllegalArgumentException("素材数据异常！该场景素材字段配置只能有且只有一个素材！且字段为图片类型！");
                 }
