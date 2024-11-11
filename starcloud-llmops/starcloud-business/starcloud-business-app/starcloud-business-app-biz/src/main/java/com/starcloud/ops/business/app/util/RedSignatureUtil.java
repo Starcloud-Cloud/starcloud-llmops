@@ -3,7 +3,10 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
 import com.google.common.collect.Maps;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -16,23 +19,41 @@ import java.util.TreeMap;
 @Slf4j
 public class RedSignatureUtil {
 
-    private static String APP_KEY = "red.r9zp39hyPVPdOm58";
+    private static String APP_KEY = "red.2AiITQapXH8WFKFH";
 
-    private static String APP_SECRET = "052a768a7bb340bd9c45c82956937ec9";
+    private static String APP_SECRET = "527e9b5dbea294144613f52681a49ae8";
 
 
-    public static Map<String, String> buildSignature() {
+    public static Map<String, Object>  buildSignatureApi() {
+
+        Map<String, Object> params = buildSignature(APP_SECRET);
+        String text = HttpUtil.post("https://edith.xiaohongshu.com/api/sns/v1/ext/access/token", JSONUtil.toJsonStr(params), 5000);
+        RedTokenDTO json = JSONUtil.toBean(text, RedTokenDTO.class);
+        log.info("sdsd: {} {}", json, text);
+        if (json.getSuccess()) {
+           String token =  String.valueOf(json.getData().get("access_token"));
+            return buildSignature(token);
+        } else {
+            log.error("获取token失败");
+        }
+
+        return null;
+    }
+
+
+    public static Map<String, Object> buildSignature(String secret) {
 
         long tt = System.currentTimeMillis();
 
         String nonce = RandomUtil.randomString(22);
-        Map<String, String> verifyConfig = new HashMap<>();
+        Map<String, Object> verifyConfig = new HashMap<>();
 
         try {
 
-            String signature = buildSignature(APP_KEY, nonce, String.valueOf(tt), APP_SECRET);
 
-            verifyConfig.put("appKey", APP_KEY);
+            String signature = buildSignature(APP_KEY, nonce, String.valueOf(tt), secret);
+
+            verifyConfig.put("app_key", APP_KEY);
             verifyConfig.put("nonce", nonce);
             verifyConfig.put("timestamp", String.valueOf(tt));
             verifyConfig.put("signature", signature);
@@ -99,17 +120,33 @@ public class RedSignatureUtil {
         return signature;
     }
 
+
+    @Data
+    public class RedTokenDTO {
+
+        private Boolean success;
+        private String msg;
+
+        private Map<String, Object> data;
+
+        private Integer code;
+    }
+
     /**
      * 测试用例
      *
      * @param args
      * @throws Exception
      */
-    public static void main(String[] args){
+    public static void main(String[] args) {
         //String signature = buildSignature("red.r9zp39hyPVPdOm58", "nonce", "1692102691696", "052a768a7bb340bd9c45c82956937ec9");
 
-        Map<String, String>  signature = RedSignatureUtil.buildSignature();
-        System.out.println(signature);
+//        Map<String, String>  signature = RedSignatureUtil.buildSignature();
+//        System.out.println(signature);
+
+        log.info("{}", buildSignatureApi());
+
+
     }
 
 }

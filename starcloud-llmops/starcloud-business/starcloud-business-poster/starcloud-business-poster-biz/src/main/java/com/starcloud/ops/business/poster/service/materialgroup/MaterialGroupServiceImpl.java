@@ -5,9 +5,9 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.materialgroup.vo.MaterialGroupPublishReqVO;
@@ -28,13 +28,18 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.CATEGORY_LEVEL;
-import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_CANCEL_PUBLISH_FAIL;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_DELETE_FAIL_PUBLISH;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_PUBLISH_FAIL_EMPTY;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 海报素材分组 Service 实现类
@@ -98,9 +103,9 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (updateReqVO.getOvertStatus()) {
             this.publish(updateReqVO.getUid());
         } else {
-            if (updateObj.getOvertStatus()){
+            if (updateObj.getOvertStatus())
                 this.cancelPublish(updateReqVO.getUid());
-            }
+
         }
     }
 
@@ -111,7 +116,6 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
      */
     @Override
     public void updateMaterialGroupByUid(MaterialGroupSaveReqVO updateReqVO) {
-
         // 校验存在
         MaterialGroupDO materialGroupDO = getMaterialGroupByUid(updateReqVO.getUid());
 
@@ -119,7 +123,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialGroupDO == null) {
             throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
         }
-        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_edit, Long.valueOf(materialGroupDO.getCreator()));
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_group_edit, Long.valueOf(materialGroupDO.getCreator()));
 
         // 更新
         MaterialGroupDO updateObj = BeanUtils.toBean(updateReqVO, MaterialGroupDO.class);
@@ -164,7 +168,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         if (materialGroupDO == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
         }
-        deptPermissionApi.checkPermission(DeptPermissionEnum.material_library_delete, Long.valueOf(materialGroupDO.getCreator()));
+        deptPermissionApi.checkPermission(DeptPermissionEnum.material_group_delete, Long.valueOf(materialGroupDO.getCreator()));
 
         if (materialGroupDO.getOvertStatus()) {
             throw exception(MATERIAL_DELETE_FAIL_PUBLISH);
@@ -213,21 +217,21 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
 
 
         // 1. 获取系统模板
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确、
+        AtomicReference<IPage<MaterialGroupRespVO>> systemPageResult = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> systemPageResult.set(materialGroupMapper.selectSystemPage(
+                MyBatisUtils.buildPage(pageReqVO), pageReqVO)));
 
-        IPage<MaterialGroupRespVO> systemPageResult = materialGroupMapper.selectSystemPage(
-                MyBatisUtils.buildPage(pageReqVO), pageReqVO);
 
-
-        pageReqVO.setCreateId(getLoginUserId());
         // 2. 获取我的模板
         IPage<MaterialGroupRespVO> peoplePageResult = materialGroupMapper.selectPeoplePage(
                 MyBatisUtils.buildPage(pageReqVO), pageReqVO);
 
-        systemPageResult.getRecords().addAll(peoplePageResult.getRecords());
-        systemPageResult.setTotal(systemPageResult.getTotal() + peoplePageResult.getTotal());
+        systemPageResult.get().getRecords().addAll(peoplePageResult.getRecords());
+        systemPageResult.get().setTotal(systemPageResult.get().getTotal() + peoplePageResult.getTotal());
 
         // 3. 拼接数据并返回
-        return new PageResult<>(systemPageResult.getRecords(), systemPageResult.getTotal());
+        return new PageResult<>(systemPageResult.get().getRecords(), systemPageResult.get().getTotal());
 
     }
 

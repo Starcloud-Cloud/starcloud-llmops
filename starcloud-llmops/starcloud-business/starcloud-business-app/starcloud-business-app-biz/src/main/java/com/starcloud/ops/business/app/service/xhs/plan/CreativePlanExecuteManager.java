@@ -62,12 +62,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -163,6 +157,10 @@ public class CreativePlanExecuteManager {
             return transactionTemplate.execute(transactionStatus -> {
                 // 新增一条计划批次
                 String batchUid = this.createPlanBatch(planResponse);
+
+                if (CollectionUtil.isEmpty(batchRequest.getContentRequestList())) {
+                    throw ServiceExceptionUtil.invalidParamException("计划执行失败：计算后创作内容任务为空，请联系管理员！");
+                }
 
                 // 批量创建创作内容任务
                 this.batchCreateContent(batchRequest.getContentRequestList(), batchUid);
@@ -260,7 +258,9 @@ public class CreativePlanExecuteManager {
          */
         String message = "";
         // 计算需要生成的任务总数, 先从请求中获取，如果没有，使用计划中的总数
-        int totalCount = Optional.ofNullable(request.getTotalCount()).orElse(planResponse.getTotalCount());
+        int totalCount = Optional.ofNullable(request.getTotalCount())
+                .filter(total -> total > 0)
+                .orElse(planResponse.getTotalCount());
         // 如果是选择执行，重新计算任务总数。
         if (MaterialUsageModel.SELECT.equals(metadata.getMaterialUsageModel())) {
             // 根据素材总数和风格进行计算可以生产任务的总数。
@@ -330,10 +330,6 @@ public class CreativePlanExecuteManager {
             contentExecute.setAppInformation(executeAppInformation);
             contentCreateRequest.setExecuteParam(contentExecute);
             handleContentRequestList.add(contentCreateRequest);
-        }
-
-        if (CollectionUtil.isEmpty(handleContentRequestList)) {
-            throw ServiceExceptionUtil.invalidParamException("计划执行失败：计算后的任务总数为0，请检查您的配置或联系管理员！");
         }
 
         ContentBatchRequest contentBatchRequest = new ContentBatchRequest();
