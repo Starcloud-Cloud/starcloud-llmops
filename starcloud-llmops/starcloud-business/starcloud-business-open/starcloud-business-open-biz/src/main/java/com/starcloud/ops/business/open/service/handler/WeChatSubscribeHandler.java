@@ -57,26 +57,22 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
             if (!wechatService.isInternalAccount(MpContextHolder.getAppId())) {
                 return null;
             }
-            String tenantId = redisTemplate.boundValueOps(wxMessage.getTicket() + "_tenantId").get();
-            if (StringUtils.isNotBlank(tenantId)) {
-                TenantContextHolder.setTenantId(Long.valueOf(tenantId));
-            }
 
             WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
             // 第二步，保存粉丝信息
             MpUserDO mpUserDO = mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
 
+            if (wechatUserManager.socialExist(wxMpUser.getOpenId())) {
+                log.info("已存在用户，直接登录");
+                if (StringUtils.isNotBlank(wxMessage.getTicket())) {
+                    redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
+                }
+                return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
+            }
+            wechatUserManager.createSocialUser(wxMpUser, wxMessage);
             if (StringUtils.isNotBlank(wxMessage.getTicket())) {
                 redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
             }
-
-            if (wechatUserManager.socialExist(wxMpUser.getOpenId())) {
-                log.info("已存在用户，直接登录");
-                return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
-            }
-
-            wechatUserManager.createSocialUser(wxMpUser, wxMessage);
-
             sendSocialMsgService.asynSendWxRegisterMsg(mpUserDO);
             return mpAutoReplyService.replyForSubscribe(MpContextHolder.getAppId(), wxMessage);
         } catch (Exception e) {
@@ -85,6 +81,4 @@ public class WeChatSubscribeHandler implements WxMpMessageHandler {
         }
         return null;
     }
-
-
 }

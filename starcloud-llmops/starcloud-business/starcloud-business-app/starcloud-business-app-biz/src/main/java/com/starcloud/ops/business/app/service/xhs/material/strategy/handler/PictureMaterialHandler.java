@@ -2,12 +2,11 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 图片资料库处理器抽象类
@@ -39,20 +37,6 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
     public void validatePosterStyle(PosterStyleDTO posterStyle) {
         AppValidate.notNull(posterStyle, "创作方案配置异常！海报风格不能为空！");
         AppValidate.notEmpty(posterStyle.getTemplateList(), "创作方案配置异常！海报模板不能为空！");
-    }
-
-    /**
-     * 获取每个海报风格需要的素材数量
-     *
-     * @param posterStyleList 海报风格列表
-     * @return 每个海报风格需要的素材数量
-     */
-    @Override
-    protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
-        return CollectionUtil.emptyIfNull(posterStyleList)
-                .stream()
-                .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
-                .collect(Collectors.toList());
     }
 
     /**

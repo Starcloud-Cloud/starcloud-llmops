@@ -1,10 +1,8 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response;
 
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
-import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
-import com.starcloud.ops.business.app.model.content.ImageContent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author nacoyer

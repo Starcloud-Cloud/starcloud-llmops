@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.notify.adapter;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.message.MpMessageDO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
@@ -18,6 +19,7 @@ import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.user.controller.admin.notify.dto.SendNotifyReqDTO;
 import com.starcloud.ops.business.user.controller.admin.notify.dto.SendNotifyResultDTO;
 import com.starcloud.ops.business.user.enums.notify.NotifyMediaEnum;
+import com.starcloud.ops.business.user.service.MpAppManager;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
 import org.springframework.stereotype.Service;
@@ -62,7 +64,7 @@ public class MpNotifyMediaAdapterImpl implements NotifyMediaAdapter {
                 return SendNotifyResultDTO.error(null, "未绑定公共号");
             }
 
-            String appId = dictDataService.parseDictData(WECHAT_APP, "app_id").getValue();
+            String appId = MpAppManager.getMpAppId(TenantContextHolder.getTenantId());
             String openid = socialUserOptional.get().getOpenid();
             MpUserDO user = mpUserService.getUser(appId, openid);
 
