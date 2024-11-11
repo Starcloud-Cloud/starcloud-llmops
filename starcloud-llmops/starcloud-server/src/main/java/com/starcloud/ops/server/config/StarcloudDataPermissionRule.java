@@ -36,7 +36,12 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
             "llm_app_publish_channel",
             "listing_dict",
             "listing_draft",
-            "listing_keyword_bind"
+            "listing_keyword_bind",
+            "llm_log_app_conversation",
+            "llm_log_app_message",
+            "llm_log_app_message_annotations",
+            "llm_log_app_message_feedbacks",
+            "llm_log_app_message_save"
     );
 
     @Resource

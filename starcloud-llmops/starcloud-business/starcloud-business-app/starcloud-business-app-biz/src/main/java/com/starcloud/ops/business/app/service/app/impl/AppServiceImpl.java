@@ -384,6 +384,7 @@ public class AppServiceImpl implements AppService {
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.setValidate(Boolean.TRUE);
 
         // 插件配置
         if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appEntity.getType())) {

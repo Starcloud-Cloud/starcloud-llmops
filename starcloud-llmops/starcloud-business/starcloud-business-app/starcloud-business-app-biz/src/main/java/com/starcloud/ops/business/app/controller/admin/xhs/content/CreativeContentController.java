@@ -14,6 +14,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.util.RedSignatureUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -28,7 +29,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -125,8 +128,21 @@ public class CreativeContentController {
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<CreativeContentRespVO> share(@RequestParam("uid") String uid) {
-        return CommonResult.success(creativeContentService.detail(uid));
+
+        CreativeContentRespVO creativeContentRespVO = creativeContentService.detail(uid);
+        return CommonResult.success(creativeContentRespVO);
     }
+
+
+    @GetMapping("/shareBuildSignature")
+    @Operation(summary = "获取小红书签名")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<Map<String, Object>> shareBuildSignature() {
+
+       return CommonResult.success(RedSignatureUtil.buildSignatureApi());
+    }
+
 
     @PostMapping("batchExecute")
     @Operation(summary = "批量执行", description = "批量执行")
