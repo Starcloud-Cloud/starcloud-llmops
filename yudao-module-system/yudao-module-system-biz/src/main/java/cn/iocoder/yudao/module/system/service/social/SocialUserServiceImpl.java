@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserUpdateSimpleReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -296,6 +297,16 @@ public class SocialUserServiceImpl implements SocialUserService {
     public Map<String, SocialUserDO> getSocialUser(List<String> socialId) {
         List<SocialUserDO> socialUserList = socialUserMapper.selectList(SocialUserDO::getId, socialId);
         return socialUserList.stream().collect(Collectors.toMap(socialUserDO -> socialUserDO.getId().toString(), Function.identity(), (a, b) -> a));
+    }
+
+    /**
+     * 更新社交昵称
+     *
+     * @param simpleReqVO
+     */
+    @Override
+    public void updateNickname(SocialUserUpdateSimpleReqVO simpleReqVO) {
+        socialUserMapper.updateById(new SocialUserDO().setNickname(simpleReqVO.getNickname()).setId(simpleReqVO.getId()));
     }
 
     private Boolean validatedTokenExpireIn(SocialUserDO socialUser) {
