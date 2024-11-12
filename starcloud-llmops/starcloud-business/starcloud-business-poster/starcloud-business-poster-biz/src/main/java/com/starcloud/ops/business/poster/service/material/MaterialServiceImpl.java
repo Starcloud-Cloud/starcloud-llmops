@@ -227,7 +227,7 @@ public class MaterialServiceImpl implements MaterialService {
             if (materialGroup == null) {
                 throw exception(MATERIAL_GROUP_NOT_EXISTS);
             }
-            return transform(material, materialGroup.getName(), true);
+            return transform(material, materialGroup.getName(), false);
         } catch (ServiceException exception) {
             throw exception;
         } catch (Exception exception) {
