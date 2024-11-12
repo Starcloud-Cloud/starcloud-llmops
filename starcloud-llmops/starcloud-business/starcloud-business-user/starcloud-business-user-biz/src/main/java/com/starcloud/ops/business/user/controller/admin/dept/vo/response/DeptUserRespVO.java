@@ -33,4 +33,7 @@ public class DeptUserRespVO {
 
     @Schema(description = "消耗总图片数")
     private Long imageCount = 0L;
+
+    @Schema(description = "矩阵魔法豆")
+    private Long matrixBeanCounts;
 }

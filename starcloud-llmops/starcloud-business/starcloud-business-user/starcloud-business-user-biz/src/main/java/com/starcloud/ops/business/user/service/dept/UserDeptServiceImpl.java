@@ -103,6 +103,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             }
             deptUserRespVO.setImageCount(statisticsUserRightReqDTO.getImageCounts());
             deptUserRespVO.setCostPoints(statisticsUserRightReqDTO.getMagicBeanCounts());
+            deptUserRespVO.setMatrixBeanCounts(statisticsUserRightReqDTO.getMatrixBeanCounts());
         }
         return deptUserList;
     }
