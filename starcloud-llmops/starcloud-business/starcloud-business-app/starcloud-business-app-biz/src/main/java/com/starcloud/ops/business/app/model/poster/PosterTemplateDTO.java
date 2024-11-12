@@ -149,11 +149,11 @@ public class PosterTemplateDTO implements java.io.Serializable {
     @Schema(description = "图片模板变量")
     private List<PosterVariableDTO> variableList;
 
-    // /**
-    //  * json
-    //  */
-    // @Schema(description = "json")
-    // private String json;
+     /**
+      * json
+      */
+     @Schema(description = "json")
+     private String json;
 
     /**
      * 获取图片模板变量列表<br>
