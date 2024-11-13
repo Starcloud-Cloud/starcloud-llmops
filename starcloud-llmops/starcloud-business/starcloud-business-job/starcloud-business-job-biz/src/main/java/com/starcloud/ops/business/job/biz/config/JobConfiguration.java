@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import tech.powerjob.client.PowerJobClient;
 
 @Slf4j
+@Configuration
 @ConditionalOnProperty(name = "powerjob.client.enabled", havingValue = "true")
 public class JobConfiguration {
 

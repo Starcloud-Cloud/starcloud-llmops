@@ -2,12 +2,9 @@ package com.starcloud.ops.business.app.service.xhs.plan;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.TypeReference;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -20,9 +17,6 @@ import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.batch.CreativePlanBatchConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
@@ -58,10 +52,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -96,6 +96,8 @@ public class CreativePlanExecuteManager {
 
     private final MaterialHandlerHolder materialHandlerHolder;
 
+    private final TransactionTemplate transactionTemplate;
+
     /**
      * 获取创作计划锁的 Key。
      *
@@ -127,7 +129,6 @@ public class CreativePlanExecuteManager {
      * @param request 计划UID
      * @return 执行结果
      */
-    @Transactional(rollbackFor = Exception.class)
     public PlanExecuteResult execute(PlanExecuteRequest request) {
         // 计划状态，只能修改待执行、已完成、失败的创作计划
         if (StringUtils.isBlank(request.getPlanUid())) {
@@ -153,24 +154,30 @@ public class CreativePlanExecuteManager {
             int total = getTotal(planResponse, CollectionUtil.emptyIfNull(batchRequest.getContentRequestList()).size());
             planResponse.setTotalCount(total);
 
-            // 新增一条计划批次
-            String batchUid = this.createPlanBatch(planResponse);
+            return transactionTemplate.execute(transactionStatus -> {
+                // 新增一条计划批次
+                String batchUid = this.createPlanBatch(planResponse);
 
-            // 批量创建创作内容任务
-            this.batchCreateContent(batchRequest.getContentRequestList(), batchUid);
+                if (CollectionUtil.isEmpty(batchRequest.getContentRequestList())) {
+                    throw ServiceExceptionUtil.invalidParamException("计划执行失败：计算后创作内容任务为空，请联系管理员！");
+                }
 
-            // 更新批次状态为执行中
-            this.updatePlanBatchExecuting(batchUid);
+                // 批量创建创作内容任务
+                this.batchCreateContent(batchRequest.getContentRequestList(), batchUid);
 
-            // 更新计划状态为执行中, 并且更新总数
-            this.updatePlanExecuting(planUid);
+                // 更新批次状态为执行中
+                this.updatePlanBatchExecuting(batchUid);
 
-            // 返回执行结果
-            PlanExecuteResult result = new PlanExecuteResult();
-            result.setPlanUid(planUid);
-            result.setBatchUid(batchUid);
-            result.setWarning(batchRequest.getMessage());
-            return result;
+                // 更新计划状态为执行中, 并且更新总数
+                this.updatePlanExecuting(planUid);
+
+                // 返回执行结果
+                PlanExecuteResult result = new PlanExecuteResult();
+                result.setPlanUid(planUid);
+                result.setBatchUid(batchUid);
+                result.setWarning(batchRequest.getMessage());
+                return result;
+            });
         } catch (InterruptedException e) {
             log.error("计划执行失败", e);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
@@ -251,7 +258,9 @@ public class CreativePlanExecuteManager {
          */
         String message = "";
         // 计算需要生成的任务总数, 先从请求中获取，如果没有，使用计划中的总数
-        int totalCount = Optional.ofNullable(request.getTotalCount()).orElse(planResponse.getTotalCount());
+        int totalCount = Optional.ofNullable(request.getTotalCount())
+                .filter(total -> total > 0)
+                .orElse(planResponse.getTotalCount());
         // 如果是选择执行，重新计算任务总数。
         if (MaterialUsageModel.SELECT.equals(metadata.getMaterialUsageModel())) {
             // 根据素材总数和风格进行计算可以生产任务的总数。
@@ -480,6 +489,7 @@ public class CreativePlanExecuteManager {
         materialMetadata.setPosterStepId(posterStepId);
         materialMetadata.setMaterialUsageModel(materialUsageModel);
         materialMetadata.setMaterialFieldList(materialFieldList);
+        materialMetadata.setAppInformation(appInformation);
 
         return materialMetadata;
     }
@@ -499,7 +509,7 @@ public class CreativePlanExecuteManager {
             // 列表不为空，首先使用列表
             if (CollectionUtil.isNotEmpty(request.getMaterialList())) {
 
-                materialList =  request.getMaterialList();
+                materialList = request.getMaterialList();
 
             } else {
 
@@ -508,10 +518,11 @@ public class CreativePlanExecuteManager {
                     try {
                         TypeReference<List<Map<String, Object>>> reference = new TypeReference<List<Map<String, Object>>>() {
                         };
-                        materialList = JsonUtils.parseObject(request.getMaterialListJson(), reference);
+                        materialList = JSONUtil.toBean(request.getMaterialListJson(), reference, false);
 
                     } catch (Exception exception) {
-                        // ignore
+
+                        log.warn("计划执行：接收素材列表参数解析失败: 素材列表参数：{}", request.getMaterialListJson(), exception);
                     }
                 }
 
@@ -521,21 +532,24 @@ public class CreativePlanExecuteManager {
                 // 校验素材列表
                 //字段映射支持
                 if (request.getMaterialKeyMap() != null) {
-
+                    log.info("计划执行: 参数接受素材列表，开始进行字段映射！映射参数：{}", JsonUtils.toJsonString(request.getMaterialKeyMap()));
                     materialList = materialList.stream().map(map -> {
                         Map<String, Object> newMap = new HashMap<>();
-                        request.getMaterialKeyMap().forEach((key, value) -> {
-                            if (map.containsKey(key)) {
-                                newMap.put(value, map.get(key));
+                        request.getMaterialKeyMap().forEach((PlanExecuteRequest.KeyValueObject keyValueObject) -> {
+                            if (map.containsKey(keyValueObject.getKey())) {
+                                newMap.put(keyValueObject.getTarget(), map.get(keyValueObject.getKey()));
                             }
                         });
                         return newMap;
                     }).collect(Collectors.toList());
-                }
 
+                    log.info("计划执行：素材列表字段映射完成。");
+                }
+                log.info("计划执行: 参数接受素材列表成功：{}", JsonUtils.toJsonString(materialList));
                 return materialList;
             }
 
+            log.info("计划执行: 参数接受素材列表为空，将从数据库中获取素材列表！");
             // 查询数据库
             materialList = creativeMaterialManager.getMaterialList(planResponse);
             // 素材库步骤不为空的话，上传素材不能为空

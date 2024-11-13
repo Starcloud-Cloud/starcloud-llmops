@@ -16,14 +16,12 @@ import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.result.WxMpUser;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_MSG;
@@ -57,10 +55,6 @@ public class WeChatScanHandler implements WxMpMessageHandler {
         }
         WxMpUser wxMpUser = wxMpService.getUserService().userInfo(wxMessage.getFromUser());
 
-        String tenantId = redisTemplate.boundValueOps(wxMessage.getTicket() + "_tenantId").get();
-        if (StringUtils.isNotBlank(tenantId)) {
-            TenantContextHolder.setTenantId(Long.valueOf(tenantId));
-        }
         // 用户不存在重新注册
         if (!wechatUserManager.socialExist(wxMpUser.getOpenId())) {
             wechatUserManager.createSocialUser(wxMpUser, wxMessage);
@@ -69,7 +63,7 @@ public class WeChatScanHandler implements WxMpMessageHandler {
         mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
 
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "scan_Login_" + tenantId);
+        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "scan_Login_" + TenantContextHolder.getTenantId());
 
         if (dictDataDO != null) {
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser())

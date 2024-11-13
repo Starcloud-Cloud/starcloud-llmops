@@ -26,4 +26,10 @@ public interface MaterialGroupMapper extends BaseMapperX<MaterialGroupDO> {
     IPage<MaterialGroupRespVO> selectPage(Page<?> page, @Param("reqVO") MaterialGroupPageReqVO reqVO);
 
 
+    IPage<MaterialGroupRespVO> selectSystemPage(Page<?> page, @Param("reqVO") MaterialGroupPageReqVO reqVO);
+
+
+    IPage<MaterialGroupRespVO> selectPeoplePage(Page<?> page, @Param("reqVO") MaterialGroupPageReqVO reqVO);
+
+
 }

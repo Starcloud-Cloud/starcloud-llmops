@@ -598,10 +598,12 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     .map(MonitorTracking::getStoryTracking)
                     .orElseThrow(() -> exception(ErrorCodeConstants.EXECUTE_APP_RESULT_NON_EXISTENT));
 
-            for (NodeTracking nodeTracking : nodeTrackingList) {
+            for (int i = 0; i < nodeTrackingList.size(); i++) {
+                NodeTracking nodeTracking = nodeTrackingList.get(i);
+                boolean isLast = i == nodeTrackingList.size() - 1;
                 if (BpmnTypeEnum.SERVICE_TASK.equals(nodeTracking.getNodeType())) {
                     //把业务的异常传入进来
-                    this.createAppMessageLog(appContext, nodeTracking, story.getException());
+                    this.createAppMessageLog(appContext, nodeTracking, story.getException(), isLast);
                 }
             }
             log.info("应用执行【工作流回调结束】");
@@ -617,7 +619,9 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking, Optional<Throwable> storyException) {
+    private void createAppMessageLog(AppContext appContext, NodeTracking nodeTracking,
+                                     Optional<Throwable> storyException, boolean isLast) {
+
         this.createAppMessage((messageCreateRequest) -> {
 
             //此时 appContext.getStepId(); 是最后一个执行成功的step
@@ -626,7 +630,10 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             // 将执行结果设置到上下文中
             appContext.setActionResponse(stepId, actionResponse);
             // 获取step变量信息
-            Map<String, Object> variables = appContext.getContextVariablesValues(stepId);
+            // 不保存此字段，缩减日志体积
+            // Map<String, Object> variables = appContext.getContextVariablesValues(stepId);
+
+            // 如果不是最后一个步骤且是媒体矩阵应用，则不保存完整的应用信息。
 
             // 基础信息填充
             messageCreateRequest.setAppConversationUid(appContext.getConversationUid());
@@ -641,13 +648,21 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setUpdateTime(nodeTracking.getStartTime());
             messageCreateRequest.setElapsed(nodeTracking.getSpendTime());
             messageCreateRequest.setCurrency("USD");
-            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
-            messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
+            // 非媒体矩阵，需要保存完整的应用信息
+            if (!AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
+                messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
+            } else {
+                // 媒体矩阵，只保存最后一个步骤的应用信息
+                if (isLast) {
+                    messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
+                }
+            }
+            // messageCreateRequest.setVariables(JsonUtils.toJsonString(variables));
 
             // actionResponse 不为空说明已经执行成功
             if (Objects.nonNull(actionResponse)) {
                 messageCreateRequest.setStatus(actionResponse.getSuccess() ? LogStatusEnum.SUCCESS.name() : LogStatusEnum.ERROR.name());
-                messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
+                //messageCreateRequest.setVariables(JsonUtils.toJsonString(actionResponse.getStepConfig()));
                 messageCreateRequest.setMessage(actionResponse.getMessage());
                 messageCreateRequest.setMessageTokens(actionResponse.getMessageTokens().intValue());
                 messageCreateRequest.setMessageUnitPrice(actionResponse.getMessageUnitPrice());
@@ -694,7 +709,7 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
                     if (failureResponse == null) {
                         return;
                     }
-                    messageCreateRequest.setVariables(JsonUtils.toJsonString(failureResponse.getStepConfig()));
+                    //messageCreateRequest.setVariables(JsonUtils.toJsonString(failureResponse.getStepConfig()));
                     messageCreateRequest.setMessage(Optional.ofNullable(failureResponse.getMessage()).orElse(StringUtils.EMPTY));
                     messageCreateRequest.setMessageTokens(Optional.ofNullable(failureResponse.getMessageTokens()).map(Long::intValue).orElse(0));
                     messageCreateRequest.setMessageUnitPrice(Optional.ofNullable(failureResponse.getMessageUnitPrice()).orElse(BigDecimal.ZERO));
@@ -763,8 +778,8 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setFromScene(request.getScene());
             messageCreateRequest.setAiModel(llmModel);
             messageCreateRequest.setMediumUid(request.getMediumUid());
-            messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
-            messageCreateRequest.setVariables(JsonUtils.toJsonString(variablesValues));
+            //messageCreateRequest.setAppConfig(JsonUtils.toJsonString(this));
+            //messageCreateRequest.setVariables(JsonUtils.toJsonString(variablesValues));
             messageCreateRequest.setStatus(LogStatusEnum.ERROR.name());
             messageCreateRequest.setMessage(String.valueOf(variablesValues.getOrDefault(AppConstants.PROMPT, "")));
             messageCreateRequest.setMessageTokens(0);

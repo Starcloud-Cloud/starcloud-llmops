@@ -2,12 +2,12 @@ package com.starcloud.ops.business.app.service.xhs.material.strategy.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import cn.iocoder.yudao.framework.common.util.number.NumberUtils;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
-import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.MaterialType;
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.util.CreativeUtils;
@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 图片资料库处理器抽象类
@@ -42,17 +41,17 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
     }
 
     /**
-     * 获取每个海报风格需要的素材数量
+     * 计算需要的素材数量
      *
-     * @param posterStyleList 海报风格列表
-     * @return 每个海报风格需要的素材数量
+     * @param posterStyle    海报风格
+     * @param appInformation 应用信息
+     * @return 需要的素材数量
      */
     @Override
-    protected List<Integer> computeNeedMaterialSize(List<PosterStyleDTO> posterStyleList) {
-        return CollectionUtil.emptyIfNull(posterStyleList)
-                .stream()
-                .map(item -> (item == null || NumberUtils.isNegative(item.getTotalImageCount()) ? 0 : item.getTotalImageCount()))
-                .collect(Collectors.toList());
+    protected Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
+        return Optional.ofNullable(posterStyle)
+                .map(PosterStyleDTO::getTotalImageCount)
+                .orElse(0);
     }
 
     /**
@@ -106,6 +105,9 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
                 if (MapUtils.isEmpty(pictureMaterial)) {
                     throw new IllegalArgumentException("素材列表数据异常！素材数据不能为空！");
                 }
+                // 去掉系统字段
+                pictureMaterial.remove("__id__");
+                pictureMaterial.remove("__usageCount__");
                 if (pictureMaterial.size() != 1) {
                     throw new IllegalArgumentException("素材数据异常！该场景素材字段配置只能有且只有一个素材！且字段为图片类型！");
                 }

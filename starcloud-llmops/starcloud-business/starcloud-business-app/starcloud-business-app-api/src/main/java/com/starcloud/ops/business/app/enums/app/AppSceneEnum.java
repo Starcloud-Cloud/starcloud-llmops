@@ -173,7 +173,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             IMAGE_REPLACE_BACKGROUND,
             IMAGE_REMOVE_TEXT,
             IMAGE_SKETCH,
-            IMAGE_VARIANTS
+            IMAGE_VARIANTS,
+            XHS_WRITING
     );
 
     /**

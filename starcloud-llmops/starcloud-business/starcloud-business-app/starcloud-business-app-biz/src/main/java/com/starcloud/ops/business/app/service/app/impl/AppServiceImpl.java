@@ -39,7 +39,14 @@ import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
-import com.starcloud.ops.business.app.enums.app.*;
+import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
+import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
@@ -69,13 +76,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.hutool.core.util.RandomUtil.BASE_CHAR_NUMBER_LOWER;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.DUPLICATE_LABEL;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.NO_PERMISSION;
 
 /**
  * 应用管理服务实现类
@@ -384,6 +397,7 @@ public class AppServiceImpl implements AppService {
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.setValidate(Boolean.TRUE);
 
         // 插件配置
         if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appEntity.getType())) {
@@ -566,6 +580,10 @@ public class AppServiceImpl implements AppService {
                     VerificationUtils.addVerificationApp(verifications, request.getName(), "不支持的租户类型!");
                     return verifications;
                 }
+            }
+            // 如果类目为OTHER。且为媒体矩阵
+            if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId) && "OTHER".equals(request.getCategory())) {
+                request.setCategory("COMMON");
             }
 
             // 查询类目列表，判断类目是否支持
