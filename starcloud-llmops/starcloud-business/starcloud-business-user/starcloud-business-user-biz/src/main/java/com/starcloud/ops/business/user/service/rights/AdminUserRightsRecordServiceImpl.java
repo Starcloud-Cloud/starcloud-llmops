@@ -99,4 +99,9 @@ public class AdminUserRightsRecordServiceImpl implements AdminUserRightsRecordSe
 
     }
 
+    @Override
+    public List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList) {
+        return adminUserRightsRecordMapper.statisticsUserRightsByBizId(bizIdList);
+    }
+
 }

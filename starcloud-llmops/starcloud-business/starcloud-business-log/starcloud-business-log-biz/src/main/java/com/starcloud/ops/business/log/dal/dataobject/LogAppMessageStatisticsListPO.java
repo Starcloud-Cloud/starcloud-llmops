@@ -76,6 +76,8 @@ public class LogAppMessageStatisticsListPO {
      */
     private Integer imageCostPoints;
 
+    private Integer matrixCostPoints;
+
     /**
      * 应用执行消耗总tokens
      */
@@ -95,5 +97,10 @@ public class LogAppMessageStatisticsListPO {
      * 创建时间
      */
     private String createDate;
+
+    /**
+     * 创建时间
+     */
+    private String updateDate;
 
 }

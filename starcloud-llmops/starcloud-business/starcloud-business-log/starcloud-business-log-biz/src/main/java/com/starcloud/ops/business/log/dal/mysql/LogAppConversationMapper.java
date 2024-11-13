@@ -9,8 +9,11 @@ import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversati
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -83,4 +86,12 @@ public interface LogAppConversationMapper extends BaseMapperX<LogAppConversation
      * @return 应用执行日志会话数据
      */
     IPage<LogAppConversationInfoPO> pageLogAppConversationByAppUid(Page<LogAppConversationDO> page, @Param("query") AppLogConversationInfoPageUidReqVO query);
+
+    List<LogAppMessageStatisticsListPO> listLogAppConversationStatistics(@Param("query") AppLogMessageStatisticsListReqVO query);
+
+    List<LogAppMessageStatisticsListPO> listLogAppConversationStatisticsByAppUid(@Param("query") AppLogMessageStatisticsListUidReqVO query);
+
+    List<LogAppMessageStatisticsListPO> listRightsStatistics(@Param("query") AppLogMessageStatisticsListReqVO query);
+
+    List<LogAppMessageStatisticsListPO> listRightsStatisticsByAppUid(@Param("query") AppLogMessageStatisticsListUidReqVO query);
 }

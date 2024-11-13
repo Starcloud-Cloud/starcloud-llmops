@@ -3,13 +3,16 @@ package com.starcloud.ops.business.user.api.rights;
 import cn.hutool.core.lang.Assert;
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
+import com.starcloud.ops.business.user.service.rights.AdminUserRightsRecordService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
@@ -25,6 +28,9 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
 
     @Resource
     private AdminUserRightsService adminUserRightsService;
+
+    @Resource
+    private AdminUserRightsRecordService adminUserRightsRecordService;
 
     @Override
     public void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer rightsTimeNums, Integer rightsTimeRange,
@@ -76,6 +82,17 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     @Override
     public Boolean calculateUserRightsEnough(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount) {
         return adminUserRightsService.calculateUserRightsEnough(userId, rightsType, rightAmount);
+    }
+
+    /**
+     * 统计权益。 通过业务ID
+     *
+     * @param bizIdList 业务ID
+     * @return 权益统计
+     */
+    @Override
+    public List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList) {
+        return adminUserRightsRecordService.statisticsUserRightsByBizId(bizIdList);
     }
 
 }

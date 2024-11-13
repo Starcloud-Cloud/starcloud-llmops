@@ -187,8 +187,8 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         // 设置日期单位
         query.setUnit(logTimeTypeEnum.getGroupUnit().name());
         // 设置开始时间和结束时间
-        query.setStartTime(logTimeTypeEnum.getStartTime());
-        query.setEndTime(logTimeTypeEnum.getEndTime());
+        query.setStartTime(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()).format(logTimeTypeEnum.getStartTime()));
+        query.setEndTime(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()).format(logTimeTypeEnum.getEndTime()));
         // 查询数据
         List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.listLogAppMessageStatisticsByAppUid(query);
         // 填充数据
@@ -208,8 +208,8 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         // 设置日期单位
         query.setUnit(logTimeTypeEnum.getGroupUnit().name());
         // 设置开始时间和结束时间
-        query.setStartTime(logTimeTypeEnum.getStartTime());
-        query.setEndTime(logTimeTypeEnum.getEndTime());
+        query.setStartTime(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()).format(logTimeTypeEnum.getStartTime()));
+        query.setEndTime(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()).format(logTimeTypeEnum.getEndTime()));
         // 查询数据
         List<LogAppMessageStatisticsListPO> statisticsList = logAppMessageMapper.listLogAppMessageStatistics(query);
         // 填充数据
@@ -250,7 +250,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
             String formatDate = localDateTime.format(DateTimeFormatter.ofPattern(logTimeTypeEnum.getFormatByGroupUnit()));
             // 匹配是否存在
             Optional<LogAppMessageStatisticsListPO> logMessageStatisticsOptional = statisticsList.stream()
-                    .filter(statistics -> formatDate.equals(statistics.getCreateDate())).findFirst();
+                    .filter(statistics -> formatDate.equals(statistics.getUpdateDate())).findFirst();
             // 存在就添加，不存在就创建
             if (logMessageStatisticsOptional.isPresent()) {
                 fillStatisticsList.add(handlerAppMessageStatistics(logMessageStatisticsOptional.get()));
@@ -261,7 +261,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
 
         // 处理并且返回数据
         return getStatisticsListStream(fillStatisticsList, logTimeTypeEnum)
-                .sorted(Comparator.comparing(LogAppMessageStatisticsListPO::getCreateDate))
+                .sorted(Comparator.comparing(LogAppMessageStatisticsListPO::getUpdateDate))
                 .collect(Collectors.toList());
     }
 
@@ -276,9 +276,9 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         Stream<LogAppMessageStatisticsListPO> statisticsListStream = CollectionUtil.emptyIfNull(fillStatisticsList).stream();
         if (Objects.equals(logTimeTypeEnum, LogTimeTypeEnum.TODAY)) {
             statisticsListStream = statisticsListStream.peek(item -> {
-                String createDate = item.getCreateDate();
-                LocalDateTime localDateTime = LocalDateTime.parse(createDate, DateTimeFormatter.ofPattern(LogTimeTypeEnum.TODAY.getFormatByGroupUnit()));
-                item.setCreateDate(localDateTime.format(DateTimeFormatter.ofPattern("HH")));
+                String updateDate = item.getUpdateDate();
+                LocalDateTime localDateTime = LocalDateTime.parse(updateDate, DateTimeFormatter.ofPattern(LogTimeTypeEnum.TODAY.getFormatByGroupUnit()));
+                item.setUpdateDate(localDateTime.format(DateTimeFormatter.ofPattern("HH")));
             });
         }
         return statisticsListStream;
@@ -297,6 +297,7 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         statistics.setImageAvgElapsed(Optional.ofNullable(statistics.getImageAvgElapsed()).orElse(new BigDecimal("0")));
         statistics.setCompletionCostPoints(Optional.ofNullable(statistics.getCompletionCostPoints()).orElse(0));
         statistics.setImageCostPoints(Optional.ofNullable(statistics.getImageCostPoints()).orElse(0));
+        statistics.setMatrixCostPoints(Optional.ofNullable(statistics.getMatrixCostPoints()).orElse(0));
         statistics.setCompletionTokens(Optional.ofNullable(statistics.getCompletionTokens()).orElse(0));
         statistics.setChatTokens(Optional.ofNullable(statistics.getChatTokens()).orElse(0));
         statistics.setTokens(Optional.ofNullable(statistics.getTokens()).orElse(0));
@@ -324,10 +325,11 @@ public class LogAppMessageServiceImpl implements LogAppMessageService {
         fillStatistics.setImageAvgElapsed(new BigDecimal("0"));
         fillStatistics.setCompletionCostPoints(0);
         fillStatistics.setImageCostPoints(0);
+        fillStatistics.setMatrixCostPoints(0);
         fillStatistics.setCompletionTokens(0);
         fillStatistics.setChatTokens(0);
         fillStatistics.setTokens(0);
-        fillStatistics.setCreateDate(date);
+        fillStatistics.setUpdateDate(date);
         return fillStatistics;
     }
 
