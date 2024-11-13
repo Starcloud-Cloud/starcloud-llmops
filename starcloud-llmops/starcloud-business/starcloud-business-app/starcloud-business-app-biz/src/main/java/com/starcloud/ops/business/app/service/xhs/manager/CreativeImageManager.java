@@ -144,7 +144,7 @@ public class CreativeImageManager {
         template.setName(templateItem.getLabel());
         template.setExample(templateItem.getTempUrl());
         template.setVariableList(variables);
-        template.setJson(templateItem.getJson());
+//        template.setJson(templateItem.getJson());
         template.setTotalImageCount(imageNumber);
         return template;
     }

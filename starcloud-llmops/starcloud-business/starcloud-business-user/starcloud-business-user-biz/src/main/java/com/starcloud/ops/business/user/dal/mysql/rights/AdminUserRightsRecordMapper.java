@@ -39,7 +39,7 @@ public interface AdminUserRightsRecordMapper extends BaseMapperX<AdminUserRights
 
 
     @Select({"<script>",
-            "SELECT  t1.user_id  as userId,t1.team_id as teamId,t1.rights_type,ABS(SUM(CASE WHEN t1.rights_type = 1 THEN t1.rights_amount ELSE 0 END)) AS magicBeanCounts,ABS(SUM(CASE WHEN t1.rights_type = 2 THEN t1.rights_amount ELSE 0 END)) AS imageCounts FROM system_user_rights_record t1",
+            "SELECT  t1.user_id  as userId,t1.team_id as teamId,t1.rights_type,ABS(SUM(CASE WHEN t1.rights_type = 1 THEN t1.rights_amount ELSE 0 END)) AS magicBeanCounts,ABS(SUM(CASE WHEN t1.rights_type = 2 THEN t1.rights_amount ELSE 0 END)) AS imageCounts,ABS(SUM(CASE WHEN t1.rights_type = 3 THEN t1.rights_amount ELSE 0 END)) AS matrixBeanCounts FROM system_user_rights_record t1",
             "WHERE t1.team_id = #{teamId}",
             "AND",
             "t1.user_id IN (",
