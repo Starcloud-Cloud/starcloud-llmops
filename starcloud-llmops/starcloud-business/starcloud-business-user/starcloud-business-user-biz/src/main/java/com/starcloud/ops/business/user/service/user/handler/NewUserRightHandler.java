@@ -72,7 +72,7 @@ public class NewUserRightHandler implements NewUserHandler {
                             .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
                             .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                     .setLevelBasicDTO(new UserLevelBasicDTO()
-                            .setLevelId(1L)
+                            .setLevelId(11L)
                             .setTimesRange(new TimesRangeDTO().setNums(99).setRange(TimeRangeTypeEnum.YEAR.getType()))
                             .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)));
         } else {
