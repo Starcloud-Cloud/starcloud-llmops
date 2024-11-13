@@ -95,6 +95,8 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     @Schema(description = "图片总花费积分")
     private Integer imageCostPoints;
 
+    private Integer matrixCostPoints;
+
     /**
      * 应用执行消耗总tokens
      */
@@ -113,10 +115,5 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     @Schema(description = "生成/聊天执行消耗总tokens")
     private Integer tokens;
 
-    /**
-     * 生成时间
-     */
-    @Schema(description = "生成时间")
-    private String createDate;
-
+    private String updateDate;
 }

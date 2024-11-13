@@ -2,10 +2,12 @@ package com.starcloud.ops.business.user.api.rights;
 
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
 import javax.validation.constraints.Min;
+import java.util.List;
 
 /**
  * 用户积分的 API 接口
@@ -24,11 +26,12 @@ public interface AdminUserRightsApi {
      * @param bizId      业务编号
      */
     @Deprecated
-    void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean,Integer rightsTimeNums, Integer rightsTimeRange,
-                   Integer bizType, String bizId,Long levelId);
+    void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer rightsTimeNums, Integer rightsTimeRange,
+                   Integer bizType, String bizId, Long levelId);
 
     /**
      * 新增用户权益
+     *
      * @param addRightsDTO
      */
     void addRights(AddRightsDTO addRightsDTO);
@@ -49,6 +52,7 @@ public interface AdminUserRightsApi {
 
     /**
      * 用户权益扣除
+     *
      * @param reduceRightsDTO
      */
     void reduceRights(ReduceRightsDTO reduceRightsDTO);
@@ -64,4 +68,11 @@ public interface AdminUserRightsApi {
      */
     Boolean calculateUserRightsEnough(Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
 
+    /**
+     * 统计权益。 通过业务ID
+     *
+     * @param bizIdList 业务ID
+     * @return 权益统计
+     */
+    List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList);
 }
