@@ -7,6 +7,8 @@ import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -68,6 +70,7 @@ import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -81,6 +84,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -203,9 +207,54 @@ public class AppLogServiceImpl implements AppLogService {
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
+        Long tenantId = TenantContextHolder.getTenantId();
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture = CompletableFuture.supplyAsync(
+                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
+
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture = CompletableFuture.supplyAsync(
+                () -> TenantUtils.execute(tenantId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
+
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture = CompletableFuture.supplyAsync(
+                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listRightsStatistics(query)));
+
+        // 等待所有任务完成
+        CompletableFuture.allOf(conversationFuture, messageFuture).join();
+        // 获取会话结果
+        List<LogAppMessageStatisticsListPO> conversationResult = ListUtils.emptyIfNull(conversationFuture.join());
+        // 获取消息结果
+        List<LogAppMessageStatisticsListPO> messageResult = ListUtils.emptyIfNull(messageFuture.join());
+        // 获取权益结果
+        List<LogAppMessageStatisticsListPO> rightResult = ListUtils.emptyIfNull(rightFuture.join());
+
+        // 将 messageResult 转为 Map
+        Map<String, LogAppMessageStatisticsListPO> messageResultMap = messageResult.stream()
+                .collect(Collectors.toMap(LogAppMessageStatisticsListPO::getUpdateDate, Function.identity(), (v1, v2) -> v1));
+
+        // 将 rightResult 转为 Map
+        Map<String, LogAppMessageStatisticsListPO> rightResultMap = rightResult.stream()
+                .collect(Collectors.toMap(LogAppMessageStatisticsListPO::getUpdateDate, Function.identity(), (v1, v2) -> v1));
+
+        for (LogAppMessageStatisticsListPO statistics : conversationResult) {
+            if (messageResultMap.containsKey(statistics.getUpdateDate()) && Objects.nonNull(messageResultMap.get(statistics.getUpdateDate()))) {
+                LogAppMessageStatisticsListPO messageStatistics = messageResultMap.get(statistics.getUpdateDate());
+                statistics.setCompletionAvgElapsed(messageStatistics.getCompletionAvgElapsed());
+                statistics.setImageAvgElapsed(messageStatistics.getImageAvgElapsed());
+                statistics.setTokens(messageStatistics.getTokens());
+                statistics.setCompletionTokens(messageStatistics.getCompletionTokens());
+                statistics.setChatTokens(messageStatistics.getChatTokens());
+            }
+
+            if (rightResultMap.containsKey(statistics.getUpdateDate()) && Objects.nonNull(rightResultMap.get(statistics.getUpdateDate()))) {
+                LogAppMessageStatisticsListPO rightStatistics = rightResultMap.get(statistics.getUpdateDate());
+                statistics.setCompletionCostPoints(rightStatistics.getCompletionCostPoints());
+                statistics.setImageCostPoints(rightStatistics.getImageCostPoints());
+                statistics.setMatrixCostPoints(rightStatistics.getMatrixCostPoints());
+            }
+
+        }
+
         Boolean isAdmin = UserUtils.isAdmin();
-        pageResult = pageResult.stream().peek(item -> {
+        conversationResult = conversationResult.stream().peek(item -> {
             // 非管理员不能查看，平均耗时
             if (!isAdmin) {
                 item.setCompletionAvgElapsed(new BigDecimal("0"));
@@ -215,8 +264,9 @@ public class AppLogServiceImpl implements AppLogService {
                 item.setCompletionTokens(0);
                 item.setChatTokens(0);
             }
+            item.setCreateDate(item.getUpdateDate());
         }).collect(Collectors.toList());
-        return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
+        return LogAppConversationConvert.INSTANCE.convertStatisticsList(conversationResult);
     }
 
     /**
@@ -275,8 +325,54 @@ public class AppLogServiceImpl implements AppLogService {
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
-        List<LogAppMessageStatisticsListPO> pageResult = logAppMessageService.listLogAppMessageStatistics(query);
-        pageResult = pageResult.stream().peek(item -> {
+
+        Long tenantId = TenantContextHolder.getTenantId();
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture = CompletableFuture.supplyAsync(
+                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
+
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture = CompletableFuture.supplyAsync(
+                () -> TenantUtils.execute(tenantId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
+
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture = CompletableFuture.supplyAsync(
+                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listRightsStatistics(query)));
+
+        // 等待所有任务完成
+        CompletableFuture.allOf(conversationFuture, messageFuture).join();
+        // 获取会话结果
+        List<LogAppMessageStatisticsListPO> conversationResult = ListUtils.emptyIfNull(conversationFuture.join());
+        // 获取消息结果
+        List<LogAppMessageStatisticsListPO> messageResult = ListUtils.emptyIfNull(messageFuture.join());
+        // 获取权益结果
+        List<LogAppMessageStatisticsListPO> rightResult = ListUtils.emptyIfNull(rightFuture.join());
+
+        // 将 messageResult 转为 Map
+        Map<String, LogAppMessageStatisticsListPO> messageResultMap = messageResult.stream()
+                .collect(Collectors.toMap(LogAppMessageStatisticsListPO::getUpdateDate, Function.identity(), (v1, v2) -> v1));
+
+        // 将 rightResult 转为 Map
+        Map<String, LogAppMessageStatisticsListPO> rightResultMap = rightResult.stream()
+                .collect(Collectors.toMap(LogAppMessageStatisticsListPO::getUpdateDate, Function.identity(), (v1, v2) -> v1));
+
+        for (LogAppMessageStatisticsListPO statistics : conversationResult) {
+            if (messageResultMap.containsKey(statistics.getUpdateDate()) && Objects.nonNull(messageResultMap.get(statistics.getUpdateDate()))) {
+                LogAppMessageStatisticsListPO messageStatistics = messageResultMap.get(statistics.getUpdateDate());
+                statistics.setCompletionAvgElapsed(messageStatistics.getCompletionAvgElapsed());
+                statistics.setImageAvgElapsed(messageStatistics.getImageAvgElapsed());
+                statistics.setTokens(messageStatistics.getTokens());
+                statistics.setCompletionTokens(messageStatistics.getCompletionTokens());
+                statistics.setChatTokens(messageStatistics.getChatTokens());
+            }
+
+            if (rightResultMap.containsKey(statistics.getUpdateDate()) && Objects.nonNull(rightResultMap.get(statistics.getUpdateDate()))) {
+                LogAppMessageStatisticsListPO rightStatistics = rightResultMap.get(statistics.getUpdateDate());
+                statistics.setCompletionCostPoints(rightStatistics.getCompletionCostPoints());
+                statistics.setImageCostPoints(rightStatistics.getImageCostPoints());
+                statistics.setMatrixCostPoints(rightStatistics.getMatrixCostPoints());
+            }
+
+        }
+
+        conversationResult = conversationResult.stream().peek(item -> {
             // 非管理员不能查看，平均耗时
             if (!isAdmin) {
                 item.setCompletionAvgElapsed(new BigDecimal("0"));
@@ -286,8 +382,9 @@ public class AppLogServiceImpl implements AppLogService {
                 item.setCompletionTokens(0);
                 item.setChatTokens(0);
             }
+            item.setCreateDate(item.getUpdateDate());
         }).collect(Collectors.toList());
-        return LogAppConversationConvert.INSTANCE.convertStatisticsList(pageResult);
+        return LogAppConversationConvert.INSTANCE.convertStatisticsList(conversationResult);
     }
 
     /**

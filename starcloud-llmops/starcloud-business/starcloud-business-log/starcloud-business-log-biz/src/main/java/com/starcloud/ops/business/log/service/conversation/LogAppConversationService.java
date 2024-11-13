@@ -3,16 +3,18 @@ package com.starcloud.ops.business.log.service.conversation;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageUidReqVO;
+import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationPageReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationCreateReqVO;
-import com.starcloud.ops.business.log.api.conversation.vo.query.LogAppConversationListReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationStatusReqVO;
 import com.starcloud.ops.business.log.api.conversation.vo.request.LogAppConversationUpdateReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListReqVO;
+import com.starcloud.ops.business.log.api.message.vo.query.AppLogMessageStatisticsListUidReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationDO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppConversationInfoPO;
+import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.util.Collection;
 import java.util.List;
 
@@ -119,5 +121,11 @@ public interface LogAppConversationService {
      */
     PageResult<LogAppConversationInfoPO> pageLogAppConversation(AppLogConversationInfoPageReqVO query);
 
+    List<LogAppMessageStatisticsListPO> listLogAppConversationStatistics(AppLogMessageStatisticsListUidReqVO query);
 
+    List<LogAppMessageStatisticsListPO> listLogAppConversationStatistics(AppLogMessageStatisticsListReqVO query);
+
+    List<LogAppMessageStatisticsListPO> listRightsStatistics(AppLogMessageStatisticsListReqVO query);
+
+    List<LogAppMessageStatisticsListPO> listRightsStatistics(AppLogMessageStatisticsListUidReqVO query);
 }

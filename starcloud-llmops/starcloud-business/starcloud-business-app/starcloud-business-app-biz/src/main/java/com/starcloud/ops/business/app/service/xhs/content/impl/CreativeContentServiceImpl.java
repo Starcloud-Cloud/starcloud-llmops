@@ -557,10 +557,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     public void cancel(CreativeContentDO content) {
         String status = content.getStatus();
-        // 如果取消，成功或者最终失败，则不需要取消
+        // 如果取消，执行中，成功或者最终失败，则不需要取消
         if (CreativeContentStatusEnum.SUCCESS.name().equals(status) ||
                 CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(status) ||
-                CreativeContentStatusEnum.CANCELED.name().equals(status)) {
+                CreativeContentStatusEnum.CANCELED.name().equals(status) ||
+                CreativeContentStatusEnum.EXECUTING.name().equals(status)) {
             return;
         }
         LocalDateTime now = LocalDateTime.now();
