@@ -96,11 +96,6 @@ public class LogAppMessageStatisticsListPO {
     /**
      * 创建时间
      */
-    private String createDate;
-
-    /**
-     * 创建时间
-     */
     private String updateDate;
 
 }

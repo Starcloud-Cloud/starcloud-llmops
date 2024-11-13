@@ -115,11 +115,5 @@ public class LogAppMessageStatisticsListVO implements Serializable {
     @Schema(description = "生成/聊天执行消耗总tokens")
     private Integer tokens;
 
-    /**
-     * 生成时间
-     */
-    @Schema(description = "生成时间")
-    private String createDate;
-
     private String updateDate;
 }

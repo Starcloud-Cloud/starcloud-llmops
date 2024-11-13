@@ -264,7 +264,6 @@ public class AppLogServiceImpl implements AppLogService {
                 item.setCompletionTokens(0);
                 item.setChatTokens(0);
             }
-            item.setCreateDate(item.getUpdateDate());
         }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(conversationResult);
     }
@@ -382,7 +381,6 @@ public class AppLogServiceImpl implements AppLogService {
                 item.setCompletionTokens(0);
                 item.setChatTokens(0);
             }
-            item.setCreateDate(item.getUpdateDate());
         }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(conversationResult);
     }
