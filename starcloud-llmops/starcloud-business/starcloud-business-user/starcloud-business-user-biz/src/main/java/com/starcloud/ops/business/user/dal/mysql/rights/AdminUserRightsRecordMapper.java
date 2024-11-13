@@ -52,6 +52,6 @@ public interface AdminUserRightsRecordMapper extends BaseMapperX<AdminUserRights
     List<StatisticsUserRightReqDTO>  calculateRightUsedByUser(@Param("teamId") Long teamId, @Param("userIds") List<Long> userIds);
 
 
-
+    List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(@Param("bizIdList") List<String> bizIdList);
 
 }

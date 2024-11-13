@@ -19,7 +19,6 @@ import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.log.vo.request.AppLogMessageQuery;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.ImageLogMessageRespVO;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -34,6 +33,7 @@ import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
@@ -64,6 +64,8 @@ import com.starcloud.ops.business.log.enums.LogStatusEnum;
 import com.starcloud.ops.business.log.enums.LogTimeTypeEnum;
 import com.starcloud.ops.business.log.service.conversation.LogAppConversationService;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +81,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.APP_NON_EXISTENT;
@@ -123,6 +126,9 @@ public class AppLogServiceImpl implements AppLogService {
 
     @Resource
     private CreativeContentMapper creativeContentMapper;
+
+    @Resource
+    private AdminUserRightsApi adminUserRightsApi;
 
     /**
      * 日志元数据
@@ -622,6 +628,13 @@ public class AppLogServiceImpl implements AppLogService {
         PageResult<AppLogConversationInfoRespVO> result = LogAppConversationConvert.INSTANCE.convertInfoPage(pageResult);
         List<AppLogConversationInfoRespVO> list = result.getList();
 
+        // 获取会话 UID 列表
+        List<String> conversationUidList = list.stream().map(AppLogConversationInfoRespVO::getUid)
+                .distinct().collect(Collectors.toList());
+        List<StatisticsUserRightReqDTO> rightList = adminUserRightsApi.statisticsUserRightsByBizId(conversationUidList);
+        Map<String, StatisticsUserRightReqDTO> rightMap = CollectionUtil.emptyIfNull(rightList).stream()
+                .collect(Collectors.toMap(StatisticsUserRightReqDTO::getBizId, Function.identity()));
+
         // 获取会话创建人
         List<Long> userIdList = list.stream()
                 .map(AppLogConversationInfoRespVO::getCreator)
@@ -648,6 +661,14 @@ public class AppLogServiceImpl implements AppLogService {
                     if (isAdmin) {
                         item.setUserLevels(finalUserRoleCodeMap.get(Long.parseLong(item.getCreator())));
                     }
+                    // 权益信息
+                    StatisticsUserRightReqDTO right = rightMap.get(item.getUid());
+                    if (Objects.nonNull(right)) {
+                        item.setCostPoints(Optional.ofNullable(right.getMagicBeanCounts()).map(Long::intValue).orElse(item.getCostPoints()));
+                        item.setImagePoints(Optional.ofNullable(right.getImageCounts()).map(Long::intValue).orElse(item.getImagePoints()));
+                        item.setMatrixPoints(Optional.ofNullable(right.getMatrixBeanCounts()).map(Long::intValue).orElse(null));
+                    }
+
                     // 非管理员，不展示消耗tokens
                     if (!isAdmin) {
                         item.setTokens(null);

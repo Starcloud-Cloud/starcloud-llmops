@@ -47,9 +47,17 @@ public interface AdminUserRightsRecordService {
 
     /**
      * 用户权益统计
+     *
      * @param teamId  团队 ID
      * @param userIds 用户 ID，
-     *
      */
     List<StatisticsUserRightReqDTO> calculateRightUsedByUser(Long teamId, List<Long> userIds);
+
+    /**
+     * 统计权益,根据业务ID
+     *
+     * @param bizIdList 业务ID
+     * @return 统计结果
+     */
+    List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList);
 }
