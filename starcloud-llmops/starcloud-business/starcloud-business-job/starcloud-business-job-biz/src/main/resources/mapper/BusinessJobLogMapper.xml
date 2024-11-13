@@ -13,9 +13,9 @@
         l.trigger_time as triggerTime,
         u.nickname AS creator
         FROM llm_material_plugin_definition p
-        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid
-        INNER JOIN llm_material_library m ON c.library_uid = m.uid
-        INNER JOIN llm_business_job b ON c.uid = b.foreign_key
+        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid  collate utf8mb4_general_ci
+        INNER JOIN llm_material_library m ON c.library_uid = m.uid  collate utf8mb4_general_ci
+        INNER JOIN llm_business_job b ON c.uid = b.foreign_key collate utf8mb4_general_ci
         INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
         LEFT JOIN system_users u ON b.creator = u.id
         WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
@@ -26,9 +26,9 @@
     <select id="count" resultType="java.lang.Long">
         SELECT count(l.uid)
         FROM llm_material_plugin_definition p
-        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid
-        INNER JOIN llm_material_library m ON c.library_uid = m.uid
-        INNER JOIN llm_business_job b ON c.uid = b.foreign_key
+        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid collate utf8mb4_general_ci
+        INNER JOIN llm_material_library m ON c.library_uid = m.uid collate utf8mb4_general_ci
+        INNER JOIN llm_business_job b ON c.uid = b.foreign_key collate utf8mb4_general_ci
         INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
         WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
     </select>

@@ -18,6 +18,7 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.DEPT_ROLE_
 public enum UserDeptRoleEnum {
 
     NORMAL(100, "普通用户", Sets.newHashSet(
+
     )),
 
     ADMIN(500, "管理员", Sets.newHashSet(

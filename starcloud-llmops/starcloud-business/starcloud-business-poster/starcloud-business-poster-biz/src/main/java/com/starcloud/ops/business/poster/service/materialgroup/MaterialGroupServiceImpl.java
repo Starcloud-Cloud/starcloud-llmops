@@ -34,7 +34,12 @@ import java.util.stream.Collectors;
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
 import static com.starcloud.ops.business.poster.dal.dataobject.materialcategory.MaterialCategoryDO.CATEGORY_LEVEL;
-import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.*;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_CANCEL_PUBLISH_FAIL;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_DELETE_FAIL_PUBLISH;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_GROUP_NOT_EXISTS;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.MATERIAL_PUBLISH_FAIL_EMPTY;
+import static com.starcloud.ops.business.poster.enums.ErrorCodeConstants.SPU_MATERIAL_FAIL_CATEGORY_LEVEL_ERROR;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 海报素材分组 Service 实现类
