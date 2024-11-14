@@ -38,6 +38,7 @@ import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult
 import com.starcloud.ops.business.app.service.channel.AppPublishChannelService;
 import com.starcloud.ops.business.app.service.chat.ChatService;
 import com.starcloud.ops.business.app.service.log.AppLogService;
+import com.starcloud.ops.business.app.service.log.AppLogThreadPoolHolder;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
@@ -208,14 +209,17 @@ public class AppLogServiceImpl implements AppLogService {
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         Long tenantId = TenantContextHolder.getTenantId();
         Long userId = SecurityFrameworkUtils.getLoginUserId();
-        CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture = CompletableFuture.supplyAsync(
-                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture =
+                AppLogThreadPoolHolder.supplyAsync(tenantId, userId,
+                        () -> logAppConversationService.listLogAppConversationStatistics(query));
 
-        CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture = CompletableFuture.supplyAsync(
-                () -> UserUtils.execute(tenantId, userId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture =
+                AppLogThreadPoolHolder.supplyAsync(tenantId, userId,
+                        () -> logAppMessageService.listLogAppMessageStatistics(query));
 
-        CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture = CompletableFuture.supplyAsync(
-                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listRightsStatistics(query)));
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture =
+                AppLogThreadPoolHolder.supplyAsync(tenantId, userId,
+                        () -> logAppConversationService.listRightsStatistics(query));
 
         // 等待所有任务完成
         CompletableFuture.allOf(conversationFuture, messageFuture).join();
@@ -327,14 +331,17 @@ public class AppLogServiceImpl implements AppLogService {
 
         Long tenantId = TenantContextHolder.getTenantId();
         Long userId = SecurityFrameworkUtils.getLoginUserId();
-        CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture = CompletableFuture.supplyAsync(
-                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture =
+                AppLogThreadPoolHolder.supplyAsync(tenantId, userId,
+                        () -> logAppConversationService.listLogAppConversationStatistics(query));
 
-        CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture = CompletableFuture.supplyAsync(
-                () -> UserUtils.execute(tenantId, userId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture =
+                AppLogThreadPoolHolder.supplyAsync(tenantId, userId,
+                        () -> logAppMessageService.listLogAppMessageStatistics(query));
 
-        CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture = CompletableFuture.supplyAsync(
-                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listRightsStatistics(query)));
+        CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture =
+                AppLogThreadPoolHolder.supplyAsync(tenantId, userId,
+                        () -> logAppConversationService.listRightsStatistics(query));
 
         // 等待所有任务完成
         CompletableFuture.allOf(conversationFuture, messageFuture).join();
