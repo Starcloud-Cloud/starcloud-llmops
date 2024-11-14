@@ -10,16 +10,21 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * 权限点前缀定义在PartEnum中
+ */
 @Getter
 public enum DeptPermissionEnum {
     app_edit("app.edit", "应用编辑"),
     app_delete("app.delete", "应用删除"),
+    app_execute("app.execute", "应用执行"),
+    app_analyse("app.analyse", "应用分析"),
 
     plugin_edit("plugin.edit", "插件编辑"),
     plugin_delete("plugin.delete", "插件删除"),
 
-    plugin_bind_add("plugin.bind.add","新增插件绑定"),
-    plugin_bind_delete("plugin.bind.delete","删除插件绑定"),
+    plugin_bind_add("plugin.bind.add", "新增插件绑定"),
+    plugin_bind_delete("plugin.bind.delete", "删除插件绑定"),
 
     notification_edit("notification.edit", "通告编辑"),
     notification_delete("notification.delete", "通告删除"),
@@ -60,5 +65,12 @@ public enum DeptPermissionEnum {
 
     public static List<PermissionDTO> getPermission(Set<String> codes) {
         return codes.stream().map(DeptPermissionEnum::getPermission).collect(Collectors.toList());
+    }
+
+    public static List<String> getPermission(PartEnum partEnum) {
+        return Arrays.stream(DeptPermissionEnum.values())
+                .map(DeptPermissionEnum::getPermission)
+                .filter(permission -> permission.startsWith(partEnum.getCode()))
+                .collect(Collectors.toList());
     }
 }

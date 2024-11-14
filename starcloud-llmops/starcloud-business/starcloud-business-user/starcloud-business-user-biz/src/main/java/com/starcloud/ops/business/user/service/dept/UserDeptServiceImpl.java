@@ -338,9 +338,9 @@ public class UserDeptServiceImpl implements UserDeptService {
 
     @Override
     public Set<String> getUserPermission() {
-        Long userId = WebFrameworkUtils.getLoginUserId();
+        Long userId = UserContextHolder.getUserId();
         if (Objects.isNull(userId)) {
-            userId = UserContextHolder.getUserId();
+            userId = WebFrameworkUtils.getLoginUserId();
         }
         if (Objects.isNull(userId)) {
             throw exception(USER_NOT_EXISTS);
