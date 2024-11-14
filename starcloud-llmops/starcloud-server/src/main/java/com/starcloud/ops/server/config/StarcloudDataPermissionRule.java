@@ -1,8 +1,10 @@
 package com.starcloud.ops.server.config;
 
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.datapermission.core.rule.DataPermissionRule;
 import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
+import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.api.permission.RoleApi;
@@ -62,7 +64,13 @@ public class StarcloudDataPermissionRule implements DataPermissionRule {
 
     @Override
     public Expression getExpression(String tableName, Alias tableAlias) {
-        Long userId = WebFrameworkUtils.getLoginUserId();
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
+        if (userId == null) {
+            userId = WebFrameworkUtils.getLoginUserId();
+            if (userId == null) {
+                userId = UserContextHolder.getUserId();
+            }
+        }
 
         try {
             if (Objects.equals(WebFrameworkUtils.getLoginUserType(), UserTypeEnum.MEMBER.getValue())) {
