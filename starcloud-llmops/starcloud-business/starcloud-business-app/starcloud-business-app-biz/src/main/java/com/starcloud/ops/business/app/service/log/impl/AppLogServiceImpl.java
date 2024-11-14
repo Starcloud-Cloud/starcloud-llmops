@@ -8,7 +8,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -208,14 +207,15 @@ public class AppLogServiceImpl implements AppLogService {
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
         Long tenantId = TenantContextHolder.getTenantId();
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
         CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture = CompletableFuture.supplyAsync(
-                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
+                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
 
         CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture = CompletableFuture.supplyAsync(
-                () -> TenantUtils.execute(tenantId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
+                () -> UserUtils.execute(tenantId, userId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
 
         CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture = CompletableFuture.supplyAsync(
-                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listRightsStatistics(query)));
+                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listRightsStatistics(query)));
 
         // 等待所有任务完成
         CompletableFuture.allOf(conversationFuture, messageFuture).join();
@@ -326,14 +326,15 @@ public class AppLogServiceImpl implements AppLogService {
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
 
         Long tenantId = TenantContextHolder.getTenantId();
+        Long userId = SecurityFrameworkUtils.getLoginUserId();
         CompletableFuture<List<LogAppMessageStatisticsListPO>> conversationFuture = CompletableFuture.supplyAsync(
-                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
+                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listLogAppConversationStatistics(query)));
 
         CompletableFuture<List<LogAppMessageStatisticsListPO>> messageFuture = CompletableFuture.supplyAsync(
-                () -> TenantUtils.execute(tenantId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
+                () -> UserUtils.execute(tenantId, userId, () -> logAppMessageService.listLogAppMessageStatistics(query)));
 
         CompletableFuture<List<LogAppMessageStatisticsListPO>> rightFuture = CompletableFuture.supplyAsync(
-                () -> TenantUtils.execute(tenantId, () -> logAppConversationService.listRightsStatistics(query)));
+                () -> UserUtils.execute(tenantId, userId, () -> logAppConversationService.listRightsStatistics(query)));
 
         // 等待所有任务完成
         CompletableFuture.allOf(conversationFuture, messageFuture).join();

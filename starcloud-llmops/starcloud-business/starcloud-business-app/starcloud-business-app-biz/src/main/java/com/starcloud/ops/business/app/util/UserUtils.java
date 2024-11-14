@@ -2,8 +2,10 @@ package com.starcloud.ops.business.app.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.security.core.service.SecurityFrameworkService;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -14,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
@@ -229,4 +232,25 @@ public class UserUtils {
         return SELF;
     }
 
+    /**
+     * @param tenantId 租户编号
+     * @param callable 逻辑
+     */
+    public static <V> V execute(Long tenantId, Long userId, Callable<V> callable) {
+        Long oldTenantId = TenantContextHolder.getTenantId();
+        Boolean oldIgnore = TenantContextHolder.isIgnore();
+        try {
+            TenantContextHolder.setTenantId(tenantId);
+            TenantContextHolder.setIgnore(false);
+            UserContextHolder.setUserId(userId);
+            // 执行逻辑
+            return callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            TenantContextHolder.setTenantId(oldTenantId);
+            TenantContextHolder.setIgnore(oldIgnore);
+            UserContextHolder.clear();
+        }
+    }
 }
