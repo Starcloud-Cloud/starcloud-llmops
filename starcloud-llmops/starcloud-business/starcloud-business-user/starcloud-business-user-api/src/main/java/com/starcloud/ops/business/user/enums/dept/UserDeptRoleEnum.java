@@ -18,10 +18,13 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.DEPT_ROLE_
 public enum UserDeptRoleEnum {
 
     NORMAL(100, "普通用户", Sets.newHashSet(
+            DeptPermissionEnum.app_execute.getPermission()
     )),
 
     ADMIN(500, "管理员", Sets.newHashSet(
             DeptPermissionEnum.app_edit.getPermission(),
+            DeptPermissionEnum.app_execute.getPermission(),
+            DeptPermissionEnum.app_analyse.getPermission(),
             DeptPermissionEnum.plugin_edit.getPermission(),
             DeptPermissionEnum.plugin_bind_add.getPermission(),
             DeptPermissionEnum.notification_edit.getPermission(),
@@ -40,6 +43,8 @@ public enum UserDeptRoleEnum {
     SUPER_ADMIN(1000, "创建者", Sets.newHashSet(
             DeptPermissionEnum.app_delete.getPermission(),
             DeptPermissionEnum.app_edit.getPermission(),
+            DeptPermissionEnum.app_execute.getPermission(),
+            DeptPermissionEnum.app_analyse.getPermission(),
             DeptPermissionEnum.plugin_delete.getPermission(),
             DeptPermissionEnum.plugin_edit.getPermission(),
             DeptPermissionEnum.plugin_bind_add.getPermission(),
