@@ -247,34 +247,7 @@ public class AppServiceImpl implements AppService {
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.RESULT_NOT_EXIST, "应用不存在，请稍后重试或者联系管理员（{}）！", uid);
-        AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
-            // 迁移旧素材数据
-            WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class);
-            if (CollectionUtil.isNotEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                // 从数据库迁移
-                creativeMaterialManager.migrateFromData(app.getName(), app.getUid(),
-                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, app.getMaterialList(), Long.valueOf(app.getCreator()));
-                app.setMaterialList(Collections.emptyList());
-                appMapper.updateById(app);
-            } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
-
-                if (StringUtils.isBlank(stepVariableValue)) {
-                    // 新建
-                    creativeMaterialManager.createEmptyLibrary(app.getName(), app.getUid(),
-                            MaterialBindTypeEnum.APP_MAY.getCode(), Long.valueOf(app.getCreator()));
-                } else {
-                    // 从变量迁移
-                    creativeMaterialManager.migrateFromConfig(app.getName(), app.getUid(),
-                            MaterialBindTypeEnum.APP_MAY.getCode(), stepVariableValue, Long.valueOf(app.getCreator()));
-                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
-                    app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
-                    appMapper.updateById(app);
-                }
-            }
-        }
-        return appResponse;
+        return AppConvert.INSTANCE.convertResponse(app);
     }
 
     /**
