@@ -40,6 +40,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppModifyType;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
@@ -353,9 +354,10 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
-        AppDO appDO = appMapper.get(request.getUid(), Boolean.TRUE);
-        deptPermissionApi.checkPermission(DeptPermissionEnum.app_edit, Long.valueOf(appDO.getCreator()));
-
+        if (AppModifyType.isModify(request.getE())) {
+            AppDO appDO = appMapper.get(request.getUid(), Boolean.TRUE);
+            deptPermissionApi.checkPermission(DeptPermissionEnum.app_edit, Long.valueOf(appDO.getCreator()));
+        }
         // 校验并且处理请求
         List<Verification> verifications = handlerAndValidateRequest(request);
         if (CollectionUtil.isNotEmpty(verifications)) {
