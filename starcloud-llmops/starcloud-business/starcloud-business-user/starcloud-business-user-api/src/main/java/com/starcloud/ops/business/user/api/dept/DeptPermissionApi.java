@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.user.api.dept;
 
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
+import com.starcloud.ops.business.user.enums.dept.PartEnum;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface DeptPermissionApi {
@@ -11,6 +13,16 @@ public interface DeptPermissionApi {
      * 查询当前用户的权限点
      */
     Set<String> getUserPermission();
+
+    /**
+     * 筛选组件权限点
+     */
+    Map<String, Boolean> getUserMenu(Long creator, PartEnum partEnum);
+
+    /**
+     * 获取页面菜单
+     */
+    Set<String> getUserPermission(Long creator);
 
     /**
      * 校验权限
