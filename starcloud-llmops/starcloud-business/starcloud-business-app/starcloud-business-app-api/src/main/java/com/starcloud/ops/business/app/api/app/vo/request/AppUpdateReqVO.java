@@ -31,4 +31,8 @@ public class AppUpdateReqVO extends AppReqVO {
     @NotBlank(message = "应用UID不能为空")
     private String uid;
 
+    /**
+     * 区分修改类型
+     */
+    private Integer e;
 }
