@@ -68,6 +68,8 @@ public class CreativePlanModifyReqVO implements Serializable {
     // @InEnum(value = ValidateTypeEnum.class, message = "校验类型不支持！")
     private String validateType;
 
+    private Integer e;
+
     /**
      * 更新校验
      */

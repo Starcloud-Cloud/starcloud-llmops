@@ -107,6 +107,7 @@ public class AppManager {
                 // 不校验应用，因为应用更新时候已经进行过校验
                 planRequest.setValidateApp(false);
                 planRequest.setSource(CreativePlanSourceEnum.APP.name());
+                planRequest.setE(request.getE());
 
                 // 将计划配置信息中的应用信息替换为最新的应用信息
                 CreativePlanConfigurationDTO configuration = planRequest.getConfiguration();
