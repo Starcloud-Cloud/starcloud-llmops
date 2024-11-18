@@ -64,12 +64,16 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
     public String verify(PluginTestReqVO reqVO) {
         String accessToken = pluginsDefinitionService.bearer(reqVO.getAccessTokenId());
         String content = reqVO.getContent();
-        if (!JSONUtil.isTypeJSON(content)) {
+        if (StringUtils.isNotBlank(content) && !JSONUtil.isTypeJSON(content)) {
             throw exception(COZE_ERROR, "参数必须是json格式");
         }
         CozeWorkflowRequest request = new CozeWorkflowRequest();
         request.setWorkflowId(reqVO.getEntityUid());
-        request.setParameters(JSONUtil.parseObj(content));
+
+        if (StringUtils.isNotBlank(content)) {
+            request.setParameters(JSONUtil.parseObj(content));
+        }
+
         String code = IdUtil.fastSimpleUUID();
         POOL_EXECUTOR.execute(() -> {
             try {
