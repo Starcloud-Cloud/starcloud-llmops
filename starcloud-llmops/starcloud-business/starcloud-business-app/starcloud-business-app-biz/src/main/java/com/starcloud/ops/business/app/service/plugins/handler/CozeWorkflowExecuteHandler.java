@@ -107,6 +107,10 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         }
 
         CozeResponse<String> response = JSONUtil.toBean(workflowResp, CozeResponse.class);
+
+        log.info("verify result response: {}", workflowResp);
+
+
         if (response.getCode() != 0 || Objects.isNull(response.getData())) {
             throw exception(COZE_ERROR, response.getMsg());
         }
@@ -115,6 +119,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         if (StringUtils.isBlank(content)) {
             throw exception(COZE_ERROR, "返回结果为空");
         }
+
 
         if (JSONUtil.isTypeJSONArray(content)) {
             Type listType = new TypeReference<List<Map<String, Object>>>() {
