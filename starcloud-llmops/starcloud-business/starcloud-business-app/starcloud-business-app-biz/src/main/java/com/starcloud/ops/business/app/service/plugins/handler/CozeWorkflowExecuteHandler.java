@@ -101,7 +101,10 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             return verifyResult;
         }
         String params = redisTemplate.boundValueOps(VERIFY_PARAMS + resultReqVO.getCode()).get();
-        verifyResult.setArguments(JSONUtil.parseObj(params));
+
+        if (StringUtils.isNotBlank(params)) {
+            verifyResult.setArguments(JSONUtil.parseObj(params));
+        }
 
         CozeResponse<String> response = JSONUtil.toBean(workflowResp, CozeResponse.class);
         if (response.getCode() != 0 || Objects.isNull(response.getData())) {
