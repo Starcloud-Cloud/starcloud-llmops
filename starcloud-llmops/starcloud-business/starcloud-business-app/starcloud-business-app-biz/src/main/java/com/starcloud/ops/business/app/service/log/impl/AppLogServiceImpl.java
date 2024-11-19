@@ -12,7 +12,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
@@ -75,7 +74,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -256,19 +254,19 @@ public class AppLogServiceImpl implements AppLogService {
             }
 
         }
-
-        Boolean isAdmin = UserUtils.isAdmin();
-        conversationResult = conversationResult.stream().peek(item -> {
-            // 非管理员不能查看，平均耗时
-            if (!isAdmin) {
-                item.setCompletionAvgElapsed(new BigDecimal("0"));
-                item.setImageAvgElapsed(new BigDecimal("0"));
-                item.setFeedbackLikeCount(0);
-                item.setTokens(0);
-                item.setCompletionTokens(0);
-                item.setChatTokens(0);
-            }
-        }).collect(Collectors.toList());
+// 此处不再校验管理员权限，由菜单权限控制
+//        Boolean isAdmin = UserUtils.isAdmin();
+//        conversationResult = conversationResult.stream().peek(item -> {
+//            // 非管理员不能查看，平均耗时
+//            if (!isAdmin) {
+//                item.setCompletionAvgElapsed(new BigDecimal("0"));
+//                item.setImageAvgElapsed(new BigDecimal("0"));
+//                item.setFeedbackLikeCount(0);
+//                item.setTokens(0);
+//                item.setCompletionTokens(0);
+//                item.setChatTokens(0);
+//            }
+//        }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(conversationResult);
     }
 
@@ -379,17 +377,18 @@ public class AppLogServiceImpl implements AppLogService {
 
         }
 
-        conversationResult = conversationResult.stream().peek(item -> {
-            // 非管理员不能查看，平均耗时
-            if (!isAdmin) {
-                item.setCompletionAvgElapsed(new BigDecimal("0"));
-                item.setImageAvgElapsed(new BigDecimal("0"));
-                item.setFeedbackLikeCount(0);
-                item.setTokens(0);
-                item.setCompletionTokens(0);
-                item.setChatTokens(0);
-            }
-        }).collect(Collectors.toList());
+        // 此处不再校验管理员权限，由菜单权限控制
+//        conversationResult = conversationResult.stream().peek(item -> {
+//            // 非管理员不能查看，平均耗时
+//            if (!isAdmin) {
+//                item.setCompletionAvgElapsed(new BigDecimal("0"));
+//                item.setImageAvgElapsed(new BigDecimal("0"));
+//                item.setFeedbackLikeCount(0);
+//                item.setTokens(0);
+//                item.setCompletionTokens(0);
+//                item.setChatTokens(0);
+//            }
+//        }).collect(Collectors.toList());
         return LogAppConversationConvert.INSTANCE.convertStatisticsList(conversationResult);
     }
 
@@ -747,13 +746,8 @@ public class AppLogServiceImpl implements AppLogService {
                 .distinct()
                 .collect(Collectors.toList());
         Map<Long, String> userNicknameMap = UserUtils.getUserNicknameMapByIds(userIdList);
-        Map<Long, List<String>> userRoleCodeMap = Maps.newHashMap();
-        Boolean isAdmin = UserUtils.isAdmin();
-        if (isAdmin) {
-            userRoleCodeMap = UserUtils.mapUserRoleCode(userIdList);
-        }
+        Map<Long, List<String>> userRoleCodeMap = UserUtils.mapUserRoleCode(userIdList);
         // 获取应用执行人
-        Map<Long, List<String>> finalUserRoleCodeMap = userRoleCodeMap;
         List<AppLogConversationInfoRespVO> collect = list.stream()
                 .peek(item -> {
                     if (StringUtils.isNotBlank(item.getEndUser())) {
@@ -761,9 +755,7 @@ public class AppLogServiceImpl implements AppLogService {
                     } else {
                         item.setAppExecutor(userNicknameMap.get(Long.parseLong(item.getCreator())));
                     }
-                    if (isAdmin) {
-                        item.setUserLevels(finalUserRoleCodeMap.get(Long.parseLong(item.getCreator())));
-                    }
+                    item.setUserLevels(userRoleCodeMap.get(Long.parseLong(item.getCreator())));
                     // 权益信息
                     StatisticsUserRightReqDTO right = rightMap.get(item.getUid());
                     if (Objects.nonNull(right)) {
@@ -772,14 +764,14 @@ public class AppLogServiceImpl implements AppLogService {
                         item.setMatrixPoints(Optional.ofNullable(right.getMatrixBeanCounts()).map(Long::intValue).orElse(null));
                     }
 
-                    // 非管理员，不展示消耗tokens
-                    if (!isAdmin) {
-                        item.setTokens(null);
-                        item.setTotalPrice(null);
-                        item.setTotalAnswerTokens(null);
-                        item.setTotalMessageTokens(null);
-                        item.setCreator(null);
-                    }
+//                    // 非管理员，不展示消耗tokens
+//                    if (!isAdmin) {
+//                        item.setTokens(null);
+//                        item.setTotalPrice(null);
+//                        item.setTotalAnswerTokens(null);
+//                        item.setTotalMessageTokens(null);
+//                        item.setCreator(null);
+//                    }
                 })
                 .collect(Collectors.toList());
         result.setList(collect);

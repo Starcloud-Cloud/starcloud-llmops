@@ -25,7 +25,7 @@ import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.REQ
 
 @Slf4j
 @Component
-@ConditionalOnBean(value = {PowerJobClient.class})
+//@ConditionalOnBean(value = {PowerJobClient.class})
 public class PowerjobManager {
 
     @Resource
