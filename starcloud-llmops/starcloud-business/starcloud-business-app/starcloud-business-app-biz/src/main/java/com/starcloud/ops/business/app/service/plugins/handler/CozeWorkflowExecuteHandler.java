@@ -65,12 +65,16 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
     public String verify(PluginTestReqVO reqVO) {
         String accessToken = pluginsDefinitionService.bearer(reqVO.getAccessTokenId());
         String content = reqVO.getContent();
-        if (!JSONUtil.isTypeJSON(content)) {
+        if (StringUtils.isNotBlank(content) && !JSONUtil.isTypeJSON(content)) {
             throw exception(COZE_ERROR, "参数必须是json格式");
         }
         CozeWorkflowRequest request = new CozeWorkflowRequest();
         request.setWorkflowId(reqVO.getEntityUid());
-        request.setParameters(JSONUtil.parseObj(content));
+
+        if (StringUtils.isNotBlank(content)) {
+            request.setParameters(JSONUtil.parseObj(content));
+        }
+
         String code = IdUtil.fastSimpleUUID();
         POOL_EXECUTOR.execute(() -> {
             try {
@@ -98,9 +102,16 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             return verifyResult;
         }
         String params = redisTemplate.boundValueOps(VERIFY_PARAMS + resultReqVO.getCode()).get();
-        verifyResult.setArguments(JSONUtil.parseObj(params));
+
+        if (StringUtils.isNotBlank(params)) {
+            verifyResult.setArguments(JSONUtil.parseObj(params));
+        }
 
         CozeResponse<String> response = JSONUtil.toBean(workflowResp, CozeResponse.class);
+
+        log.info("verify result response: {}", workflowResp);
+
+
         if (response.getCode() != 0 || Objects.isNull(response.getData())) {
             throw exception(COZE_ERROR, response.getMsg());
         }
@@ -109,6 +120,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         if (StringUtils.isBlank(content)) {
             throw exception(COZE_ERROR, "返回结果为空");
         }
+
 
         if (JSONUtil.isTypeJSONArray(content)) {
             Type listType = new TypeReference<List<Map<String, Object>>>() {

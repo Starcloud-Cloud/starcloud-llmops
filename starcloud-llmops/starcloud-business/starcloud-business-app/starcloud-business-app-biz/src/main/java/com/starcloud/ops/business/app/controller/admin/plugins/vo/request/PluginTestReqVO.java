@@ -23,7 +23,7 @@ public class PluginTestReqVO {
     private String accessTokenId;
 
     @Schema(description = "入参")
-    @NotBlank(message = "入参不能为空")
+//    @NotBlank(message = "入参不能为空")
     private String content;
 
 }
