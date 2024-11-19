@@ -103,6 +103,7 @@ public interface AppService {
 
     /**
      * 新建应用 复制素材库
+     *
      * @param request
      * @return
      */
@@ -155,4 +156,12 @@ public interface AppService {
      * @return
      */
     List<VariableItemRespVO> generalFieldCode(VariableReqVO reqVO);
+
+    /**
+     * 获取应用市场Uid
+     *
+     * @param publishUid 发布Uid
+     * @return 应用市场Uid
+     */
+    String getMarketUid(String publishUid);
 }
