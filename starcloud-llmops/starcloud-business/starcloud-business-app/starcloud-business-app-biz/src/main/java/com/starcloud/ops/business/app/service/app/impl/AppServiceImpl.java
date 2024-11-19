@@ -3,8 +3,8 @@ package com.starcloud.ops.business.app.service.app.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
-import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -34,7 +34,6 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -48,8 +47,6 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
-import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
@@ -513,6 +510,26 @@ public class AppServiceImpl implements AppService {
             variable.setField(code);
         }
         return variables;
+    }
+
+    /**
+     * 获取应用市场Uid
+     *
+     * @param publishUid 发布Uid
+     * @return 应用市场Uid
+     */
+    @Override
+    public String getMarketUid(String publishUid) {
+        List<String> trim = StrUtil.splitTrim(StrUtil.trim(publishUid), "-");
+        if (CollectionUtil.isEmpty(trim)) {
+            throw ServiceExceptionUtil.invalidParamException(publishUid, "无法获取该应用的应用市场信息!");
+        }
+        String publish = trim.get(0);
+        AppPublishRespVO appPublishRespVO = appPublishService.get(publish);
+        if (Objects.isNull(appPublishRespVO) || StrUtil.isBlank(appPublishRespVO.getMarketUid())) {
+            throw ServiceExceptionUtil.invalidParamException(publishUid, "无法获取该应用的应用市场信息!");
+        }
+        return appPublishRespVO.getMarketUid();
     }
 
     /**

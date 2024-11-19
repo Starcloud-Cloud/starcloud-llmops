@@ -111,6 +111,13 @@ public class AppController {
         return CommonResult.success(appService.page(query));
     }
 
+    @GetMapping("/getMarketUid/{publishUid}")
+    @Operation(summary = "分页查询我的应用列表", description = "分页查询我的应用列表")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
+    public CommonResult<String> getMarketUid(@PathVariable("publishUid") String publishUid) {
+        return CommonResult.success(appService.getMarketUid(publishUid));
+    }
+
     @GetMapping("/get/{uid}")
     @Operation(summary = "根据 UID 获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 80, author = "nacoyer")
