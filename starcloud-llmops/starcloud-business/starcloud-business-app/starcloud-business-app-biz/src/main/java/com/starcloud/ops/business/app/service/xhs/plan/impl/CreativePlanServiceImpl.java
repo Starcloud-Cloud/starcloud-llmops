@@ -401,7 +401,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      */
     @Override
     public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
-        request.setValidateType(ValidateTypeEnum.CONFIG.name());
+        request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
 

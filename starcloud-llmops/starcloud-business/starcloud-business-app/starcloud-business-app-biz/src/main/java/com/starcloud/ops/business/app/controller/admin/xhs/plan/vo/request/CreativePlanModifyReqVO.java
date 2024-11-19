@@ -81,9 +81,12 @@ public class CreativePlanModifyReqVO implements Serializable {
             VerificationUtils.addVerificationCreative(verifications, uid, "创作计划更新失败！校验类型不支持！");
         }
 
-        VerificationUtils.notBlankCreative(verifications, source, uid, "创作计划更新失败！创作计划来源不能为空！");
         VerificationUtils.notNullCreative(verifications, configuration, uid, "创作计划更新失败！创作计划配置信息不能为空！");
-        VerificationUtils.notNullCreative(verifications, totalCount, uid, "创作计划更新失败！创作计划生成数量不能为空！");
+        VerificationUtils.notBlankCreative(verifications, source, uid, "创作计划更新失败！创作计划来源不能为空！");
+
+        if (ValidateTypeEnum.EXECUTE.name().equals(validateType)) {
+            VerificationUtils.notNullCreative(verifications, totalCount, uid, "创作计划更新失败！创作计划生成数量不能为空！");
+        }
 
         ValidateTypeEnum validateTypeEnum = ValidateTypeEnum.valueOf(validateType);
 

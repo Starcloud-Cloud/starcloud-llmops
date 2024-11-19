@@ -798,6 +798,14 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
             messageCreateRequest.setUpdateTime(LocalDateTime.now());
             messageCreateRequest.setElapsed(100L);
             messageCreateRequest.setCostPoints(0);
+
+//            if (Objects.nonNull(request.getUserId())) {
+//                Long deptId = UserUtils.getDeptId(appContext.getUserId());
+//                if (Objects.nonNull(deptId)) {
+//                    messageCreateRequest.setDeptId(deptId);
+//                }
+//            }
+
             if (exception instanceof ServerException) {
                 messageCreateRequest.setErrorCode(String.valueOf(((ServerException) exception).getCode()));
             }
