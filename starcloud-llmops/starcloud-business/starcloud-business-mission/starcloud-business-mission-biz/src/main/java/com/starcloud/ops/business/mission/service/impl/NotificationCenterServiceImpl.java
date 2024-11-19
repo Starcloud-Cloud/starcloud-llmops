@@ -17,6 +17,8 @@ import com.starcloud.ops.business.mission.dal.dataobject.NotificationCenterDTO;
 import com.starcloud.ops.business.mission.dal.mysql.NotificationCenterMapper;
 import com.starcloud.ops.business.mission.service.NotificationCenterService;
 import com.starcloud.ops.business.mission.service.SingleMissionService;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +49,9 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     @Override
     public Map<String, Object> metadata() {
@@ -107,6 +112,8 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Transactional(rollbackFor = Exception.class)
     public void publish(String uid, Boolean publish) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
+        deptPermissionApi.checkPermission(DeptPermissionEnum.notification_publish, Long.valueOf(notificationCenterDO.getCreator()));
+
         if (BooleanUtils.isTrue(publish)) {
             if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
                 throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
@@ -126,6 +133,8 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         NotificationCenterDO notificationCenterDO = getByUid(uid);
+        deptPermissionApi.checkPermission(DeptPermissionEnum.notification_delete, Long.valueOf(notificationCenterDO.getCreator()));
+
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
             throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }
@@ -150,6 +159,8 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     @Override
     public NotificationRespVO modifySelective(NotificationModifyReqVO reqVO) {
         NotificationCenterDO notificationCenterDO = getByUid(reqVO.getUid());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.notification_edit, Long.valueOf(notificationCenterDO.getCreator()));
+
         if (NotificationCenterStatusEnum.published.getCode().equals(notificationCenterDO.getStatus())) {
             throw exception(NOTIFICATION_STATUS_NOT_SUPPORT, notificationCenterDO.getStatus());
         }

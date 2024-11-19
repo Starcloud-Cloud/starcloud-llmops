@@ -17,4 +17,6 @@ public class CozeJobLogRespVO extends JobLogBaseVO {
     @Schema(description = "生成条数")
     private int count;
 
+    @Schema(description = "素材库名称")
+    private String libraryName;
 }

@@ -186,7 +186,8 @@ public class CreativeUtils {
      * @return 图片类型的变量
      */
     public static List<PosterVariableDTO> getImageVariableList(PosterTemplateDTO posterTemplate) {
-        return posterTemplate.posterVariableList().stream()
+        return posterTemplate.posterVariableList()
+                .stream()
                 .filter(CreativeUtils::isImageVariable)
                 .collect(Collectors.toList());
     }
@@ -199,7 +200,10 @@ public class CreativeUtils {
      */
     public static List<PosterStyleDTO> preHandlerPosterStyleList(List<PosterStyleDTO> posterStyleList) {
         return posterStyleList.stream()
+                .filter(Objects::nonNull)
                 .map(CreativeUtils::handlerPosterStyle)
+                .filter(Objects::nonNull)
+                .filter(item -> Objects.isNull(item.getEnable()) || item.getEnable())
                 .collect(Collectors.toList());
     }
 
@@ -255,8 +259,8 @@ public class CreativeUtils {
             templateList.add(template);
         }
         // 变量都为空是否执行
-        Boolean noExecuteIfEmpty = Boolean.TRUE;
-        posterStyle.setNoExecuteIfEmpty(noExecuteIfEmpty);
+        posterStyle.setNoExecuteIfEmpty(Boolean.TRUE);
+        posterStyle.setEnable(Boolean.TRUE);
         Integer imageCount = templateList.stream().mapToInt(PosterTemplateDTO::getTotalImageCount).sum();
         posterStyle.setTotalImageCount(imageCount);
         posterStyle.setTemplateList(templateList);

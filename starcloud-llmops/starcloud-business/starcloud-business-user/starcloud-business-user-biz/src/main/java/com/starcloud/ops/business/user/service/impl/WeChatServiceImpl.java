@@ -5,7 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.util.monitor.TracerUtils;
 import cn.iocoder.yudao.framework.common.util.servlet.ServletUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.mp.framework.mp.core.MpServiceFactory;
 import cn.iocoder.yudao.module.system.api.logger.dto.LoginLogCreateReqDTO;
 import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
@@ -23,6 +23,7 @@ import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.starcloud.ops.business.user.controller.admin.vo.QrCodeTicketVO;
 import com.starcloud.ops.business.user.convert.QrCodeConvert;
 import com.starcloud.ops.business.user.pojo.request.ScanLoginRequest;
+import com.starcloud.ops.business.user.service.MpAppManager;
 import com.starcloud.ops.business.user.service.WeChatService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -44,37 +46,35 @@ import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.CREATE_QR_
 @Slf4j
 public class WeChatServiceImpl implements WeChatService {
 
-
-    @Autowired
-    private WxMpService wxMpService;
-
     @Autowired
     private StringRedisTemplate redisTemplate;
 
-    @Autowired
+    @Resource
     private AdminUserService userService;
 
-    @Autowired
+    @Resource
     private LoginLogService loginLogService;
 
-    @Autowired
+    @Resource
     private OAuth2TokenService oauth2TokenService;
 
-    @Autowired
+    @Resource
     private AdminUserMapper userMapper;
 
-    @Autowired
+    @Resource
     private SocialUserService socialUserService;
 
+    @Resource
+    private MpServiceFactory mpServiceFactory;
 
     @Override
     public QrCodeTicketVO qrCodeCreate(String inviteCode) {
         try {
             Long tenantId = TenantContextHolder.getTenantId();
+            WxMpService wxMpService = mpServiceFactory.getRequiredMpService(MpAppManager.getMpAppId(tenantId));
             WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket("login", 60 * 5);
             String url = wxMpService.getQrcodeService().qrCodePictureUrl(wxMpQrCodeTicket.getTicket());
             QrCodeTicketVO ticketVO = QrCodeConvert.INSTANCE.toVO(wxMpQrCodeTicket);
-            redisTemplate.boundValueOps(ticketVO.getTicket() + "_tenantId").set(tenantId.toString(), 10, TimeUnit.MINUTES);
 
             ticketVO.setUrl(url);
             if (StringUtils.isNotBlank(inviteCode)) {

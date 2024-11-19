@@ -46,9 +46,8 @@ public class MaterialLibrarySliceController {
 
     @PostMapping("/create-batch")
     @Operation(summary = "批量-创建素材知识库数据")
-    public CommonResult<Boolean> createBatchMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceBatchSaveReqVO batchSaveReqVO) {
-        materialLibrarySliceService.createBatchMaterialLibrarySlice(batchSaveReqVO);
-        return success(true);
+    public CommonResult< List<Long>> createBatchMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceBatchSaveReqVO batchSaveReqVO) {
+        return success(materialLibrarySliceService.createBatchMaterialLibrarySlice(batchSaveReqVO));
     }
 
 

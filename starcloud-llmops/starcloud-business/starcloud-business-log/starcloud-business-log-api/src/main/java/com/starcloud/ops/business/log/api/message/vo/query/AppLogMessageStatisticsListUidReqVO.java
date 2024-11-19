@@ -10,7 +10,6 @@ import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * @author nacoyer
@@ -80,12 +79,12 @@ public class AppLogMessageStatisticsListUidReqVO implements Serializable {
      * 创建时间
      */
     @Schema(description = "数据开始时间", hidden = true)
-    private LocalDateTime startTime;
+    private String startTime;
 
     /**
      * 创建时间
      */
     @Schema(description = "数据结束时间", hidden = true)
-    private LocalDateTime endTime;
+    private String endTime;
 
 }

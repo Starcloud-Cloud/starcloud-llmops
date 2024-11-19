@@ -27,4 +27,6 @@ public interface RoleApi {
      */
     List<String> getRoleNameList(Long userId);
 
+    List<String> getRoleCodeList(Long userId);
+
 }

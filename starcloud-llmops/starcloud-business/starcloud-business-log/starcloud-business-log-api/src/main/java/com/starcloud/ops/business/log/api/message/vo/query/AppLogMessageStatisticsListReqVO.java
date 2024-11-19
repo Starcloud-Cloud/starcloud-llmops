@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -91,12 +90,12 @@ public class AppLogMessageStatisticsListReqVO implements Serializable {
      * 创建时间
      */
     @Schema(description = "数据开始时间")
-    private LocalDateTime startTime;
+    private String startTime;
 
     /**
      * 创建时间
      */
     @Schema(description = "数据结束时间")
-    private LocalDateTime endTime;
+    private String endTime;
 
 }

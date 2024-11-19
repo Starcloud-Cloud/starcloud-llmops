@@ -42,6 +42,12 @@ public interface BusinessJobService {
      */
     BusinessJobDO getByJobId(Long jobId);
 
+
+    /**
+     * 可执行次数减一
+     */
+    void decreaseNum(String uid);
+
     /**
      * 执行任务
      */

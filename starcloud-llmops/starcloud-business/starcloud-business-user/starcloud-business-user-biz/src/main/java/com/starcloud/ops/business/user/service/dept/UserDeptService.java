@@ -10,6 +10,7 @@ import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserDeptService {
 
@@ -101,10 +102,16 @@ public interface UserDeptService {
 
     /**
      * 查询此用户是超级管理员的部门
+     *
      * @param userId
      * @return
      */
     UserDeptDO selectOwnerDept(Long userId);
+
+    /**
+     * 查询用户的部门信息
+     */
+    UserDeptDO selectByDeptAndUser(Long userDeptId, Long userId);
 
     /**
      * 记录消耗
@@ -113,5 +120,10 @@ public interface UserDeptService {
      * @param rightsType
      * @param rightAmount
      */
-    void recordRights(UserDeptDO deptDO,Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
+    void recordRights(UserDeptDO deptDO, Long userId, AdminUserRightsTypeEnum rightsType, Integer rightAmount);
+
+    /**
+     * yo
+     */
+    Set<String> getUserPermission();
 }

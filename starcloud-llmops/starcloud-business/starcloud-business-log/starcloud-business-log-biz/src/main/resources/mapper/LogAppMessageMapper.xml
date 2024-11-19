@@ -15,16 +15,6 @@
     -->
     <!-- # COUNT(CASE WHEN fb.rating = 'LIKE' THEN 1 END)                                AS feedbackLikeCount, -->
     <sql id="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF">
-        COUNT(ms.id)                                                                  AS messageCount,
-        COUNT(CASE WHEN ms.status = 'SUCCESS' THEN 1 END)                             AS successCount,
-        COUNT(CASE WHEN ms.status = 'SUCCESS' AND ms.app_mode != 'IMAGE' THEN 1 END)  AS completionSuccessCount,
-        COUNT(CASE WHEN ms.status = 'SUCCESS' AND ms.app_mode = 'IMAGE' THEN 1 END)   AS imageSuccessCount,
-        
-        COUNT(CASE WHEN ms.status != 'SUCCESS' THEN 1 END)                            AS errorCount,
-        COUNT(CASE WHEN ms.status != 'SUCCESS' AND ms.app_mode != 'IMAGE' THEN 1 END) AS completionErrorCount,
-        COUNT(CASE WHEN ms.status != 'SUCCESS' AND ms.app_mode = 'IMAGE' THEN 1 END)  AS imageErrorCount,
-        
-        
         AVG(CASE WHEN ms.app_mode != 'IMAGE' THEN ms.elapsed END)                     AS completionAvgElapsed,
         AVG(CASE WHEN ms.app_mode = 'IMAGE' THEN ms.elapsed END)                      AS imageAvgElapsed,
         
@@ -37,54 +27,58 @@
             (CASE WHEN ms.app_mode = 'COMPLETION' THEN ms.answer_tokens END))         AS completionTokens,
         SUM((CASE WHEN ms.app_mode = 'CHAT' THEN ms.message_tokens END) +
             (CASE WHEN ms.app_mode = 'CHAT' THEN ms.answer_tokens END))               AS chatTokens,
+        
+        <include refid="UPDATE_DATE_COLUMN_REF"/>
+    </sql>
+    
+    <sql id="UPDATE_DATE_COLUMN_REF">
         <choose>
             <when test="query.unit == 'HOURS'">
-                ms.vrh_create_tiem as create_date
-            </when>
+                co.vrh_update_time as update_date</when>
             <when test="query.unit == 'DAYS'">
-                ms.vrd_create_time AS create_date
+                co.vrd_update_time AS update_date
             </when>
             <when test="query.unit == 'MONTHS'">
-                ms.vrm_create_time AS create_date
+                co.vrm_update_time AS update_date
             </when>
             <otherwise>
-                ms.vrd_create_time AS create_date
+                co.vrd_update_time AS update_date
             </otherwise>
         </choose>
     </sql>
     
-    <sql id="RANG_TIME_SQL">
+    <sql id="RANG_UPDATE_DATE_SQL">
         <if test="query.startTime != null and query.endTime != null">
             <choose>
                 <when test="query.unit == 'HOURS'">
-                    AND ms.vrh_create_tiem BETWEEN #{query.startTime} AND #{query.endTime}
+                    AND co.vrh_update_time BETWEEN #{query.startTime} AND #{query.endTime}
                 </when>
                 <when test="query.unit == 'DAYS'">
-                    AND ms.vrd_create_time BETWEEN #{query.startTime} AND #{query.endTime}
+                    AND co.vrd_update_time BETWEEN #{query.startTime} AND #{query.endTime}
                 </when>
                 <when test="query.unit == 'MONTHS'">
-                    AND ms.vrm_create_time BETWEEN #{query.startTime} AND #{query.endTime}
+                    AND co.vrm_update_time BETWEEN #{query.startTime} AND #{query.endTime}
                 </when>
                 <otherwise>
-                    AND ms.vrd_create_time BETWEEN #{query.startTime} AND #{query.endTime}
+                    AND co.vrd_update_time BETWEEN #{query.startTime} AND #{query.endTime}
                 </otherwise>
             </choose>
         </if>
     </sql>
     
-    <sql id="USE_INDEX_SQL">
+    <sql id="USE_UPDATE_DATE_INDEX_SQL">
         <choose>
             <when test="query.unit == 'HOURS'">
-                USE INDEX (idx_vrh_create_time)
+                USE INDEX (idx_vrh_update_time)
             </when>
             <when test="query.unit == 'DAYS'">
-                USE INDEX (idx_vrd_create_time)
+                USE INDEX (idx_vrd_update_time)
             </when>
             <when test="query.unit == 'MONTHS'">
-                USE INDEX (idx_vrm_create_time)
+                USE INDEX (idx_vrm_update_time)
             </when>
             <otherwise>
-                USE INDEX (idx_vrd_create_time)
+                USE INDEX (idx_vrd_update_time)
             </otherwise>
         </choose>
     </sql>
@@ -95,12 +89,12 @@
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
         FROM
-            llm_log_app_message as ms <include refid="USE_INDEX_SQL"/>
+            llm_log_app_conversation as co <include refid="USE_UPDATE_DATE_INDEX_SQL"/>
         LEFT JOIN
-             llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+            llm_log_app_message as ms on co.uid = ms.app_conversation_uid
         <where>
             <!-- 日期 -->
-            <include refid="RANG_TIME_SQL"/>
+            <include refid="RANG_UPDATE_DATE_SQL"/>
             <if test="query.appUid != null and query.appUid != ''">
                 AND ms.app_uid = #{query.appUid}
             </if>
@@ -133,8 +127,8 @@
                 AND co.app_name LIKE #{appName}
             </if>
         </where>
-        GROUP BY create_date
-        ORDER BY create_date;
+        GROUP BY update_date
+        ORDER BY update_date;
     </select>
     
     <!-- 根据应用 UID 日志统计 -->
@@ -143,12 +137,12 @@
         SELECT
         <include refid="LIST_LOG_MESSAGE_STATISTICS_COLUMNS_REF"/>
         FROM
-            llm_log_app_message as ms <include refid="USE_INDEX_SQL"/>
+            llm_log_app_conversation as co <include refid="USE_UPDATE_DATE_INDEX_SQL"/>
         LEFT JOIN
-            llm_log_app_conversation as co on co.uid = ms.app_conversation_uid
+            llm_log_app_message as ms on co.uid = ms.app_conversation_uid
         <where>
             <!-- 日期 -->
-            <include refid="RANG_TIME_SQL"/>
+            <include refid="RANG_UPDATE_DATE_SQL"/>
             <choose>
                 <when test="query.marketUid != null and query.marketUid != ''">
                     AND ms.app_uid IN (#{query.appUid}, #{query.marketUid})
@@ -170,8 +164,8 @@
                 AND co.creator = #{query.userId}
             </if>
         </where>
-        GROUP BY create_date
-        ORDER BY create_date;
+        GROUP BY update_date
+        ORDER BY update_date;
     </select>
 
 

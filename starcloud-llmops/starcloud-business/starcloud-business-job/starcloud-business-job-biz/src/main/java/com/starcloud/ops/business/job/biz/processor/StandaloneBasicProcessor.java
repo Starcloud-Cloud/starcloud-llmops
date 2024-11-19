@@ -2,11 +2,14 @@ package com.starcloud.ops.business.job.biz.processor;
 
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.context.UserContextHolder;
+import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.JobLogBaseVO;
+import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
 import com.starcloud.ops.business.job.biz.dal.dataobject.BusinessJobDO;
+import com.starcloud.ops.business.job.biz.powerjob.PowerjobManager;
 import com.starcloud.ops.business.job.biz.processor.dto.CozeProcessResultDTO;
 import com.starcloud.ops.business.job.biz.processor.dto.TaskContextDTO;
 import com.starcloud.ops.business.job.biz.service.BusinessJobLogService;
@@ -14,6 +17,9 @@ import com.starcloud.ops.business.job.biz.service.BusinessJobService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import tech.powerjob.worker.core.processor.ProcessResult;
 import tech.powerjob.worker.core.processor.TaskContext;
 import tech.powerjob.worker.core.processor.sdk.BasicProcessor;
@@ -21,6 +27,8 @@ import tech.powerjob.worker.log.OmsLogger;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 单机执行BasicProcessor
@@ -36,6 +44,12 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
     @Resource
     private BusinessJobLogService jobLogService;
 
+    @Resource
+    private RedissonClient redissonClient;
+
+    @Autowired(required = false)
+    private PowerjobManager powerjobManager;
+
     @Override
     @DataPermission(enable = false)
     @TenantIgnore
@@ -45,9 +59,40 @@ public abstract class StandaloneBasicProcessor implements BasicProcessor {
         OmsLogger omsLogger = context.getOmsLogger();
         Long jobId = context.getJobId();
         BusinessJobDO businessJobDO = businessJobService.getByJobId(jobId);
+
+        RLock lock = redissonClient.getLock("job_lock" + jobId);
         if (BooleanUtils.isNotTrue(businessJobDO.getEnable())) {
-            return new ProcessResult(false, "任务已关闭，businessJobId=" + businessJobDO.getId() + ", jobId=" + jobId);
+            // 关闭powerjob task
+            powerjobManager.disable(jobId);
+            logError(omsLogger, "任务已关闭，businessJobId={}, jobId={}", businessJobDO.getId(), jobId);
+            return new ProcessResult(true, "任务已关闭，businessJobId=" + businessJobDO.getId() + ", jobId=" + jobId);
         }
+
+        try {
+            if (lock.tryLock(2, 2, TimeUnit.SECONDS)) {
+                BusinessJobRespVO byForeignKey = businessJobService.getByForeignKey(businessJobDO.getForeignKey());
+                Integer remainCount = businessJobDO.getRemainCount();
+                if (Objects.isNull(remainCount) || remainCount < 1) {
+                    //  关闭任务
+                    businessJobService.stop(byForeignKey.getUid());
+                    logError(omsLogger, "任务超过调用次数限制，businessJobId={}, jobId={}", businessJobDO.getId(), jobId);
+                    return new ProcessResult(true, "任务超过调用次数限制，businessJobId=" + businessJobDO.getId() + ", jobId=" + jobId);
+                } else if (remainCount == 1) {
+                    businessJobService.stop(byForeignKey.getUid());
+                    logInfo(omsLogger, "最后一次调用");
+                }
+                // 更新次数
+                businessJobService.decreaseNum(byForeignKey.getUid());
+            }
+        } catch (Exception e) {
+            logError(omsLogger, "任务调用异常，businessJobId={}, jobId={}", businessJobDO.getId(), jobId);
+            return new ProcessResult(false, "启动任务异常：" + e.getMessage() + "，businessJobId=" + businessJobDO.getId() + ", jobId=" + jobId);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+
         logInfo(omsLogger, "start execute businessJobId={}, retryTime={}", businessJobDO.getId(), context.getCurrentRetryTimes());
 
         String instanceParams = context.getInstanceParams();

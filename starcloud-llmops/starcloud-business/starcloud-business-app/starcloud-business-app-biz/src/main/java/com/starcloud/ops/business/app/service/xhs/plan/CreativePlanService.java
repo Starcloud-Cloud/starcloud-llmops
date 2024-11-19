@@ -10,6 +10,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.Creat
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanPageQuery;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanUpgradeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -141,7 +142,7 @@ public interface CreativePlanService {
     /**
      * 重我的应用或执行计划中获取应用信息
      *
-     * @param uid      应用UID
+     * @param uid        应用UID
      * @param planSource 计划来源
      * @return 应用信息
      */
@@ -154,4 +155,11 @@ public interface CreativePlanService {
      */
     List<CreativePlanRespVO> list(Integer limit);
 
+    /**
+     * 创作计划海报列表
+     *
+     * @param uid 计划ID
+     * @return 海报列表
+     */
+    List<PosterStyleDTO> planPosterList(String uid);
 }

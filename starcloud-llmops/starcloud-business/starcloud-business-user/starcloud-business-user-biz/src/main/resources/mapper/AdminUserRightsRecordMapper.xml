@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsRecordMapper">
+    
+    
+    
+    <select id="statisticsUserRightsByBizId"
+            resultType="com.starcloud.ops.business.user.api.rights.dto.StatisticsUserRightReqDTO">
+        SELECT user_id,
+        team_id,
+        biz_id,
+        rights_type,
+        ABS(SUM(IF(rights_type = 1, rights_amount, 0))) AS magicBeanCounts,
+        ABS(SUM(IF(rights_type = 2, rights_amount, 0))) AS imageCounts,
+        ABS(SUM(IF(rights_type = 3, rights_amount, 0))) AS matrixBeanCounts
+        FROM system_user_rights_record
+        WHERE biz_id IN
+        <foreach collection="bizIdList" item="bizId" open="(" separator="," close=")">
+            #{bizId}
+        </foreach>
+        GROUP BY biz_id
+    </select>
+</mapper>

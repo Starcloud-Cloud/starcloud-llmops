@@ -2,12 +2,16 @@ package com.starcloud.ops.business.user.service.invite;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.SetUtils;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.framework.tenant.core.util.TenantUtils;
+import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
+import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -59,6 +63,8 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
     @Resource
     private SendUserMsgService sendUserMsgService;
 
+    @Resource
+    private DictDataService dictDataService;
 
     @Override
     public Long createInvitationRecords(Long inviterId, Long inviteeId) {
@@ -256,15 +262,17 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
 
         log.info("准备发送消息，当前 tag 为{}", tag);
         if (tag > 0) {
-            sendMsg(inviteUserDO.getId(), inviteCount);
-        }
+            TenantUtils.execute(inviteUserDO.getTenantId(), () -> sendMsg(inviteUserDO.getId(), inviteCount)
+            );}
     }
 
     public void sendMsg(Long userId, Long count) {
         log.info("邀请达人公众号信息准备发送，userId={}", userId);
         // 发送信息
         try {
-            sendUserMsgService.sendMsgToWx(userId, "你好，我是魔法AI小助手，注意到您又邀请了3位朋友一起使用魔法AI，一张9.9元周体验优惠券已送达，限时72小时有效，<a href=\"https://www.mofaai.com.cn/subscribe\">立即使用</a> ！");
+
+            DictDataDO wechatInviteMsg = dictDataService.getDictData("WECHAT_INVITE_MSG", StrUtil.format("msg_{}", TenantContextHolder.getTenantId()));
+            sendUserMsgService.sendMsgToWx(userId, wechatInviteMsg.getRemark());
             log.info("邀请达人公众号信息发送成功，userId={}", userId);
         } catch (Exception e) {
             log.error("邀请达人公众号信息发送失败，userId={}", userId, e);

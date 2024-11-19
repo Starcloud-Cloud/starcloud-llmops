@@ -73,6 +73,28 @@ public class CreativeContentRespVO implements java.io.Serializable {
     @Schema(description = "执行响应")
     private CreativeContentExecuteResult executeResult;
 
+//
+//    /**
+//     * 生成的内容
+//     * @return
+//     */
+//    @Schema(description = "生成的内容")
+//    public CopyWritingContent getContent() {
+//        return this.getExecuteResult().getCopyWriting();
+//    }
+//
+//
+//    /**
+//     * 生成的图片列表
+//     * @return
+//     */
+//    @Schema(description = "图片")
+//    public List<ImageContent> getImageList() {
+//         return this.getExecuteResult().getImageList();
+//    }
+
+
+
     /**
      * 执行开始时间
      */

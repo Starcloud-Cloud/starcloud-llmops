@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.open.service.manager;
 
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
@@ -85,9 +87,10 @@ public class WechatUserManager {
         SocialUserBindDO socialUserBind = SocialUserBindDO.builder()
                 .userId(userId).userType(UserTypeEnum.ADMIN.getValue())
                 .socialType(socialUserDO.getType()).build();
-        socialUserService.bindWechatUser(socialUserDO, socialUserBind);
         Long inviteUserid = 0L;
         try {
+            UserContextHolder.setUserId(userId);
+            socialUserService.bindWechatUser(socialUserDO, socialUserBind);
             String inviteCode = redisTemplate.boundValueOps(wxMessage.getTicket() + "_inviteCode").get();
             if (StringUtils.isNotBlank(inviteCode)) {
                 inviteUserid = EncryptionUtils.decrypt(inviteCode);
@@ -95,6 +98,8 @@ public class WechatUserManager {
 
         } catch (Exception e) {
             log.warn("获取邀请用户失败，currentUser={}", userId, e);
+        } finally {
+            UserContextHolder.clear();
         }
 
         Long finalInviteUserid = inviteUserid;

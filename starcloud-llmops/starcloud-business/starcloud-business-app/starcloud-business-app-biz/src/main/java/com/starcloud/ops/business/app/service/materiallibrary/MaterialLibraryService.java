@@ -95,7 +95,7 @@ public interface MaterialLibraryService {
      * @param pageReqVO 分页查询
      * @return 素材知识库分页
      */
-    PageResult<MaterialLibraryDO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO);
+    PageResult<MaterialLibraryPageRespVO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO);
 
 
     /**

@@ -34,5 +34,7 @@
             <artifactId>starcloud-business-user-biz</artifactId>
             <version>${starcloud.revision}</version>
         </dependency>
+
+
     </dependencies>
 </project>

@@ -55,7 +55,7 @@ public interface ErrorCodeConstant {
 
     ErrorCode USER_RIGHTS_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_003, "用户魔法豆权益不足");
     ErrorCode USER_RIGHTS_IMAGE_NOT_ENOUGH= new ErrorCode(2_004_008_004, "用户图片权益不足");
-    ErrorCode USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_006, "用户矩阵豆权益不足");
+    ErrorCode USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH= new ErrorCode(2_004_008_006, "用户魔法豆权益不足");
 
     ErrorCode USER_RIGHTS_EXPIRE_FAIL_STATUS_NOT_ENABLE = new ErrorCode(2_004_008_005, "用户权益过期失败，用户等级不是启用状态");
     ErrorCode USER_RIGHTS_LIMIT_USE = new ErrorCode(2_004_008_006, " 今日{}权益已经使用完，请升级或明天再试！");
@@ -99,6 +99,10 @@ public interface ErrorCodeConstant {
     ErrorCode DEPT_IS_FULL =  new ErrorCode(2000500008, "空间人数超过 {} 个");
 
     ErrorCode TOO_MANY_DEPT_NUM =  new ErrorCode(2000500009, "加入空间数超过 {} 个");
+
+    ErrorCode NOT_BIND_DEPT =  new ErrorCode(2000500010, "用户:{} 未绑定空间:{}");
+
+    ErrorCode NO_PERMISSION =  new ErrorCode(2000500011, "用户没有[{}]权限");
 
     // 用户通知
 

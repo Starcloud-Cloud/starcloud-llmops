@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.service.rights;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
@@ -452,6 +453,19 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             return notifyExpiringRightsRespVO;
         }
 
+        // 获取当前租户
+        Long tenantId = TenantContextHolder.getTenantId();
+        if (Objects.nonNull(tenantId) && tenantId.equals(3L)) {
+
+            // 计算7 天内过期的魔法豆数量
+            int sumMatrixBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMatrixBean).sum();
+
+            notifyExpiringRightsRespVO.setName(AdminUserRightsTypeEnum.MATRIX_BEAN.getName());
+            notifyExpiringRightsRespVO.setRightsType(AdminUserRightsTypeEnum.MATRIX_BEAN.name());
+            notifyExpiringRightsRespVO.setIsNotify(sumMatrixBean <= 5);
+            notifyExpiringRightsRespVO.setExpiredNum(sumMatrixBean);
+            return notifyExpiringRightsRespVO;
+        }
         // 计算7 天内过期的魔法豆数量
         int sumMagicBean = validRightsList.stream().mapToInt(AdminUserRightsDO::getMagicBean).sum();
 
@@ -674,6 +688,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
       2）不是部门管理员，优先获取部门管理员。判断管理员有无剩余点数
       3，返回有剩余点的用户ID（管理员或当前用户）
      */
+
     /**
      * 这里关闭数据权限，主要是后面的 SQL查询会带上 kstry 线程中的其他正常用户的上下文，导致跟 powerjob 执行应用时候导致用户上下文冲突
      * 所以这里直接 关闭数据权限，这样下面的 关于权益的扣点 已经不需要用户上下文了，单ruiyi 本地比如SQL update会继续获取，所以后续的方法最好直接指定字段创作DB。

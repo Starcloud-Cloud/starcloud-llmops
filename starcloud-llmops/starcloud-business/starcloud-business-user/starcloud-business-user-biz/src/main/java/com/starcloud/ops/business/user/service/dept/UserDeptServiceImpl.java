@@ -2,8 +2,11 @@ package com.starcloud.ops.business.user.service.dept;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.context.UserContextHolder;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
@@ -36,10 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -74,6 +74,9 @@ public class UserDeptServiceImpl implements UserDeptService {
     @Resource
     private AdminUserRightsRecordService rightsRecordService;
 
+    @Resource
+    private AdminUserApi adminUserApi;
+
     private final static String baseStr = "ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     private final static String prefix = "dept_invite_";
@@ -100,6 +103,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             }
             deptUserRespVO.setImageCount(statisticsUserRightReqDTO.getImageCounts());
             deptUserRespVO.setCostPoints(statisticsUserRightReqDTO.getMagicBeanCounts());
+            deptUserRespVO.setMatrixBeanCounts(statisticsUserRightReqDTO.getMatrixBeanCounts());
         }
         return deptUserList;
     }
@@ -297,13 +301,20 @@ public class UserDeptServiceImpl implements UserDeptService {
         if (user == null) {
             return null;
         }
-        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
-        return userDeptDO;
+        return userDeptMapper.selectByDeptAndRole(user.getDeptId(), UserDeptRoleEnum.SUPER_ADMIN);
     }
 
     @Override
     public UserDeptDO selectOwnerDept(Long userId) {
-        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+        return userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+    }
+
+    @Override
+    public UserDeptDO selectByDeptAndUser(Long userDeptId, Long userId) {
+        UserDeptDO userDeptDO = userDeptMapper.selectByDeptAndUser(userDeptId, userId);
+        if (Objects.isNull(userDeptDO)) {
+            throw exception(NOT_BIND_DEPT);
+        }
         return userDeptDO;
     }
 
@@ -323,6 +334,21 @@ public class UserDeptServiceImpl implements UserDeptService {
         } catch (Exception e) {
             log.warn("记录空间扣点异常", e);
         }
+    }
+
+    @Override
+    public Set<String> getUserPermission() {
+        Long userId = UserContextHolder.getUserId();
+        if (Objects.isNull(userId)) {
+            userId = WebFrameworkUtils.getLoginUserId();
+        }
+        if (Objects.isNull(userId)) {
+            throw exception(USER_NOT_EXISTS);
+        }
+
+        AdminUserRespDTO user = adminUserApi.getUser(userId);
+        UserDeptDO userDeptDO = selectByDeptAndUser(user.getDeptId(), userId);
+        return UserDeptRoleEnum.getByRoleCode(userDeptDO.getDeptRole()).getPermissions();
     }
 
     private void validDeptNum(Long userId) {

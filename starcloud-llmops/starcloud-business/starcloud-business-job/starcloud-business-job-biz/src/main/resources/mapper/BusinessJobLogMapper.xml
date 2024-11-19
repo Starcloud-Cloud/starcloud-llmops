@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.job.biz.dal.mysql.BusinessJobLogMapper">
+
+    <select id="pluginLog" resultType="com.starcloud.ops.business.job.biz.dal.dataobject.JobLogDTO">
+        SELECT p.plugin_name as pluginName,
+        m.`name` as libraryName,
+        m.id as libraryId,
+        l.trigger_type as triggerType,
+        l.success as success,
+        l.execute_result as executeResult,
+        l.execute_time as executeTime,
+        l.trigger_time as triggerTime,
+        u.nickname AS creator
+        FROM llm_material_plugin_definition p
+        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid  collate utf8mb4_general_ci
+        INNER JOIN llm_material_library m ON c.library_uid = m.uid  collate utf8mb4_general_ci
+        INNER JOIN llm_business_job b ON c.uid = b.foreign_key collate utf8mb4_general_ci
+        INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
+        LEFT JOIN system_users u ON b.creator = u.id
+        WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
+        order by l.id desc
+        LIMIT #{start},#{size}
+    </select>
+
+    <select id="count" resultType="java.lang.Long">
+        SELECT count(l.uid)
+        FROM llm_material_plugin_definition p
+        INNER JOIN llm_material_plugin_config c ON p.uid = c.plugin_uid collate utf8mb4_general_ci
+        INNER JOIN llm_material_library m ON c.library_uid = m.uid collate utf8mb4_general_ci
+        INNER JOIN llm_business_job b ON c.uid = b.foreign_key collate utf8mb4_general_ci
+        INNER JOIN llm_job_log l ON b.uid = l.business_job_uid
+        WHERE p.deleted = FALSE AND c.deleted = FALSE AND b.deleted = FALSE and l.deleted = FALSE
+    </select>
+    <select id="appDetail" resultType="com.starcloud.ops.business.job.biz.dal.dataobject.BindAppDetail">
+        select b.library_id as libraryId,
+        b.app_uid as bindAppUid,p.app_uid as appMarketUid,b.app_type as bindAppType,
+        (CASE b.app_type
+        WHEN 10 THEN
+        a.name
+        WHEN 20 THEN
+        m.name
+        when 30 THEN
+        json_unquote(JSON_EXTRACT(p.configuration, '$.appInformation.name'))
+        END ) as appName
+        FROM
+        llm_material_library_app_bind b
+        LEFT JOIN llm_app a ON b.app_uid = a.uid COLLATE utf8mb4_unicode_ci and b.app_type = 10
+        LEFT JOIN llm_app_market m on b.app_uid = m.uid COLLATE utf8mb4_unicode_ci  and b.app_type = 20
+        LEFT JOIN llm_creative_plan p on b.app_uid = p.uid collate utf8mb4_general_ci and b.app_type = 30
+        WHERE b.library_id in
+        <foreach collection="libraryIdList" open="(" close=")" item="libraryId" separator=",">
+            #{libraryId}
+        </foreach>
+    </select>
+</mapper>

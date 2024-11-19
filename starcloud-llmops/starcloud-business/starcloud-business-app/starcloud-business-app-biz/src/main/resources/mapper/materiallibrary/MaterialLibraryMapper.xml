@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper">
+
+
+
+
+ <!-- 查询收藏应用列表 -->
+ <select id="selectPage3" resultType="com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageRespVO">
+  SELECT
+  a.id,
+  a.uid,
+  a.name,
+  a.icon_url,
+  a.description,
+  a.format_type,
+  a.library_type,
+  a.create_source,
+  COUNT(s.id) AS file_count,  -- 计算文件数
+  a.all_file_size,
+  a.share_range,
+  a.total_used_count,
+  a.plugin_config,
+  a.status,
+  a.creator,
+  a.create_time,
+  a.update_time,
+  u.nickname AS create_name  -- 获取创建人名称
+  FROM llm_material_library a
+  LEFT JOIN llm_material_library_slice s ON a.id = s.library_id   AND s.deleted = 0
+  LEFT JOIN system_users u ON a.creator = u.id    AND u.deleted = 0
+  <where>
+   <if test="query.name != null and query.name != '' ">
+    <bind name="name" value="query.name+'%'"/>
+    AND a.name LIKE #{query.name}
+   </if>
+   <if test="query.libraryType != null and query.libraryType != '' ">
+    AND a.library_type = #{query.libraryType}
+   </if>
+   <if test="query.createName != null and query.createName != '' ">
+    AND u.nickname = #{query.createName}
+   </if>
+   AND a.deleted = 0
+
+   AND u.deleted = 0
+  </where>
+  Group By  a.id;
+ </select>
+ </mapper>

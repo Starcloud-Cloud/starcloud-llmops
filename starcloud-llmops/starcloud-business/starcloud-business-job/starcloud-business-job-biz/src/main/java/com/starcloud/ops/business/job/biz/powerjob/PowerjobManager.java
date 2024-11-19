@@ -5,6 +5,8 @@ import com.starcloud.ops.business.job.biz.enums.BusinessJobTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import tech.powerjob.client.PowerJobClient;
 import tech.powerjob.common.enums.DispatchStrategy;
@@ -23,6 +25,7 @@ import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.REQ
 
 @Slf4j
 @Component
+//@ConditionalOnBean(value = {PowerJobClient.class})
 public class PowerjobManager {
 
     @Resource
@@ -57,7 +60,7 @@ public class PowerjobManager {
         // 最大实例个数
         request.setMaxInstanceNum(1);
         request.setInstanceTimeLimit(310000L);
-        request.setTaskRetryNum(3);
+        request.setTaskRetryNum(2);
         request.setId(jobId);
 
         ResultDTO<Long> result = powerJobClient.saveJob(request);

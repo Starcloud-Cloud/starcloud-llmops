@@ -40,6 +40,7 @@ import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppModifyType;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppStepResponseTypeEnum;
@@ -63,6 +64,8 @@ import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -122,6 +125,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private PluginsDefinitionService pluginsDefinitionService;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     /**
      * 查询应用语言列表
@@ -242,34 +248,7 @@ public class AppServiceImpl implements AppService {
     public AppRespVO get(String uid) {
         AppDO app = appMapper.get(uid, Boolean.FALSE);
         AppValidate.notNull(app, ErrorCodeConstants.RESULT_NOT_EXIST, "应用不存在，请稍后重试或者联系管理员（{}）！", uid);
-        AppRespVO appResponse = AppConvert.INSTANCE.convertResponse(app);
-        if (AppTypeEnum.MEDIA_MATRIX.name().equals(appResponse.getType())) {
-            // 迁移旧素材数据
-            WorkflowStepWrapperRespVO stepByHandler = appResponse.getStepByHandler(MaterialActionHandler.class);
-            if (CollectionUtil.isNotEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                // 从数据库迁移
-                creativeMaterialManager.migrateFromData(app.getName(), app.getUid(),
-                        MaterialBindTypeEnum.APP_MAY.getCode(), stepByHandler, app.getMaterialList(), Long.valueOf(app.getCreator()));
-                app.setMaterialList(Collections.emptyList());
-                appMapper.updateById(app);
-            } else if (CollectionUtil.isEmpty(app.getMaterialList()) && Objects.nonNull(stepByHandler)) {
-                String stepVariableValue = stepByHandler.getVariableToString(CreativeConstants.LIBRARY_QUERY);
-
-                if (StringUtils.isBlank(stepVariableValue)) {
-                    // 新建
-                    creativeMaterialManager.createEmptyLibrary(app.getName(), app.getUid(),
-                            MaterialBindTypeEnum.APP_MAY.getCode(), Long.valueOf(app.getCreator()));
-                } else {
-                    // 从变量迁移
-                    creativeMaterialManager.migrateFromConfig(app.getName(), app.getUid(),
-                            MaterialBindTypeEnum.APP_MAY.getCode(), stepVariableValue, Long.valueOf(app.getCreator()));
-                    stepByHandler.putVariable(CreativeConstants.LIBRARY_QUERY, "");
-                    app.setConfig(JsonUtils.toJsonString(appResponse.getWorkflowConfig()));
-                    appMapper.updateById(app);
-                }
-            }
-        }
-        return appResponse;
+        return AppConvert.INSTANCE.convertResponse(app);
     }
 
     /**
@@ -375,6 +354,10 @@ public class AppServiceImpl implements AppService {
      */
     @Override
     public AppRespVO modify(AppUpdateReqVO request) {
+        if (AppModifyType.isModify(request.getE())) {
+            AppDO appDO = appMapper.get(request.getUid(), Boolean.TRUE);
+            deptPermissionApi.checkPermission(DeptPermissionEnum.app_edit, Long.valueOf(appDO.getCreator()));
+        }
         // 校验并且处理请求
         List<Verification> verifications = handlerAndValidateRequest(request);
         if (CollectionUtil.isNotEmpty(verifications)) {
@@ -389,6 +372,7 @@ public class AppServiceImpl implements AppService {
         appEntity.setUid(request.getUid());
         appEntity.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
         appEntity.setUpdateTime(LocalDateTime.now());
+        appEntity.setValidate(Boolean.TRUE);
 
         // 插件配置
         if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appEntity.getType())) {
@@ -414,6 +398,10 @@ public class AppServiceImpl implements AppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
+        AppDO appDO = appMapper.get(uid, Boolean.TRUE);
+        deptPermissionApi.checkPermission(DeptPermissionEnum.app_delete,
+                Long.valueOf(appDO.getCreator()));
+
         // 删除应用
         appMapper.delete(uid);
         // 查询应用发布信息
@@ -567,6 +555,10 @@ public class AppServiceImpl implements AppService {
                     VerificationUtils.addVerificationApp(verifications, request.getName(), "不支持的租户类型!");
                     return verifications;
                 }
+            }
+            // 如果类目为OTHER。且为媒体矩阵
+            if (AppConstants.JUZHEN_TENANT_ID.equals(tenantId) && "OTHER".equals(request.getCategory())) {
+                request.setCategory("COMMON");
             }
 
             // 查询类目列表，判断类目是否支持

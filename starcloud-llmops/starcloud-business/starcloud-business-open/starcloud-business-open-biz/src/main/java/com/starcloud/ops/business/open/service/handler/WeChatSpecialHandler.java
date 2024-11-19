@@ -1,6 +1,8 @@
 package com.starcloud.ops.business.open.service.handler;
 
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.enums.click.WeChatClickTypeEnum;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Map;
 
+import static com.starcloud.ops.business.user.enums.DictTypeConstants.MP_INVITE_URL;
 import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_APP;
 
 @Component
@@ -37,6 +40,7 @@ public class WeChatSpecialHandler implements WxMpMessageHandler {
     private DictDataService dictDataService;
 
     @Override
+    @DataPermission(enable = false)
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         log.info("接收到公共号指定菜单请求，内容：{}", wxMessage);
         AdminUserDO userDO = socialUserService.getSocialUser(wxMessage.getFromUser(), SocialTypeEnum.WECHAT_MP.getType(), UserTypeEnum.ADMIN.getValue());
@@ -53,7 +57,7 @@ public class WeChatSpecialHandler implements WxMpMessageHandler {
 
         if (WeChatClickTypeEnum.SPECIAL_SHARE.getCode().equalsIgnoreCase(wxMessage.getEventKey())) {
             // 分享
-            DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "invite_url");
+            DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, MP_INVITE_URL + TenantContextHolder.getTenantId());
             String msg = dictDataDO.getValue() + EncryptionUtils.encrypt(userDO.getId());
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
         }

@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.model.plan;
 
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 计划执行结果
@@ -21,4 +23,7 @@ public class PlanExecuteResult implements Serializable {
     private String batchUid;
 
     private String warning;
+
+
+    private List<CreativeContentRespVO> contentRespVOList;
 }

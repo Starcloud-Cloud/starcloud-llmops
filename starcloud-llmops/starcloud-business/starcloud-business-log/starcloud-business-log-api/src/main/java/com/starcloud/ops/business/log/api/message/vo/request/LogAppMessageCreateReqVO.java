@@ -38,7 +38,7 @@ public class LogAppMessageCreateReqVO extends LogAppMessageBaseVO {
     private String updater;
 
     /**
-     * 部门编号
+     * 部门ID
      */
     private Long deptId;
 

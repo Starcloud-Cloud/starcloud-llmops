@@ -2,6 +2,7 @@ package com.starcloud.ops.business.user.service.impl;
 
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.mp.controller.admin.message.vo.message.MpMessageSendReqVO;
 import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
@@ -15,8 +16,9 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.user.api.SendUserMsgService;
 import com.starcloud.ops.business.user.dal.dataobject.invite.AdminUserInviteDO;
-import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
+import com.starcloud.ops.business.user.service.MpAppManager;
 import com.starcloud.ops.business.user.service.SendSocialMsgService;
+import com.starcloud.ops.business.user.service.invite.AdminUserInviteService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.api.WxConsts;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +32,8 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.user.enums.DictTypeConstants.*;
+import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_MSG;
+import static com.starcloud.ops.business.user.enums.DictTypeConstants.WX_REGISTER_MSG;
 
 
 @Service
@@ -85,7 +88,7 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
         log.info("邀请记录超过3个，发送推广信息");
         SocialUserDO socialUserDO = socialUserList.get(0);
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "invite_reply");
-        MpContextHolder.setAppId(dictDataService.parseDictData(WECHAT_APP, "app_id").getValue());
+        MpContextHolder.setAppId(MpAppManager.getMpAppId(TenantContextHolder.getTenantId()));
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
         String format = String.format(dictDataDO.getValue(), invitationRecords.size());
         messageSendReqVO.setContent(format);
@@ -146,9 +149,9 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
             return;
         }
         SocialUserDO socialUserDO = socialUserOptional.get();
-        DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_APP, "app_id");
-        MpContextHolder.setAppId(dictDataDO.getValue());
-        MpUserDO user = mpUserService.getUser(dictDataDO.getValue(), socialUserDO.getOpenid());
+        String appId = MpAppManager.getMpAppId(TenantContextHolder.getTenantId());
+        MpContextHolder.setAppId(appId);
+        MpUserDO user = mpUserService.getUser(appId, socialUserDO.getOpenid());
 
         MpMessageSendReqVO messageSendReqVO = new MpMessageSendReqVO();
         messageSendReqVO.setContent(content);

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.system.dal.dataobject.social;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import com.baomidou.mybatisplus.annotation.KeySequence;
@@ -19,7 +20,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SocialUserDO extends TenantBaseDO {
+public class SocialUserDO extends DeptBaseDO {
 
     /**
      * 自增主键

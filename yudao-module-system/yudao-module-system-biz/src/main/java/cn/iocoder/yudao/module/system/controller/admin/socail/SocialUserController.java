@@ -7,6 +7,7 @@ import cn.iocoder.yudao.module.system.controller.admin.socail.vo.SocialUserBindR
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.SocialUserUnbindReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserRespVO;
+import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserUpdateSimpleReqVO;
 import cn.iocoder.yudao.module.system.convert.social.SocialUserConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
@@ -70,4 +71,11 @@ public class SocialUserController {
         return success(SocialUserConvert.INSTANCE.convertPage(pageResult));
     }
 
+
+    @PostMapping("/update-nickname")
+    @Operation(summary = "更新社交用户昵称")
+    public CommonResult<Boolean> getSocialUserPage(@RequestBody @Valid SocialUserUpdateSimpleReqVO simpleReqVO) {
+         socialUserService.updateNickname(simpleReqVO);
+        return success(true);
+    }
 }

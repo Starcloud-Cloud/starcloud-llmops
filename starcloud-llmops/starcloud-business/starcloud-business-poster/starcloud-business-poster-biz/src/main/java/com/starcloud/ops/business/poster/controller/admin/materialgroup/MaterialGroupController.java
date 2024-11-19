@@ -64,6 +64,9 @@ public class MaterialGroupController {
     @Operation(summary = "获得海报素材分组")
     @Parameter(name = "uid", description = "编号", required = true, example = "1024")
     public CommonResult<MaterialGroupRespVO> getMaterialGroup(@RequestParam("uid") String uid) {
+        //  忽略用户权限获取
+
+
         MaterialGroupDO materialGroup = materialGroupService.getMaterialGroupByUid(uid);
         if (materialGroup == null) {
             throw exception(MATERIAL_GROUP_NOT_EXISTS);
@@ -85,7 +88,7 @@ public class MaterialGroupController {
 
 
     @GetMapping("u/copy")
-    @Operation(summary = "获得海报素材分组分页")
+    @Operation(summary = "复制分组")
     public CommonResult<Boolean> copy(@RequestParam("uid") String uid) {
         materialGroupService.copyGroup(uid);
         return success(true);

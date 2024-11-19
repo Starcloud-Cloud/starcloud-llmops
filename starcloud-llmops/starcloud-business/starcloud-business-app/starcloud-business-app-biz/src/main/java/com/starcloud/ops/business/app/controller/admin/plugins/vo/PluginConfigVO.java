@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.plugins.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 
@@ -19,6 +20,11 @@ public class PluginConfigVO {
     @Schema(description = "插件uid")
     @NotBlank(message = "插件uid 不能为空")
     private String pluginUid;
+
+    @Schema(description = "绑定名称")
+    @NotBlank(message = "绑定名称 不能为空")
+    @Length(max = 10,message = "绑定名称最长不可超过 10")
+    private String bindName;
 
     /**
      * 字段映射
