@@ -110,6 +110,10 @@ public class CustomActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+            return Collections.emptyList();
+        }
+
         List<Verification> verifications = new ArrayList<>();
         String stepName = wrapper.getName();
         String stepCode = wrapper.getStepCode();
