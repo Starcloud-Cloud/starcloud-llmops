@@ -3,8 +3,10 @@ package com.starcloud.ops.business.user.dal.dataobject.level;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.*;
 
@@ -62,6 +64,12 @@ public class AdminUserLevelDO extends BaseDO {
      * 冗余 {@link AdminUserLevelConfigDO#getName()} 字段
      */
     private String levelName;
+
+    /**
+     * 属性数组，JSON 格式
+     */
+    @TableField(typeHandler = AdminUserLevelConfigDO.LevelConfigTypeHandler.class)
+    private LevelConfigDTO levelConfig;
 
     /**
      * 状态
