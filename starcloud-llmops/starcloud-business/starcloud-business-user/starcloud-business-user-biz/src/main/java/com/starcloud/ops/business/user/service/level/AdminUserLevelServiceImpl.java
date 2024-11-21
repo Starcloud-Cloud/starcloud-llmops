@@ -142,6 +142,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
 
         adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        adminUserLevelDO.setLevelConfig(levelConfig.getLevelConfig());
         adminUserLevelDO.setDescription(StrUtil.format(AdminUserRightsBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(adminUserLevelDO);
@@ -201,7 +202,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         adminUserLevelDO.setCreator(String.valueOf(userId));
         adminUserLevelDO.setUpdater(String.valueOf(userId));
 
-
+        adminUserLevelDO.setLevelConfig(levelConfigDO.getLevelConfig());
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(adminUserLevelDO);
 
@@ -262,7 +263,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
         List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
         List<AdminUserLevelDetailRespVO> bean = BeanUtil.copyToList(adminUserLevelDOS, AdminUserLevelDetailRespVO.class);
-        return bean.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed()).collect(Collectors.toList());
+        return bean.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getLevelId).reversed()).collect(Collectors.toList());
 
     }
 
