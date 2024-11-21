@@ -122,6 +122,8 @@ public class TradePriceCalculateRespBO {
          */
         private Integer payPrice;
 
+        private Integer unitPrice;
+
     }
 
     /**
