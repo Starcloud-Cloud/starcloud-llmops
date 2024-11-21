@@ -263,7 +263,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
         List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
         List<AdminUserLevelDetailRespVO> bean = BeanUtil.copyToList(adminUserLevelDOS, AdminUserLevelDetailRespVO.class);
-        return bean.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed()).collect(Collectors.toList());
+        return bean.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getLevelId).reversed()).collect(Collectors.toList());
 
     }
 
