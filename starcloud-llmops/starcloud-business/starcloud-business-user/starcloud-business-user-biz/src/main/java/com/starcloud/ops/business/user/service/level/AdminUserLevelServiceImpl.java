@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.level;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
@@ -195,7 +196,9 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         // 设置结束时间
         LocalDateTime endTime = getPlusTimeByRange(levelBasicDTO.getTimesRange().getRange(), levelBasicDTO.getTimesRange().getNums(), startTime);
-        levelConfigDO.getLevelConfig().setUsableTeams(orderNums);
+        levelConfigDO
+                .getLevelConfig()
+                .setUsableTeamUsers(orderNums);
 
         AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(userId, bizId, bizType, levelBasicDTO.getLevelId(), levelConfigDO.getName(), StrUtil.format(AdminUserRightsBizTypeEnum.getByType(bizType).getDescription(), levelConfigDO.getName()), startTime, endTime);
 
@@ -262,7 +265,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Override
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
         List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
-        List<AdminUserLevelDetailRespVO> bean = BeanUtil.copyToList(adminUserLevelDOS, AdminUserLevelDetailRespVO.class);
+        List<AdminUserLevelDetailRespVO> bean = BeanUtil.copyToList(adminUserLevelDOS, AdminUserLevelDetailRespVO.class, CopyOptions.create().setFieldMapping(MapUtil.of("levelConfig","levelConfigDTO")));
         return bean.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getLevelId).reversed()).collect(Collectors.toList());
 
     }
