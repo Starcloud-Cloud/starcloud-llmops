@@ -252,10 +252,10 @@ public class ProductSpuController {
 
         for (AppProductPropertyValueDetailRespVO property : properties) {
             switch (property.getValueName()) {
-                case "2月":
-                    return sku.getPrice() / 2;
                 case "3月":
                     return sku.getPrice() / 3;
+                case "6月":
+                    return sku.getPrice() / 6;
                 case "1年":
                     return sku.getPrice() / 12;
                 case "2年":
