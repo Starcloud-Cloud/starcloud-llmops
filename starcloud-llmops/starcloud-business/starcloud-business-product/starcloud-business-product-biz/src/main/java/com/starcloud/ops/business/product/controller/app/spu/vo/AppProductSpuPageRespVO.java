@@ -117,6 +117,10 @@ public class AppProductSpuPageRespVO {
         @Schema(description = "活动详情", example = "活动详情") // 单位：m^3 平米
         private String activeData;
 
+
+        @Schema(description = "每人单价", example = "1024") // 单位：m^3 平米
+        private Integer unitPrice;
+
     }
 
 }

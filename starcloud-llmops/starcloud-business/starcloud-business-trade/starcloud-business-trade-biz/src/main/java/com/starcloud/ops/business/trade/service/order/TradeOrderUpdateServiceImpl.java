@@ -154,48 +154,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         // 2. 计算价格
         TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, settlementReqVO);
-
-        calculateUnitPrice(calculateRespBO);
-
         // 3. 拼接返回
         return TradeOrderConvert.INSTANCE.convert(calculateRespBO, null);
     }
 
-    private void calculateUnitPrice(TradePriceCalculateRespBO calculateRespBO) {
-        //     calculateRespBO.getItems().stream().forEach(item -> {
-        //                 ProductSkuRespDTO sku = productSkuApi.getSku(item.getSkuId());
-        //                 sku.getProperties().stream().forEach(property -> {
-        //                     if(property.getPropertyName().contains("年")){
-        //                         calculateRespBO.getPrice().setUnitPrice(calculateRespBO.getPrice().getPayPrice()/(item.getCount() * 12));
-        //                     }
-        //
-        //                     calculateRespBO.getPrice().setUnitPrice(calculateRespBO.getPrice().getPayPrice());
-        //                 });
-        //
-        // });
-        List<TradePriceCalculateRespBO.OrderItem> items = calculateRespBO.getItems();
-        TradePriceCalculateRespBO.Price price = calculateRespBO.getPrice();
-
-        for (TradePriceCalculateRespBO.OrderItem item : items) {
-            ProductSkuRespDTO sku = productSkuApi.getSku(item.getSkuId());
-            List<ProductPropertyValueDetailRespDTO> properties = sku.getProperties();
-
-            for (ProductPropertyValueDetailRespDTO property : properties) {
-                if (property.getValueName().equals("1年")) {
-                    price.setUnitPrice(price.getPayPrice() / (item.getCount() * 12));
-                    break; // 找到一个符合条件的属性后，可以提前退出循环
-                }
-                if (property.getValueName().equals("2年")) {
-                    price.setUnitPrice(price.getPayPrice() / (item.getCount() * 12 * 2));
-                    break; // 找到一个符合条件的属性后，可以提前退出循环
-                }
-                if (property.getValueName().equals("3年")) {
-                    price.setUnitPrice(price.getPayPrice() / (item.getCount() * 12 * 3));
-                    break; // 找到一个符合条件的属性后，可以提前退出循环
-                }
-            }
-        }
-    }
 
 //    /**
 //     * 获得用户地址

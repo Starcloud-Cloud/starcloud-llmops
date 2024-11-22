@@ -93,8 +93,6 @@ public class AppTradeOrderSettlementRespVO {
         @Schema(description = "实际支付金额（总），单位：分", requiredMode = Schema.RequiredMode.REQUIRED, example = "450")
         private Integer payPrice;
 
-        private Integer unitPrice;
-
     }
 
     @Schema(description = "地址信息")
