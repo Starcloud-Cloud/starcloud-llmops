@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.level;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
@@ -142,6 +143,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
         adminUserLevelDO.setUpdater(String.valueOf(createReqVO.getUserId()));
 
         adminUserLevelDO.setStatus(CommonStatusEnum.ENABLE.getStatus());
+        adminUserLevelDO.setLevelConfig(levelConfig.getLevelConfig());
         adminUserLevelDO.setDescription(StrUtil.format(AdminUserRightsBizTypeEnum.getByType(adminUserLevelDO.getBizType()).getDescription(), levelConfig.getName()));
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(adminUserLevelDO);
@@ -162,7 +164,7 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
      * @return AdminUserLevelDO
      */
     @Override
-    public AdminUserLevelDO createLevelRecord(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId) {
+    public AdminUserLevelDO createLevelRecord(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId, int orderNums) {
 
         log.info("【开始添加用户等级，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
 
@@ -179,8 +181,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
 
         // 1.0 根据会员配置等级 获取会员配置信息
-        AdminUserLevelConfigDO levelConfig = levelConfigService.getLevelConfig(levelBasicDTO.getLevelId());
-        if (levelConfig == null) {
+        AdminUserLevelConfigDO levelConfigDO = levelConfigService.getLevelConfig(levelBasicDTO.getLevelId());
+        if (levelConfigDO == null) {
             throw exception(LEVEL_NOT_EXISTS);
         }
         LocalDateTime startTime;
@@ -194,17 +196,21 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
 
         // 设置结束时间
         LocalDateTime endTime = getPlusTimeByRange(levelBasicDTO.getTimesRange().getRange(), levelBasicDTO.getTimesRange().getNums(), startTime);
+        levelConfigDO
+                .getLevelConfig()
+                .setUsableTeamUsers(orderNums);
 
-        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(userId, bizId, bizType, levelBasicDTO.getLevelId(), levelConfig.getName(), StrUtil.format(AdminUserRightsBizTypeEnum.getByType(bizType).getDescription(), levelConfig.getName()), startTime, endTime);
+        AdminUserLevelDO adminUserLevelDO = AdminUserLevelConvert.INSTANCE.convert01(userId, bizId, bizType, levelBasicDTO.getLevelId(), levelConfigDO.getName(), StrUtil.format(AdminUserRightsBizTypeEnum.getByType(bizType).getDescription(), levelConfigDO.getName()), startTime, endTime);
 
         adminUserLevelDO.setCreator(String.valueOf(userId));
         adminUserLevelDO.setUpdater(String.valueOf(userId));
 
+        adminUserLevelDO.setLevelConfig(levelConfigDO.getLevelConfig());
         // 3.0 添加会员等级记录
         adminUserLevelMapper.insert(adminUserLevelDO);
 
         // 设置等级中绑定的角色
-        getSelf().buildUserRole(adminUserLevelDO.getUserId(), levelConfig.getRoleId(), null);
+        getSelf().buildUserRole(adminUserLevelDO.getUserId(), levelConfigDO.getRoleId(), null);
         log.info("【用户等级添加成功，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
         return adminUserLevelDO;
 
@@ -259,25 +265,8 @@ public class AdminUserLevelServiceImpl implements AdminUserLevelService {
     @Override
     public List<AdminUserLevelDetailRespVO> getLevelList(Long userId) {
         List<AdminUserLevelDO> adminUserLevelDOS = adminUserLevelMapper.getValidAdminUserLevels(userId, null, LocalDateTime.now());
-        List<AdminUserLevelDetailRespVO> adminUserLevelDetailRespVOS = new ArrayList<>();
-
-        for (AdminUserLevelDO level : adminUserLevelDOS) {
-            AdminUserLevelConfigDO levelConfig;
-            try {
-                levelConfig = levelConfigService.getLevelConfig(level.getLevelId());
-            } catch (Exception e) {
-                log.warn("未获取到该会员等级，{}", level.getLevelId());
-                continue; // 或者跳过当前循环迭代
-            }
-
-            AdminUserLevelDetailRespVO adminUserLevelDetailRespVO = new AdminUserLevelDetailRespVO();
-            adminUserLevelDetailRespVO.setUserId(userId).setLevelId(level.getLevelId()).setLevelName(level.getLevelName()).setBizType(level.getBizType());
-            adminUserLevelDetailRespVO.setSort(levelConfig.getSort()).setLevelConfigDTO(BeanUtil.toBean(levelConfig.getLevelConfig(), LevelConfigDTO.class));
-
-            adminUserLevelDetailRespVOS.add(adminUserLevelDetailRespVO);
-        }
-
-        return adminUserLevelDetailRespVOS.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getSort).reversed()).collect(Collectors.toList());
+        List<AdminUserLevelDetailRespVO> bean = BeanUtil.copyToList(adminUserLevelDOS, AdminUserLevelDetailRespVO.class, CopyOptions.create().setFieldMapping(MapUtil.of("levelConfig","levelConfigDTO")));
+        return bean.stream().sorted(Comparator.comparing(AdminUserLevelDetailRespVO::getLevelId).reversed()).collect(Collectors.toList());
 
     }
 

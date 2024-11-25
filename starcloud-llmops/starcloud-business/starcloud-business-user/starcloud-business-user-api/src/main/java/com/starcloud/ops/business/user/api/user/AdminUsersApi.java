@@ -24,6 +24,6 @@ public interface AdminUsersApi {
      * @param bizType                 业务类型
      * @param bizId                   业务编号
      */
-    void insertUserRightsAndLevel(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId);
+    void insertUserRightsAndLevel(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId, int orderNums);
 
 }

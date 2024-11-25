@@ -7,6 +7,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
 import com.starcloud.ops.business.product.controller.admin.spu.vo.*;
+import com.starcloud.ops.business.product.controller.app.property.vo.value.AppProductPropertyValueDetailRespVO;
 import com.starcloud.ops.business.product.controller.app.spu.vo.AppProductSpuDetailRespVO;
 import com.starcloud.ops.business.product.controller.app.spu.vo.AppProductSpuPageReqVO;
 import com.starcloud.ops.business.product.controller.app.spu.vo.AppProductSpuPageRespVO;
@@ -147,6 +148,8 @@ public class ProductSpuController {
             return success(Collections.emptyList());
         }
 
+        // 计算单价
+
         // 拼接返回
         List<AppProductSpuPageRespVO> voList = ProductSpuConvert.INSTANCE.convertListForGetSpuList(list);
         return success(voList);
@@ -165,7 +168,9 @@ public class ProductSpuController {
 
         voPageResult.getList().stream().forEach(spu -> {
             List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId(), true, getLoginUserId(), spu.getCategoryId());
-            spu.setSkus(ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus));
+            List<AppProductSpuPageRespVO.Sku> skuRespList = ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus);
+            skuRespList.stream().forEach(sku -> sku.setUnitPrice(calculateUnitPrice(sku)));
+            spu.setSkus(skuRespList);
 
         });
         return success(voPageResult);
@@ -239,6 +244,31 @@ public class ProductSpuController {
 
         });
         return success(appProductSpuPageRespVOS.get(0));
+    }
+
+
+    private Integer calculateUnitPrice(AppProductSpuPageRespVO.Sku sku) {
+        List<AppProductPropertyValueDetailRespVO> properties = sku.getProperties();
+
+        for (AppProductPropertyValueDetailRespVO property : properties) {
+            switch (property.getValueName()) {
+                case "3月":
+                    return sku.getPrice() / 3;
+                case "6月":
+                    return sku.getPrice() / 6;
+                case "1年":
+                    return sku.getPrice() / 12;
+                case "2年":
+                    return sku.getPrice() / 24;
+                case "3年":
+                    return sku.getPrice() / 36;
+                case "1月":
+                default:
+                    return sku.getPrice();
+            }
+        }
+
+        return sku.getPrice();
     }
 
 }
