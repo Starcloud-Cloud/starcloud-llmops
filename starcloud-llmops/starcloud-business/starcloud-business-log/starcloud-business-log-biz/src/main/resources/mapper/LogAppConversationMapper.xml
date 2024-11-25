@@ -126,6 +126,243 @@
         GROUP BY co.id
         ORDER BY co.update_time DESC
     </select>
-
-
+    
+    
+    <sql id="LIST_LOG_CONVERSATION_STATISTICS_COLUMNS_REF">
+        COUNT(co.id)                                                                  AS messageCount,
+        COUNT(CASE WHEN co.status = 'SUCCESS' THEN 1 END)                             AS successCount,
+        COUNT(CASE WHEN co.status = 'SUCCESS' AND co.app_mode != 'IMAGE' THEN 1 END)  AS completionSuccessCount,
+        COUNT(CASE WHEN co.status = 'SUCCESS' AND co.app_mode = 'IMAGE' THEN 1 END)   AS imageSuccessCount,
+        
+        COUNT(CASE WHEN co.status != 'SUCCESS' THEN 1 END)                            AS errorCount,
+        COUNT(CASE WHEN co.status != 'SUCCESS' AND co.app_mode != 'IMAGE' THEN 1 END) AS completionErrorCount,
+        COUNT(CASE WHEN co.status != 'SUCCESS' AND co.app_mode = 'IMAGE' THEN 1 END)  AS imageErrorCount,
+        <include refid="UPDATE_DATE_COLUMN_REF"/>
+    </sql>
+    
+    <sql id="LIST_RIGHTS_STATISTICS_COLUMNS_REF">
+        ABS(SUM(IF(surr.rights_type = 1, surr.rights_amount, 0))) AS completionCostPoints,
+        ABS(SUM(IF(surr.rights_type = 2, surr.rights_amount, 0))) AS imageCostPoints,
+        ABS(SUM(IF(surr.rights_type = 3, surr.rights_amount, 0))) AS matrixCostPoints,
+        <include refid="UPDATE_DATE_COLUMN_REF"/>
+    </sql>
+    
+    <sql id="UPDATE_DATE_COLUMN_REF">
+        <choose>
+            <when test="query.unit == 'HOURS'">
+                co.vrh_update_time as update_date</when>
+            <when test="query.unit == 'DAYS'">
+                co.vrd_update_time AS update_date
+            </when>
+            <when test="query.unit == 'MONTHS'">
+                co.vrm_update_time AS update_date
+            </when>
+            <otherwise>
+                co.vrd_update_time AS update_date
+            </otherwise>
+        </choose>
+    </sql>
+    
+    <sql id="RANG_UPDATE_DATE_SQL">
+        <if test="query.startTime != null and query.endTime != null">
+            <choose>
+                <when test="query.unit == 'HOURS'">
+                    AND co.vrh_update_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </when>
+                <when test="query.unit == 'DAYS'">
+                    AND co.vrd_update_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </when>
+                <when test="query.unit == 'MONTHS'">
+                    AND co.vrm_update_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </when>
+                <otherwise>
+                    AND co.vrd_update_time BETWEEN #{query.startTime} AND #{query.endTime}
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    
+    <sql id="USE_UPDATE_DATE_INDEX_SQL">
+        <choose>
+            <when test="query.unit == 'HOURS'">
+                USE INDEX (idx_vrh_update_time)
+            </when>
+            <when test="query.unit == 'DAYS'">
+                USE INDEX (idx_vrd_update_time)
+            </when>
+            <when test="query.unit == 'MONTHS'">
+                USE INDEX (idx_vrm_update_time)
+            </when>
+            <otherwise>
+                USE INDEX (idx_vrd_update_time)
+            </otherwise>
+        </choose>
+    </sql>
+    
+    <!-- 生成记录日志统计 -->
+    <select id="listLogAppConversationStatistics"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT
+        <include refid="LIST_LOG_CONVERSATION_STATISTICS_COLUMNS_REF"/>
+        FROM
+            llm_log_app_conversation as co <include refid="USE_UPDATE_DATE_INDEX_SQL"/>
+        <where>
+            <!-- 日期 -->
+            <include refid="RANG_UPDATE_DATE_SQL"/>
+            <if test="query.appUid != null and query.appUid != ''">
+                AND co.app_uid = #{query.appUid}
+            </if>
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != ''">
+                    AND co.from_scene = #{query.fromScene}
+                </when>
+                <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
+                    AND co.from_scene IN
+                    <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+            <if test="query.appMode != null and query.appMode != ''">
+                AND co.app_mode = #{query.appMode}
+            </if>
+            <if test="query.aiModel != null and query.aiModel != ''">
+                AND co.ai_model = #{query.aiModel}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND co.status = #{query.status}
+            </if>
+            <!-- 创建者 -->
+            <if test="query.userId != null and query.userId != ''">
+                AND co.creator = #{query.userId}
+            </if>
+            <if test="query.appName != null and query.appName != ''">
+                <bind name="appName" value="query.appName + '%'"/>
+                AND co.app_name LIKE #{appName}
+            </if>
+        </where>
+        GROUP BY update_date
+        ORDER BY update_date;
+    </select>
+    
+    <!-- 根据应用 UID 日志统计 -->
+    <select id="listLogAppConversationStatisticsByAppUid"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT
+        <include refid="LIST_LOG_CONVERSATION_STATISTICS_COLUMNS_REF"/>
+        FROM
+        llm_log_app_conversation as co <include refid="USE_UPDATE_DATE_INDEX_SQL"/>
+        <where>
+            <!-- 日期 -->
+            <include refid="RANG_UPDATE_DATE_SQL"/>
+            <choose>
+                <when test="query.marketUid != null and query.marketUid != ''">
+                    AND co.app_uid IN (#{query.appUid}, #{query.marketUid})
+                </when>
+                <otherwise>
+                    AND co.app_uid = #{query.appUid}
+                </otherwise>
+            </choose>
+            <if test="query.fromScene != null and query.fromScene != ''">
+                AND co.from_scene = #{query.fromScene}
+            </if>
+            <if test="query.aiModel != null and query.aiModel != ''">
+                AND co.ai_model = #{query.aiModel}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND co.status = #{query.status}
+            </if>
+            <if test="query.userId != null and query.userId != ''">
+                AND co.creator = #{query.userId}
+            </if>
+        </where>
+        GROUP BY update_date
+        ORDER BY update_date;
+    </select>
+    
+    <!-- 生成记录日志统计 -->
+    <select id="listRightsStatistics"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT
+        <include refid="LIST_RIGHTS_STATISTICS_COLUMNS_REF"/>
+        FROM
+            llm_log_app_conversation as co <include refid="USE_UPDATE_DATE_INDEX_SQL"/>
+        LEFT JOIN
+            system_user_rights_record surr ON co.uid = surr.biz_id
+        <where>
+            <!-- 日期 -->
+            <include refid="RANG_UPDATE_DATE_SQL"/>
+            <if test="query.appUid != null and query.appUid != ''">
+                AND co.app_uid = #{query.appUid}
+            </if>
+            <choose>
+                <when test="query.fromScene != null and query.fromScene != ''">
+                    AND co.from_scene = #{query.fromScene}
+                </when>
+                <when test="query.fromSceneList != null and query.fromSceneList.size() > 0">
+                    AND co.from_scene IN
+                    <foreach collection="query.fromSceneList" item="item" open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </when>
+            </choose>
+            <if test="query.appMode != null and query.appMode != ''">
+                AND co.app_mode = #{query.appMode}
+            </if>
+            <if test="query.aiModel != null and query.aiModel != ''">
+                AND co.ai_model = #{query.aiModel}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND co.status = #{query.status}
+            </if>
+            <!-- 创建者 -->
+            <if test="query.userId != null and query.userId != ''">
+                AND co.creator = #{query.userId}
+            </if>
+            <if test="query.appName != null and query.appName != ''">
+                <bind name="appName" value="query.appName + '%'"/>
+                AND co.app_name LIKE #{appName}
+            </if>
+        </where>
+        GROUP BY update_date
+        ORDER BY update_date;
+    </select>
+    
+    <!-- 根据应用 UID 日志统计 -->
+    <select id="listRightsStatisticsByAppUid"
+            resultType="com.starcloud.ops.business.log.dal.dataobject.LogAppMessageStatisticsListPO">
+        SELECT
+        <include refid="LIST_RIGHTS_STATISTICS_COLUMNS_REF"/>
+        FROM
+            llm_log_app_conversation as co <include refid="USE_UPDATE_DATE_INDEX_SQL"/>
+        LEFT JOIN
+            system_user_rights_record surr ON co.uid = surr.biz_id
+        <where>
+            <!-- 日期 -->
+            <include refid="RANG_UPDATE_DATE_SQL"/>
+            <choose>
+                <when test="query.marketUid != null and query.marketUid != ''">
+                    AND co.app_uid IN (#{query.appUid}, #{query.marketUid})
+                </when>
+                <otherwise>
+                    AND co.app_uid = #{query.appUid}
+                </otherwise>
+            </choose>
+            <if test="query.fromScene != null and query.fromScene != ''">
+                AND co.from_scene = #{query.fromScene}
+            </if>
+            <if test="query.aiModel != null and query.aiModel != ''">
+                AND co.ai_model = #{query.aiModel}
+            </if>
+            <if test="query.status != null and query.status != ''">
+                AND co.status = #{query.status}
+            </if>
+            <if test="query.userId != null and query.userId != ''">
+                AND co.creator = #{query.userId}
+            </if>
+        </where>
+        GROUP BY update_date
+        ORDER BY update_date;
+    </select>
+    
 </mapper>

@@ -4,13 +4,13 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
+import com.starcloud.ops.business.user.enums.dept.PartEnum;
+import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -29,6 +29,31 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
     }
 
     @Override
+    public Set<String> getUserPermission(Long creator) {
+        Long userId = WebFrameworkUtils.getLoginUserId();
+        if (Objects.equals(userId, creator)) {
+            return UserDeptRoleEnum.SUPER_ADMIN.getPermissions();
+        }
+        return userDeptService.getUserPermission();
+    }
+
+    @Override
+    public Map<String, Boolean> getUserMenu(Long creator, PartEnum partEnum) {
+        Set<String> permissions = getUserPermission(creator);
+        List<String> partPermissions = DeptPermissionEnum.getPermission(partEnum);
+        Map<String, Boolean> result = new HashMap<>(partPermissions.size());
+        for (String partPermission : partPermissions) {
+            if (permissions.contains(partPermission)) {
+                result.put(partPermission, true);
+            } else {
+                result.put(partPermission, false);
+            }
+        }
+        return result;
+    }
+
+    @Override
+
     public void checkPermission(DeptPermissionEnum permission, Long creator) {
         if (hasPermission(permission.getPermission(), creator)) {
             return;

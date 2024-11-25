@@ -413,7 +413,8 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
         log.info("应用异步执行开始: 应用UID：{}, 应用名称：{}", this.getUid(), this.getName());
         // 扣除权益用户，记录日志用户
         if (request.getUserId() == null) {
-            request.setUserId(this.getRunUserId(request));
+            Long userId = this.getRunUserId(request);
+            request.setUserId(userId);
         }
         // 会话处理
         this.initAppConversationLog(request);

@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,6 +73,10 @@ public class MaterialActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+            return Collections.emptyList();
+        }
+
         List<Verification> verifications = new ArrayList<>();
         // 获取到资料库类型
         String usageModel = wrapper.getVariableToString(CreativeConstants.MATERIAL_USAGE_MODEL);
@@ -92,6 +97,10 @@ public class MaterialActionHandler extends BaseActionHandler {
             // 如果没有选择素材库，则抛出异常
             if (CollectionUtil.isEmpty(materialListRequest.getSliceIdList())) {
                 VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(), "选择执行时需要选择您需要执行的素材");
+                return verifications;
+            }
+            if (materialListRequest.getSliceIdList().size() > 32) {
+                VerificationUtils.addVerificationStep(verifications, wrapper.getStepCode(), "选择执行时最多选择32个素材");
                 return verifications;
             }
 

@@ -65,6 +65,11 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        // 如果不是执行校验类型，则直接返回
+        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+            return Collections.emptyList();
+        }
+
         List<Verification> verifications = new ArrayList<>();
         Object titleObject = wrapper.getVariablesValue(CreativeConstants.TITLE);
         if (Objects.isNull(titleObject) || StringUtils.isBlank(String.valueOf(titleObject))) {

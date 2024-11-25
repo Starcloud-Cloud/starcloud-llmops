@@ -115,6 +115,11 @@ public class AppLogConversationInfoRespVO implements Serializable {
     private Integer imagePoints;
 
     /**
+     * 消耗矩阵点数
+     */
+    private Integer matrixPoints;
+
+    /**
      * 执行状态，ERROR：失败，SUCCESS：成功
      */
     @Schema(description = "执行状态，ERROR：失败，SUCCESS：成功")

@@ -15,6 +15,9 @@ import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppModifyExtendReqVO;
 import com.starcloud.ops.business.app.service.app.AppManager;
 import com.starcloud.ops.business.app.service.app.AppService;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
+import com.starcloud.ops.business.user.enums.dept.PartEnum;
+import com.starcloud.ops.business.user.pojo.PermissionResult;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,6 +56,10 @@ public class AppController {
 
     @Resource
     private AppManager appManager;
+
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
 
     @GetMapping("/categories")
     @Operation(summary = "查询应用类别列表", description = "查询应用类别列表")
@@ -104,11 +111,20 @@ public class AppController {
         return CommonResult.success(appService.page(query));
     }
 
+    @GetMapping("/getMarketUid/{publishUid}")
+    @DataPermission(enable = false)
+    @Operation(summary = "分页查询我的应用列表", description = "分页查询我的应用列表")
+    @ApiOperationSupport(order = 70, author = "nacoyer")
+    public CommonResult<String> getMarketUid(@PathVariable("publishUid") String publishUid) {
+        return CommonResult.success(appService.getMarketUid(publishUid));
+    }
+
     @GetMapping("/get/{uid}")
     @Operation(summary = "根据 UID 获得应用", description = "根据 UID 获取应用详情")
     @ApiOperationSupport(order = 80, author = "nacoyer")
-    public CommonResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
-        return CommonResult.success(appService.get(uid));
+    public PermissionResult<AppRespVO> get(@Parameter(name = "uid", description = "应用 UID") @PathVariable("uid") String uid) {
+        AppRespVO appRespVO = appService.get(uid);
+        return PermissionResult.success(appService.get(uid), deptPermissionApi.getUserMenu(Long.valueOf(appRespVO.getCreator()), PartEnum.app));
     }
 
     @PostMapping("/create")
