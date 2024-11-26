@@ -50,9 +50,10 @@ public class AdminUsersApiImpl implements AdminUsersApi {
      * @param rightsAndLevelCommonDTO 用户权益数据
      */
     @Override
-    public void insertUserRightsAndLevel(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId) {
+    public void insertUserRightsAndLevel(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId, int orderNums) {
         log.info("【用户权益和等级统一新增处理,当前数据用户编号为{},业务类型为{},业务编号为{},权益数据为{}】", userId, bizType, bizId, rightsAndLevelCommonDTO);
-        adminUserLevelService.createLevelRecord(rightsAndLevelCommonDTO, userId, bizType, bizId);
+        // 增加商品数量 根据商品数量控制权益中团队人数
+        adminUserLevelService.createLevelRecord(rightsAndLevelCommonDTO, userId, bizType, bizId, orderNums);
 
         adminUserRightsService.createRights(rightsAndLevelCommonDTO, userId, bizType, bizId);
     }

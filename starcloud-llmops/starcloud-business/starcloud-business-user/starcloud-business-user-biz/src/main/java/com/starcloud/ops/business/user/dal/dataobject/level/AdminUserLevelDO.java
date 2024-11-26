@@ -1,10 +1,14 @@
 package com.starcloud.ops.business.user.dal.dataobject.level;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import lombok.*;
 
@@ -17,7 +21,7 @@ import java.time.LocalDateTime;
  *
  * @author owen
  */
-@TableName("system_user_level")
+@TableName(value ="system_user_level", autoResultMap = true)
 @KeySequence("system_user_level_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -64,6 +68,12 @@ public class AdminUserLevelDO extends BaseDO {
     private String levelName;
 
     /**
+     * 属性数组，JSON 格式
+     */
+    @TableField(typeHandler = LevelConfigTypeHandler.class)
+    private LevelConfigDTO levelConfig;
+
+    /**
      * 状态
      */
     private Integer status;
@@ -85,5 +95,20 @@ public class AdminUserLevelDO extends BaseDO {
      */
     private String description;
 
+
+
+    public static class LevelConfigTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, LevelConfigDTO.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
 
 }

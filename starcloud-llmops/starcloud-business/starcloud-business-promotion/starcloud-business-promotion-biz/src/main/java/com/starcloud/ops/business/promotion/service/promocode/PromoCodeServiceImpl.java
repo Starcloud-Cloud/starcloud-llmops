@@ -163,7 +163,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
             return;
         }
         // 增加权益
-        adminUsersApi.insertUserRightsAndLevel(template.getGiveRights(),userId, AdminUserRightsBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()));
+        adminUsersApi.insertUserRightsAndLevel(template.getGiveRights(),userId, AdminUserRightsBizTypeEnum.REDEEM_CODE.getType(), String.valueOf(convert.getId()),1);
 
     }
 
