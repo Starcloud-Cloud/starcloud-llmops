@@ -105,6 +105,14 @@ public class CreativeContentController {
         return CommonResult.success(request.getUid());
     }
 
+    @GetMapping("/page-content")
+    @DataPermission(enable = false)
+    @Operation(summary = "分页查询")
+    public CommonResult<PageResult<CreativeContentRespVO>> pageContent(@Valid CreativeContentPageReqVO req) {
+        PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
+        return CommonResult.success(result);
+    }
+
     @GetMapping("/listExample")
     @Operation(summary = "获取示例列表")
     @DataPermission(enable = false)
