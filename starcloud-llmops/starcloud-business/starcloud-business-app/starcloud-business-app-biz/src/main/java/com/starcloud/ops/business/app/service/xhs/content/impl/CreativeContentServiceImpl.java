@@ -1,6 +1,10 @@
 package com.starcloud.ops.business.app.service.xhs.content.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.img.ImgUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.qrcode.QrCodeUtil;
+import cn.hutool.extra.qrcode.QrConfig;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -23,9 +27,11 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
@@ -67,6 +73,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -642,6 +649,48 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         updateContent.setId(content.getId());
         updateContent.setLiked(Boolean.FALSE);
         creativeContentMapper.updateById(updateContent);
+    }
+
+    /**
+     * 批量生成二维码
+     *
+     * @param request 请求
+     * @return 二维码列表
+     */
+    @Override
+    public List<CreativeContentQRCodeRespVO> batchQrCode(CreativeContentQRCodeReqVO request) {
+        String domain = request.getDomain();
+        List<String> uidList = request.getUidList();
+        if (CollectionUtils.isEmpty(uidList)) {
+            return Collections.emptyList();
+        }
+
+        // 查询创作内容列表
+        CreativeContentListReqVO query = new CreativeContentListReqVO();
+        query.setUidList(uidList);
+        List<CreativeContentDO> list = creativeContentMapper.list(query);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+
+
+        List<CreativeContentQRCodeRespVO> responseList = new ArrayList<>();
+        for (CreativeContentDO creativeContent : list) {
+            QrConfig config = new QrConfig();
+            config.setCharset(StandardCharsets.UTF_8);
+
+            domain = StrUtil.endWith(domain, "/") ? domain : domain + "/";
+            String content = StrUtil.format("{}share?uid={}", domain, creativeContent.getUid());
+            String base64 = QrCodeUtil.generateAsBase64(content, config, ImgUtil.IMAGE_TYPE_PNG);
+
+            CreativeContentQRCodeRespVO response = new CreativeContentQRCodeRespVO();
+            response.setUid(creativeContent.getUid());
+            response.setBatchId(creativeContent.getBatchUid());
+            response.setPlanUid(creativeContent.getPlanUid());
+            response.setQrCode(base64);
+            responseList.add(response);
+        }
+        return responseList;
     }
 
     /**

@@ -112,6 +112,7 @@ public class AppController {
     }
 
     @GetMapping("/getMarketUid/{publishUid}")
+    @DataPermission(enable = false)
     @Operation(summary = "分页查询我的应用列表", description = "分页查询我的应用列表")
     @ApiOperationSupport(order = 70, author = "nacoyer")
     public CommonResult<String> getMarketUid(@PathVariable("publishUid") String publishUid) {

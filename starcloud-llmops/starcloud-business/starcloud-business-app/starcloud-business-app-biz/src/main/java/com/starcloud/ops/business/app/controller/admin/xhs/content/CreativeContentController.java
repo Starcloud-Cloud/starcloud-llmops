@@ -10,8 +10,10 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.util.RedSignatureUtil;
@@ -29,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -133,6 +134,15 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentRespVO);
     }
 
+    @PostMapping("/qrCode")
+    @Operation(summary = "批量生成二维码")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody CreativeContentQRCodeReqVO request) {
+        List<CreativeContentQRCodeRespVO> response = creativeContentService.batchQrCode(request);
+        return CommonResult.success(response);
+    }
+
 
     @GetMapping("/shareBuildSignature")
     @Operation(summary = "获取小红书签名")
@@ -140,7 +150,7 @@ public class CreativeContentController {
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<Map<String, Object>> shareBuildSignature() {
 
-       return CommonResult.success(RedSignatureUtil.buildSignatureApi());
+        return CommonResult.success(RedSignatureUtil.buildSignatureApi());
     }
 
 
