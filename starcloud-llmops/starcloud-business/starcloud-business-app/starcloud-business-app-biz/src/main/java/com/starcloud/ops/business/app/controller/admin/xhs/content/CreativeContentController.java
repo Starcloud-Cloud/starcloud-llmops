@@ -138,7 +138,7 @@ public class CreativeContentController {
     @Operation(summary = "批量生成二维码")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody CreativeContentQRCodeReqVO request) {
+    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody @Validated CreativeContentQRCodeReqVO request) {
         List<CreativeContentQRCodeRespVO> response = creativeContentService.batchQrCode(request);
         return CommonResult.success(response);
     }
