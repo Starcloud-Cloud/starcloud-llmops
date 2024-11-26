@@ -129,9 +129,20 @@ public class CreativeContentController {
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<CreativeContentRespVO> share(@RequestParam("uid") String uid) {
-
         CreativeContentRespVO creativeContentRespVO = creativeContentService.detail(uid);
         return CommonResult.success(creativeContentRespVO);
+    }
+
+    @GetMapping("/share-list")
+    @DataPermission(enable = false)
+    @Operation(summary = "分享创作内容列表")
+    public CommonResult<PageResult<CreativeContentRespVO>> shareList(@RequestParam String batchUid) {
+        CreativeContentPageReqVO req = new CreativeContentPageReqVO();
+        req.setBatchUid(batchUid);
+        req.setPageNo(1);
+        req.setPageSize(100);
+        PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
+        return CommonResult.success(result);
     }
 
     @PostMapping("/qrCode")
