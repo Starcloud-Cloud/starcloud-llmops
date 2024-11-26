@@ -60,7 +60,7 @@ public interface AdminUserLevelService {
      * @param bizId                   业务 编号
      * @return AdminUserLevelDO
      */
-    AdminUserLevelDO createLevelRecord(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId);
+    AdminUserLevelDO createLevelRecord(AdminUserRightsAndLevelCommonDTO rightsAndLevelCommonDTO, Long userId, Integer bizType, String bizId, int orderNums);
 
     /**
      * 创建会员默认等级记录

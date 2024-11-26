@@ -31,7 +31,7 @@ public class TradeAdminUserRightsOrderHandler implements TradeOrderHandler {
 
         for (AdminUserRightsAndLevelCommonDTO giveRight : order.getGiveRights()) {
             // 增加权益
-            adminUsersApi.insertUserRightsAndLevel(giveRight, order.getUserId(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()));
+            adminUsersApi.insertUserRightsAndLevel(giveRight, order.getUserId(), AdminUserRightsBizTypeEnum.ORDER_GIVE.getType(), String.valueOf(order.getId()), order.getProductCount());
         }
 
     }

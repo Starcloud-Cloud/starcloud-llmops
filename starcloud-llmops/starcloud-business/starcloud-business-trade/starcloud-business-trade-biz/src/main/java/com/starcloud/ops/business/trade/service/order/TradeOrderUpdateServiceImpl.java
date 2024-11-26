@@ -21,6 +21,9 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.starcloud.ops.business.core.config.notice.DingTalkNoticeProperties;
 import com.starcloud.ops.business.product.api.comment.ProductCommentApi;
 import com.starcloud.ops.business.product.api.comment.dto.ProductCommentCreateReqDTO;
+import com.starcloud.ops.business.product.api.property.dto.ProductPropertyValueDetailRespDTO;
+import com.starcloud.ops.business.product.api.sku.ProductSkuApi;
+import com.starcloud.ops.business.product.api.sku.dto.ProductSkuRespDTO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderDeliveryReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderRemarkReqVO;
 import com.starcloud.ops.business.trade.controller.admin.order.vo.TradeOrderUpdateAddressReqVO;
@@ -137,6 +140,9 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
     @Resource
     private TenantApi tenantApi;
 
+    @Resource
+    private ProductSkuApi productSkuApi;
+
 
     @Override
     public AppTradeOrderSettlementRespVO settlementOrder(Long userId, AppTradeOrderSettlementReqVO settlementReqVO) {
@@ -148,10 +154,10 @@ public class TradeOrderUpdateServiceImpl implements TradeOrderUpdateService {
 
         // 2. 计算价格
         TradePriceCalculateRespBO calculateRespBO = calculatePrice(userId, settlementReqVO);
-
         // 3. 拼接返回
         return TradeOrderConvert.INSTANCE.convert(calculateRespBO, null);
     }
+
 
 //    /**
 //     * 获得用户地址
