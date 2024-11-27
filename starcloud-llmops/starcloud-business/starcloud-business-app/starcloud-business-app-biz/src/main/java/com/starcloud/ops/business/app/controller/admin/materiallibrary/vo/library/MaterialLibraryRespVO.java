@@ -81,4 +81,7 @@ public class MaterialLibraryRespVO {
     @Schema(description = "是否包含插件")
     private boolean hasPlugin;
 
+    @Schema(description = "绑定的app信息")
+    private List<BindAppContentRespVO> bindAppContent;
+
 }
