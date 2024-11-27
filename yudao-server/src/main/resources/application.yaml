@@ -17,8 +17,8 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER # 解决 SpringFox 与 SpringBoot 2.6.x 不兼容的问题，参见 SpringFoxHandlerProviderBeanPostProcessor 类
-#    throw-exception-if-no-handler-found: true # 404 错误时抛出异常，方便统一处理
-#    static-path-pattern: /static/** # 静态资源路径; 注意：如果不配置，则 throw-exception-if-no-handler-found 不生效！！！ TODO 芋艿：不能配置，会导致 swagger 不生效
+  #    throw-exception-if-no-handler-found: true # 404 错误时抛出异常，方便统一处理
+  #    static-path-pattern: /static/** # 静态资源路径; 注意：如果不配置，则 throw-exception-if-no-handler-found 不生效！！！ TODO 芋艿：不能配置，会导致 swagger 不生效
 
   # Jackson 配置项
   jackson:
@@ -68,9 +68,9 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: NONE # “智能”模式，基于 IdTypeEnvironmentPostProcessor + 数据源的类型，自动适配成 AUTO、INPUT 模式。
-#      id-type: AUTO # 自增 ID，适合 MySQL 等直接自增的数据库
-#      id-type: INPUT # 用户输入 ID，适合 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库
-#      id-type: ASSIGN_ID # 分配 ID，默认使用雪花算法。注意，Oracle、PostgreSQL、Kingbase、DB2、H2 数据库时，需要去除实体类上的 @KeySequence 注解
+      #      id-type: AUTO # 自增 ID，适合 MySQL 等直接自增的数据库
+      #      id-type: INPUT # 用户输入 ID，适合 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库
+      #      id-type: ASSIGN_ID # 分配 ID，默认使用雪花算法。注意，Oracle、PostgreSQL、Kingbase、DB2、H2 数据库时，需要去除实体类上的 @KeySequence 注解
       logic-delete-value: 1 # 逻辑已删除值(默认为 1)
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
     banner: false # 关闭控制台的 Banner 打印
@@ -148,6 +148,7 @@ yudao:
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，不需要登录
       - /admin-api/llm/xhs/content/share
       - /admin-api/llm/xhs/content/shareBuildSignature
+      - /admin-api/llm/xhs/content/share-list
   websocket:
     enable: true # websocket的开关
     path: /infra/ws # 路径
@@ -196,8 +197,8 @@ yudao:
       - /jmreport/* # 积木报表，无法携带租户编号
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，无法携带租户编号
       - /admin-api/llm/auth/activation/*
-#      - /admin-api/system/auth/login # 登录
-#      - /admin-api/system/auth/refresh-token # 刷新缓存
+      #      - /admin-api/system/auth/login # 登录
+      #      - /admin-api/system/auth/refresh-token # 刷新缓存
       - /admin-api/llm/wechat/open/** # 微信回调
       - /admin-api/system/auth/logout # 登出
       - /admin-api/llm/communication/code/**  # 发送验证码
@@ -209,6 +210,7 @@ yudao:
       - /admin-api/llm/xhs/customer/**
       - /admin-api/llm/xhs/content/share
       - /admin-api/llm/xhs/content/shareBuildSignature
+      - /admin-api/llm/xhs/content/share-list
     ignore-tables:
       - system_tenant
       - system_tenant_package
@@ -221,7 +223,7 @@ yudao:
       - system_sms_log
       - system_sensitive_word
       - system_oauth2_client
-#      - system_oauth2_access_token
+      #      - system_oauth2_access_token
       - system_mail_account
       - system_mail_template
       - system_mail_log
@@ -284,14 +286,14 @@ yudao:
 
 debug: false
 #积木报表配置
-user-config :
+user-config:
   # 新用户配置
   new-user:
     register-time: 3d
     valid-order: true
 
 #积木报表配置
-minidao :
+minidao:
   base-package: org.jeecg.modules.jmreport.desreport.dao*
   db-type: mysql
 
