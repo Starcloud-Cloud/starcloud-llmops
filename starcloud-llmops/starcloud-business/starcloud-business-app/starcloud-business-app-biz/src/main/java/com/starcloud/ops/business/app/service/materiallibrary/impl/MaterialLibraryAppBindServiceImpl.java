@@ -2,17 +2,23 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.BindMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.BindAppContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
+import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibrarySliceService;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryTableColumnService;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -51,6 +57,8 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Lazy
     private MaterialLibrarySliceService materialLibrarySliceService;
 
+    @Resource
+    private CreativePlanService creativePlanService;
 
     @Resource
     private MaterialLibraryAppBindMapper materialLibraryAppBindMapper;
@@ -230,4 +238,43 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         return materialLibraryAppBindMapper.selectListByLibrary(libraryId);
     }
 
+    @Override
+    public List<BindAppContentRespVO> getBindAppContent(Long libraryId) {
+        List<MaterialLibraryAppBindDO> bindList = getBindList(libraryId);
+        List<BindAppContentRespVO> bindAppContentList = new ArrayList<>(bindList.size());
+        for (MaterialLibraryAppBindDO bindDO : bindList) {
+            BindAppContentRespVO bindAppContent = new BindAppContentRespVO();
+            if (Objects.equals(MaterialBindTypeEnum.APP_MAY.getCode(), bindDO.getAppType())) {
+                AppMarketRespVO appInformation = creativePlanService.getAppInformation(bindDO.getAppUid(), CreativePlanSourceEnum.APP.name());
+                if (Objects.isNull(appInformation)) {
+                    continue;
+                }
+                bindAppContent.setAppUid(bindDO.getAppUid());
+                bindAppContent.setSource(CreativePlanSourceEnum.APP.name());
+                bindAppContent.setAppName(appInformation.getName());
+            } else if (Objects.equals(MaterialBindTypeEnum.APP_MARKET.getCode(), bindDO.getAppType())) {
+                AppMarketRespVO appInformation = creativePlanService.getAppInformation(bindDO.getAppUid(), CreativePlanSourceEnum.MARKET.name());
+                if (Objects.isNull(appInformation)) {
+                    continue;
+                }
+                bindAppContent.setAppUid(bindDO.getAppUid());
+                bindAppContent.setSource(CreativePlanSourceEnum.MARKET.name());
+                bindAppContent.setAppName(appInformation.getName());
+            } else if (Objects.equals(MaterialBindTypeEnum.CREATION_PLAN.getCode(), bindDO.getAppType())) {
+                try {
+                    CreativePlanRespVO creativePlanRespVO = creativePlanService.get(bindDO.getAppUid());
+                    bindAppContent.setAppUid(creativePlanRespVO.getAppUid());
+                    bindAppContent.setSource(CreativePlanSourceEnum.MARKET.name());
+                    bindAppContent.setAppName(creativePlanRespVO.getConfiguration().getAppInformation().getName());
+                } catch (Exception e) {
+                    log.warn("创作计划不存在（{}）", bindDO.getAppUid());
+                    continue;
+                }
+            } else {
+                continue;
+            }
+            bindAppContentList.add(bindAppContent);
+        }
+        return bindAppContentList;
+    }
 }
