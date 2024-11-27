@@ -5,7 +5,10 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
@@ -15,8 +18,12 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.ShareContentRespVO;
+import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.RedSignatureUtil;
+import com.starcloud.ops.business.app.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
@@ -47,6 +54,12 @@ public class CreativeContentController {
 
     @Resource
     private CreativeContentService creativeContentService;
+
+    @Resource
+    private CreativePlanBatchService creativePlanBatchService;
+
+    @Resource
+    private CreativePlanService planService;
 
     @GetMapping("/detail/{uid}")
     @Operation(summary = "创作内容详情")
@@ -136,13 +149,33 @@ public class CreativeContentController {
     @GetMapping("/share-list")
     @DataPermission(enable = false)
     @Operation(summary = "分享创作内容列表")
-    public CommonResult<PageResult<CreativeContentRespVO>> shareList(@RequestParam String batchUid) {
+    public CommonResult<ShareContentRespVO> shareList(@RequestParam String batchUid) {
+        // 查询计划批次
+        CreativePlanBatchRespVO batchResponse = creativePlanBatchService.get(batchUid);
+        // 查询应用
+        AppMarketRespVO appInformation = planService.getAppInformation(batchResponse.getAppUid(), batchResponse.getSource());
+        AppValidate.notNull(appInformation, "计划应用信息不存在！");
+        // 查询创作内容
         CreativeContentPageReqVO req = new CreativeContentPageReqVO();
         req.setBatchUid(batchUid);
         req.setPageNo(1);
         req.setPageSize(100);
         PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
-        return CommonResult.success(result);
+
+        ShareContentRespVO response = new ShareContentRespVO();
+        response.setPlanUid(batchResponse.getPlanUid());
+        response.setBatchUid(batchUid);
+        response.setTotalCount(batchResponse.getTotalCount());
+        response.setFailureCount(batchResponse.getFailureCount());
+        response.setSuccessCount(batchResponse.getSuccessCount());
+        response.setStartTime(batchResponse.getStartTime());
+        response.setEndTime(batchResponse.getEndTime());
+        response.setElapsed(batchResponse.getElapsed());
+        response.setStatus(batchResponse.getStatus());
+        response.setCreator(UserUtils.getUsername(batchResponse.getCreator()));
+        response.setCreateTime(batchResponse.getCreateTime());
+        response.setContentList(result.getList());
+        return CommonResult.success(response);
     }
 
     @PostMapping("/qrCode")
