@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.BindMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.BindAppContentRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 
 import javax.validation.Valid;
@@ -93,4 +94,9 @@ public interface MaterialLibraryAppBindService {
      * @return 绑定列表
      */
     List<MaterialLibraryAppBindDO> getBindList(Long libraryId);
+
+    /**
+     * 绑定的app信息
+     */
+    List<BindAppContentRespVO> getBindAppContent(Long libraryId);
 }
