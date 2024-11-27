@@ -18,10 +18,14 @@ import com.starcloud.ops.business.app.enums.vsearch.StylePresetEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -393,4 +397,15 @@ public class ImageUtils {
         }
     }
 
+    public static String encodeBase64(BufferedImage image) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, "png", bos);
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("图片转换base64失败", exception);
+        }
+
+        byte[] bytes = bos.toByteArray();
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
+    }
 }
