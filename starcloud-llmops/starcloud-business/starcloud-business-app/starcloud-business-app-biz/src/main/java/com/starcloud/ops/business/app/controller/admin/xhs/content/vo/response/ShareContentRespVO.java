@@ -18,6 +18,8 @@ public class ShareContentRespVO implements Serializable {
 
     private static final long serialVersionUID = -4077497124089403221L;
 
+    private String appName;
+
     private String planUid;
 
     private String batchUid;

@@ -163,6 +163,7 @@ public class CreativeContentController {
         PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
 
         ShareContentRespVO response = new ShareContentRespVO();
+        response.setAppName(appInformation.getName());
         response.setPlanUid(batchResponse.getPlanUid());
         response.setBatchUid(batchUid);
         response.setTotalCount(batchResponse.getTotalCount());
