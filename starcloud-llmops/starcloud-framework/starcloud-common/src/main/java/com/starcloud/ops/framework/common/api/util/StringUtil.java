@@ -132,4 +132,26 @@ public class StringUtil {
         }
     }
 
+    /**
+     * 字符串内容请进行UNICODE中文编码
+     */
+    public static String encodeToUnicode(String input) {
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < input.length(); ) {
+            int codePoint = input.codePointAt(i);
+            i += Character.charCount(codePoint);
+
+            if (codePoint <= 0x7F) {
+                // ASCII字符，直接保留
+                result.append((char) codePoint);
+            } else {
+                // 非ASCII字符，转换为Unicode转义序列
+                result.append("\\u").append(String.format("%04x", codePoint));
+            }
+        }
+
+        return result.toString();
+    }
+
 }

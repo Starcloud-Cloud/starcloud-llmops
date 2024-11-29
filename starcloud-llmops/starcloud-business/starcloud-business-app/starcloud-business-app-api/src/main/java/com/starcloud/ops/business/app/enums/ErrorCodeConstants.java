@@ -636,6 +636,9 @@ public interface ErrorCodeConstants {
 
     ErrorCode IMAGE_OCR_ERROR = new ErrorCode(300701302, "ocr 异常：{}");
 
+    // 敏感词检测
+    ErrorCode RISK_WORD_ERROR = new ErrorCode(300701401, "敏感词检测错误：{}");
+
 
     // ==========素材库 错误码 ==========
     ErrorCode MATERIAL_LIBRARY_NOT_EXISTS = new ErrorCode(300702201, "素材库不存在，请刷新后再试");
