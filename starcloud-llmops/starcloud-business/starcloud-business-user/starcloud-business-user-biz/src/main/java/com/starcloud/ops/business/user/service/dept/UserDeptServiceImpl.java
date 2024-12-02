@@ -306,7 +306,7 @@ public class UserDeptServiceImpl implements UserDeptService {
 
     @Override
     public UserDeptDO selectOwnerDept(Long userId) {
-        return userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+        return userDeptMapper.selectByUserAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
     }
 
     @Override

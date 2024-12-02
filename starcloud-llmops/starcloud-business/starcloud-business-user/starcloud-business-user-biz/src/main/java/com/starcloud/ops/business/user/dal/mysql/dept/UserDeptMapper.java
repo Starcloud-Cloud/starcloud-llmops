@@ -30,6 +30,14 @@ public interface UserDeptMapper extends BaseMapperX<UserDeptDO> {
         return selectOne(wrapper);
     }
 
+    default UserDeptDO selectByUserAndRole(Long userId, UserDeptRoleEnum role) {
+        LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
+                .eq(UserDeptDO::getUserId, userId)
+                .eq(UserDeptDO::getDeptRole, role.getRoleCode())
+                .last("limit 1");
+        return selectOne(wrapper);
+    }
+
 
     default List<UserDeptDO> selectByUserId(Long userId) {
         LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
