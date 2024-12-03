@@ -135,23 +135,26 @@ public class StringUtil {
     /**
      * 字符串内容请进行UNICODE中文编码
      */
-    public static String encodeToUnicode(String input) {
-        StringBuilder result = new StringBuilder();
-
-        for (int i = 0; i < input.length(); ) {
-            int codePoint = input.codePointAt(i);
-            i += Character.charCount(codePoint);
-
-            if (codePoint <= 0x7F) {
-                // ASCII字符，直接保留
-                result.append((char) codePoint);
+    public static String encodeToUnicode(String s) {
+        StringBuilder unicode = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            // 如果是ASCII字符，直接添加
+            if (c < 128) {
+                unicode.append(c);
             } else {
-                // 非ASCII字符，转换为Unicode转义序列
-                result.append("\\u").append(String.format("%04x", codePoint));
+                // 否则，转换为Unicode格式
+                unicode.append("\\u").append(Integer.toHexString(c | 0x10000).substring(1));
             }
         }
+        return unicode.toString();
+    }
 
-        return result.toString();
+    public static void main(String[] args) {
+        String s = "\uD83D\uDC4D";
+
+
+        System.out.println(encodeToUnicode(s));
     }
 
 }

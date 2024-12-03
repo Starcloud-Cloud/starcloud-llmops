@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.app.api.Plugin;
+package com.starcloud.ops.business.app.api.plugin;
 
 import lombok.Data;
 

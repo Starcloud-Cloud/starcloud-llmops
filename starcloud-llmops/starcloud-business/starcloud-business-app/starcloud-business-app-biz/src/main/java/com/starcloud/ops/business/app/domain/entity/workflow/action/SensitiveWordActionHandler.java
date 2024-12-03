@@ -11,7 +11,7 @@ import com.aliyun.green20220302.models.TextModerationRequest;
 import com.aliyun.green20220302.models.TextModerationResponse;
 import com.aliyun.green20220302.models.TextModerationResponseBody;
 import com.aliyun.teautil.models.RuntimeOptions;
-import com.starcloud.ops.business.app.api.Plugin.AliRiskReason;
+import com.starcloud.ops.business.app.api.plugin.AliRiskReason;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.RiskWordReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.RiskWordRespVO;
@@ -28,7 +28,6 @@ import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.utils.StringUtils;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 
