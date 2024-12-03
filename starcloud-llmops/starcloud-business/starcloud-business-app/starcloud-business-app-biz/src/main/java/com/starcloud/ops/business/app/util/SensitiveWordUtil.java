@@ -5,6 +5,7 @@ import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
 import org.apache.tika.utils.StringUtils;
 
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,22 +29,6 @@ public class SensitiveWordUtil {
             return StringUtils.EMPTY;
         }
     }
-
-//    public static String tongYin(String source) {
-//        StringBuilder sb = new StringBuilder();
-//        for (int i = 0; i < source.length(); i++) {
-//            String ch = source.substring(i, i + 1);
-//            String pinyin = PinyinHelper.toPinyin(ch, PinyinStyleEnum.NUM_LAST);
-//            List<String> samed = PinyinHelper.samePinyinList(pinyin);
-//            if (CollectionUtils.isEmpty(samed) || samed.size() <= 1) {
-//                sb.append(pinyin, 0, pinyin.length() - 1);
-//            } else {
-//                samed.remove(ch);
-//                sb.append(samed.get(0));
-//            }
-//        }
-//        return sb.toString();
-//    }
 
 
 }
