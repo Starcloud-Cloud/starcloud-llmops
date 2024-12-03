@@ -734,6 +734,7 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
         MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(sliceId);
         sliceDO.setId(null);
+        sliceDO.setUsedCount(0L);
         this.createMaterialLibrarySlice(BeanUtil.toBean(sliceDO,MaterialLibrarySliceSaveReqVO.class));
         return true;
     }
