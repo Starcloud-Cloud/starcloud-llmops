@@ -12,10 +12,13 @@ import java.util.stream.Collectors;
 
 @Getter
 public enum ProcessMannerEnum implements IEnumable<String> {
-    asterisk("asterisk", "替换为*"),
-//    homophone("homophone", "替换为同音字"),
-    pinyin("pinyin", "替换为拼音"),
-    empty("empty", "去除");
+    riskPinyin("riskPinyin", "违禁词转拼音"),
+    topPinyin("topPinyin", "禁用词转拼音"),
+    lowPinyin("lowPinyin", "敏感词转拼音"),
+    riskEmpty("riskEmpty", "删除违禁词"),
+    topEmpty("topEmpty", "删除禁用词"),
+    lowEmpty("lowEmpty", "删除敏感词")
+    ;
 
 
     private final String code;
