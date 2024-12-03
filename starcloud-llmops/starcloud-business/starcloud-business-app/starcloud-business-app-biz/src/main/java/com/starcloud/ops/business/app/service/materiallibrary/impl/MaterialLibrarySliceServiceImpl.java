@@ -725,6 +725,20 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
 
     }
 
+    /**
+     * 复制数据
+     *
+     * @param sliceId 数据编号
+     */
+    @Override
+    public Boolean copy(Long sliceId) {
+
+        MaterialLibrarySliceDO sliceDO = materialLibrarySliceMapper.selectById(sliceId);
+        sliceDO.setId(null);
+        this.createMaterialLibrarySlice(BeanUtil.toBean(sliceDO,MaterialLibrarySliceSaveReqVO.class));
+        return true;
+    }
+
     private List<String> getOtherFileKeys(List<MaterialLibrarySliceSaveReqVO> descSaveReqVOS, Map<Integer, List<String>> fileColumn) {
         List<String> allColumnCodes = fileColumn.values().stream()
                 .flatMap(Collection::stream)
