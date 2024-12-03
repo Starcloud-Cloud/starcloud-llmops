@@ -43,7 +43,6 @@ import com.starcloud.ops.business.app.model.poster.PosterTitleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
@@ -445,15 +444,25 @@ public class PosterActionHandler extends BaseActionHandler {
             return;
         }
 
+        int copyCount = 0;
+        List<Map<String, Object>> subCopyMaterialList = new ArrayList<>();
         // 复制素材，并且截取需要的素材
         List<Map<String, Object>> copyMaterialList = SerializationUtils.clone(new ArrayList<>(materialList));
 
-        // 此为需要进行复制的素材
-        List<Map<String, Object>> subMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
-        // 计算需要复制的次数，取余如果余数不为 0 则加 1
-        int remainder = subMaterialList.size() % copyTemplateNeedMaterialCount;
-        // 获取相除的整数部分
-        int copyCount = (subMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+        if (Objects.nonNull(copyTemplate.getIsUseAllMaterial()) && copyTemplate.getIsUseAllMaterial()) {
+            subCopyMaterialList = copyMaterialList.subList(copyTemplateNeedMaterialCount, copyMaterialList.size());
+            // 计算需要复制的次数，取余如果余数不为 0 则加 1
+            int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
+            // 获取相除的整数部分
+            copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+        } else {
+            // 此为需要进行复制的素材
+            subCopyMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
+            // 计算需要复制的次数，取余如果余数不为 0 则加 1
+            int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
+            // 获取相除的整数部分
+            copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+        }
 
         for (int i = 0; i < copyCount; i++) {
             PosterTemplateDTO copy = SerializationUtils.clone(copyTemplate);
@@ -461,15 +470,15 @@ public class PosterActionHandler extends BaseActionHandler {
             copy.setName("copy");
 
             List<Map<String, Object>> materials = new ArrayList<>();
-            if (subMaterialList.isEmpty()) {
+            if (subCopyMaterialList.isEmpty()) {
                 break;
             }
-            if (copyTemplateNeedMaterialCount >= subMaterialList.size()) {
-                materials = subMaterialList;
-                subMaterialList = new ArrayList<>();
+            if (copyTemplateNeedMaterialCount >= subCopyMaterialList.size()) {
+                materials = subCopyMaterialList;
+                subCopyMaterialList = new ArrayList<>();
             } else {
-                materials = subMaterialList.subList(0, copyTemplateNeedMaterialCount);
-                subMaterialList = subMaterialList.subList(copyTemplateNeedMaterialCount, subMaterialList.size());
+                materials = subCopyMaterialList.subList(0, copyTemplateNeedMaterialCount);
+                subCopyMaterialList = subCopyMaterialList.subList(copyTemplateNeedMaterialCount, subCopyMaterialList.size());
             }
 
             WorkflowStepWrapper materialStepWrapper = context.getStepWrapper(MaterialActionHandler.class);

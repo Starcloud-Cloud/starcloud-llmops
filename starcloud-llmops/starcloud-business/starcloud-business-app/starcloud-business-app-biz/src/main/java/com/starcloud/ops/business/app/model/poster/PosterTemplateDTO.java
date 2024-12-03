@@ -119,6 +119,12 @@ public class PosterTemplateDTO implements java.io.Serializable {
     private Boolean isExecute;
 
     /**
+     * 是否使用所有素材
+     */
+    @Schema(description = "是否使用所有素材")
+    private Boolean isUseAllMaterial;
+
+    /**
      * 是否依赖图片生成结果，目前只针对图片变量<br>
      * 有一个图片变量依赖图片生成结果，则整个模板依赖图片生成结果
      */
