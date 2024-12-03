@@ -123,7 +123,7 @@ public class SensitiveWordActionHandler extends BaseActionHandler {
 
         String[] riskWords = stringJoiner.toString().split(",");
         for (String riskWord : riskWords) {
-            sourceContent = SensitiveWordUtil.replace(sourceContent, riskWord, reqVO.getProcessManner());
+//            sourceContent = SensitiveWordUtil.replace(sourceContent, riskWord, reqVO.getProcessManner());
         }
         List<Map<String, Object>> cleanMaterial = JSONObject.parseObject(sourceContent, new TypeReference<List<Map<String, Object>>>() {
         });

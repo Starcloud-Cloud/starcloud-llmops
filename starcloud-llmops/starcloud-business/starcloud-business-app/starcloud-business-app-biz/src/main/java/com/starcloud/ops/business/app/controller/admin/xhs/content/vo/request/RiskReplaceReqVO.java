@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request;
 
+import cn.hutool.extra.pinyin.PinyinUtil;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.RiskReplaceRespVO;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
 import com.starcloud.ops.business.app.util.SensitiveWordUtil;
@@ -9,6 +10,7 @@ import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 
 import javax.validation.constraints.NotBlank;
+import java.util.Objects;
 import java.util.StringJoiner;
 
 @Data
@@ -31,19 +33,70 @@ public class RiskReplaceReqVO {
 
 
     public RiskReplaceRespVO riskReplace() {
-        StringJoiner sj = new StringJoiner(",");
-        if (StringUtils.isNotBlank(topRiskStr)) {
-            sj.add(topRiskStr);
-        }
-        if (StringUtils.isNotBlank(lowRiskStr)) {
-            sj.add(lowRiskStr);
-        }
-        if (sj.length() == 0) {
+        if (Objects.equals(processManner, ProcessMannerEnum.riskPinyin.getCode())) {
+            StringJoiner sj = new StringJoiner(",");
+            if (StringUtils.isNotBlank(topRiskStr)) {
+                sj.add(topRiskStr);
+            }
+            if (StringUtils.isNotBlank(lowRiskStr)) {
+                sj.add(lowRiskStr);
+            }
+            if (sj.length() == 0) {
+                return new RiskReplaceRespVO(content);
+            }
+            for (String riskword : sj.toString().split(",")) {
+                content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
+            }
+            return new RiskReplaceRespVO(content);
+        } else if (Objects.equals(processManner, ProcessMannerEnum.topPinyin.getCode())) {
+            if (StringUtils.isBlank(topRiskStr)) {
+                return new RiskReplaceRespVO(content);
+            }
+            for (String riskword : topRiskStr.split(",")) {
+                content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
+            }
+            return new RiskReplaceRespVO(content);
+        } else if (Objects.equals(processManner, ProcessMannerEnum.lowPinyin.getCode())) {
+            if (StringUtils.isBlank(lowRiskStr)) {
+                return new RiskReplaceRespVO(content);
+            }
+            for (String riskword : lowRiskStr.split(",")) {
+                content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
+            }
+            return new RiskReplaceRespVO(content);
+        } else if (Objects.equals(processManner, ProcessMannerEnum.riskEmpty.getCode())) {
+            StringJoiner sj = new StringJoiner(",");
+            if (StringUtils.isNotBlank(topRiskStr)) {
+                sj.add(topRiskStr);
+            }
+            if (StringUtils.isNotBlank(lowRiskStr)) {
+                sj.add(lowRiskStr);
+            }
+            if (sj.length() == 0) {
+                return new RiskReplaceRespVO(content);
+            }
+            for (String riskword : sj.toString().split(",")) {
+                content = content.replaceAll(riskword, StringUtils.EMPTY);
+            }
+            return new RiskReplaceRespVO(content);
+        } else if (Objects.equals(processManner, ProcessMannerEnum.topEmpty.getCode())) {
+            if (StringUtils.isBlank(topRiskStr)) {
+                return new RiskReplaceRespVO(content);
+            }
+            for (String riskword : topRiskStr.split(",")) {
+                content = content.replaceAll(riskword, StringUtils.EMPTY);
+            }
+            return new RiskReplaceRespVO(content);
+        } else if (Objects.equals(processManner, ProcessMannerEnum.lowEmpty.getCode())) {
+            if (StringUtils.isBlank(lowRiskStr)) {
+                return new RiskReplaceRespVO(content);
+            }
+            for (String riskword : lowRiskStr.split(",")) {
+                content = content.replaceAll(riskword, StringUtils.EMPTY);
+            }
+            return new RiskReplaceRespVO(content);
+        } else {
             return new RiskReplaceRespVO(content);
         }
-        for (String riskword : sj.toString().split(",")) {
-            content = SensitiveWordUtil.replace(content, riskword, processManner);
-        }
-        return new RiskReplaceRespVO(content);
     }
 }

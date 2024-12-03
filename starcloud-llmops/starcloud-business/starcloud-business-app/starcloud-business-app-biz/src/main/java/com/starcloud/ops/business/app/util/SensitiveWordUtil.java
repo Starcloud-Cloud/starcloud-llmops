@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.util;
 
 import cn.hutool.extra.pinyin.PinyinUtil;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.RiskReplaceReqVO;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
 import org.apache.tika.utils.StringUtils;
 
@@ -9,6 +10,7 @@ import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Deprecated
 public class SensitiveWordUtil {
 
     public static String replace(String sourceContent, String riskWord, String processType) {
@@ -17,17 +19,17 @@ public class SensitiveWordUtil {
     }
 
     public static String transformKey(String riskWord, String processType) {
-        if (Objects.equals(processType, ProcessMannerEnum.asterisk.getCode())) {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < riskWord.length(); i++) {
-                sb.append("*");
-            }
-            return sb.toString();
-        } else if (Objects.equals(processType, ProcessMannerEnum.pinyin.getCode())) {
-            return PinyinUtil.getPinyin(riskWord, StringUtils.EMPTY);
-        } else {
+//        if (Objects.equals(processType, ProcessMannerEnum.asterisk.getCode())) {
+//            StringBuilder sb = new StringBuilder();
+//            for (int i = 0; i < riskWord.length(); i++) {
+//                sb.append("*");
+//            }
+//            return sb.toString();
+//        } else if (Objects.equals(processType, ProcessMannerEnum.pinyin.getCode())) {
+//            return PinyinUtil.getPinyin(riskWord, StringUtils.EMPTY);
+//        } else {
             return StringUtils.EMPTY;
-        }
+//        }
     }
 
 
