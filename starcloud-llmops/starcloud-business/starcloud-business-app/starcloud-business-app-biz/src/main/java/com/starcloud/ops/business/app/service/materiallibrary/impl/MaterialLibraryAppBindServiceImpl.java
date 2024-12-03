@@ -277,4 +277,43 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
         }
         return bindAppContentList;
     }
+    @Override
+    public List<BindAppContentRespVO> getBindAppContent(Long libraryId) {
+        List<MaterialLibraryAppBindDO> bindList = getBindList(libraryId);
+        List<BindAppContentRespVO> bindAppContentList = new ArrayList<>(bindList.size());
+        for (MaterialLibraryAppBindDO bindDO : bindList) {
+            BindAppContentRespVO bindAppContent = new BindAppContentRespVO();
+            try {
+                if (Objects.equals(MaterialBindTypeEnum.APP_MAY.getCode(), bindDO.getAppType())) {
+                    AppMarketRespVO appInformation = creativePlanService.getAppInformation(bindDO.getAppUid(), CreativePlanSourceEnum.APP.name());
+                    if (Objects.isNull(appInformation)) {
+                        continue;
+                    }
+                    bindAppContent.setAppUid(bindDO.getAppUid());
+                    bindAppContent.setSource(CreativePlanSourceEnum.APP.name());
+                    bindAppContent.setAppName(appInformation.getName());
+                } else if (Objects.equals(MaterialBindTypeEnum.APP_MARKET.getCode(), bindDO.getAppType())) {
+                    AppMarketRespVO appInformation = creativePlanService.getAppInformation(bindDO.getAppUid(), CreativePlanSourceEnum.MARKET.name());
+                    if (Objects.isNull(appInformation)) {
+                        continue;
+                    }
+                    bindAppContent.setAppUid(bindDO.getAppUid());
+                    bindAppContent.setSource(CreativePlanSourceEnum.MARKET.name());
+                    bindAppContent.setAppName(appInformation.getName());
+                } else if (Objects.equals(MaterialBindTypeEnum.CREATION_PLAN.getCode(), bindDO.getAppType())) {
+                    CreativePlanRespVO creativePlanRespVO = creativePlanService.get(bindDO.getAppUid());
+                    bindAppContent.setAppUid(creativePlanRespVO.getAppUid());
+                    bindAppContent.setSource(CreativePlanSourceEnum.MARKET.name());
+                    bindAppContent.setAppName(creativePlanRespVO.getConfiguration().getAppInformation().getName());
+                } else {
+                    continue;
+                }
+            } catch (Exception e) {
+                log.warn("创作计划不存在（{}）", bindDO.getAppUid());
+                continue;
+            }
+            bindAppContentList.add(bindAppContent);
+        }
+        return bindAppContentList;
+    }
 }

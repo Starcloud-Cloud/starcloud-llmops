@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
@@ -169,10 +170,15 @@ public class ProductSpuController {
         voPageResult.getList().stream().forEach(spu -> {
             List<ProductSkuDO> skus = productSkuService.getSkuListBySpuId(spu.getId(), true, getLoginUserId(), spu.getCategoryId());
             List<AppProductSpuPageRespVO.Sku> skuRespList = ProductSpuConvert.INSTANCE.convertListForGetSKUDetail(skus);
-            skuRespList.stream().forEach(sku -> sku.setUnitPrice(calculateUnitPrice(sku)));
-            spu.setSkus(skuRespList);
+            List<AppProductSpuPageRespVO.Sku> collect = skuRespList.stream()
+                    .peek(sku -> sku.setUnitPrice(calculateUnitPrice(sku)))
+                    .sorted(Comparator.comparing(AppProductSpuPageRespVO.Sku::getUnitPrice))
+                    .collect(Collectors.toList());
+            spu.setSkus(collect);
 
         });
+        //  重新排序 按照单价最小升序
+
         return success(voPageResult);
     }
 
