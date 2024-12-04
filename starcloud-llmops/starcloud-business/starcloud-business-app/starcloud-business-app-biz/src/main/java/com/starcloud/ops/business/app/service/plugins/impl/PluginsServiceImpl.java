@@ -17,6 +17,7 @@ import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.SensitiveWordActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
@@ -118,6 +119,14 @@ public class PluginsServiceImpl implements PluginsService {
 
         return execute(ImageOcrActionHandler.class.getSimpleName(), variableMap).toJavaObject(HandlerResponse.class);
     }
+
+    @Override
+    public JSONObject sensitiveWord(RiskWordReqVO reqVO) {
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put(CreativeConstants.SENSITIVE_WORD, JSONUtil.toJsonStr(reqVO));
+        return execute(SensitiveWordActionHandler.class.getSimpleName(), variableMap);
+    }
+
 
     @Override
     public JSONObject intelligentTextExtraction(TextExtractionReqVO reqVO) {
