@@ -16,9 +16,9 @@ import java.util.StringJoiner;
 @Schema(description = "敏感词替换")
 public class RiskReplaceReqVO {
 
-    @Schema(description = "文案内容")
+    @Schema(description = "带标签的文案内容")
     @NotBlank(message = "文案内容不能为空")
-    private String content;
+    private String resContent;
 
     @Schema(description = "禁用词汇总")
     private String topRiskStr;
@@ -41,28 +41,28 @@ public class RiskReplaceReqVO {
                 sj.add(lowRiskStr);
             }
             if (sj.length() == 0) {
-                return new RiskReplaceRespVO(content);
+                return new RiskReplaceRespVO(resContent);
             }
             for (String riskword : sj.toString().split("、")) {
-                content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
+                resContent = resContent.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
             }
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         } else if (Objects.equals(processManner, ProcessMannerEnum.topPinyin.getCode())) {
             if (StringUtils.isBlank(topRiskStr)) {
-                return new RiskReplaceRespVO(content);
+                return new RiskReplaceRespVO(resContent);
             }
             for (String riskword : topRiskStr.split("、")) {
-                content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
+                resContent = resContent.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
             }
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         } else if (Objects.equals(processManner, ProcessMannerEnum.lowPinyin.getCode())) {
             if (StringUtils.isBlank(lowRiskStr)) {
-                return new RiskReplaceRespVO(content);
+                return new RiskReplaceRespVO(resContent);
             }
             for (String riskword : lowRiskStr.split("、")) {
-                content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
+                resContent = resContent.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
             }
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         } else if (Objects.equals(processManner, ProcessMannerEnum.riskEmpty.getCode())) {
             StringJoiner sj = new StringJoiner("、");
             if (StringUtils.isNotBlank(topRiskStr)) {
@@ -72,30 +72,30 @@ public class RiskReplaceReqVO {
                 sj.add(lowRiskStr);
             }
             if (sj.length() == 0) {
-                return new RiskReplaceRespVO(content);
+                return new RiskReplaceRespVO(resContent);
             }
             for (String riskword : sj.toString().split("、")) {
-                content = content.replaceAll(riskword, StringUtils.EMPTY);
+                resContent = resContent.replaceAll(riskword, StringUtils.EMPTY);
             }
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         } else if (Objects.equals(processManner, ProcessMannerEnum.topEmpty.getCode())) {
             if (StringUtils.isBlank(topRiskStr)) {
-                return new RiskReplaceRespVO(content);
+                return new RiskReplaceRespVO(resContent);
             }
             for (String riskword : topRiskStr.split("、")) {
-                content = content.replaceAll(riskword, StringUtils.EMPTY);
+                resContent = resContent.replaceAll(riskword, StringUtils.EMPTY);
             }
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         } else if (Objects.equals(processManner, ProcessMannerEnum.lowEmpty.getCode())) {
             if (StringUtils.isBlank(lowRiskStr)) {
-                return new RiskReplaceRespVO(content);
+                return new RiskReplaceRespVO(resContent);
             }
             for (String riskword : lowRiskStr.split("、")) {
-                content = content.replaceAll(riskword, StringUtils.EMPTY);
+                resContent = resContent.replaceAll(riskword, StringUtils.EMPTY);
             }
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         } else {
-            return new RiskReplaceRespVO(content);
+            return new RiskReplaceRespVO(resContent);
         }
     }
 }
