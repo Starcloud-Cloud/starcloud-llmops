@@ -59,8 +59,8 @@ public class CreativePlanConfigurationDTO implements java.io.Serializable {
      */
     public List<Verification> validate(String planUid, ValidateTypeEnum validateType, boolean isValidateApp) {
         List<Verification> verifications = new ArrayList<>();
-        // 非配置校验的话，会校验 素材列表和海报列表
-        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+        // 非执行校验类型，不校验海报风格列表
+        if (ValidateTypeEnum.EXECUTE.equals(validateType)) {
             VerificationUtils.notEmptyCreative(verifications, imageStyleList, planUid, "创作计划海报风格列表不能为空");
         }
 
