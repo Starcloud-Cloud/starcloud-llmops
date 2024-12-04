@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.domain.entity.workflow.action;
 
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.kstry.framework.core.annotation.Invoke;
 import cn.kstry.framework.core.annotation.NoticeVar;
@@ -149,7 +150,7 @@ public class AssembleActionHandler extends BaseActionHandler {
             tag = "[]";
         }
         try {
-            return JsonUtils.parseArray(tag, String.class);
+            return JSONUtil.toList(tag, String.class);
         } catch (Exception e) {
             // 返回空数组
             return Collections.emptyList();

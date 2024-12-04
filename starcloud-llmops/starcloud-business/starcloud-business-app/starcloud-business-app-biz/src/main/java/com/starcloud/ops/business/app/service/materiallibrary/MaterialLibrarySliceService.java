@@ -188,4 +188,10 @@ public interface MaterialLibrarySliceService extends CommonExcelReadService {
      */
     List<Long> batchSaveDataDesc(List<MaterialLibrarySliceSaveReqVO> cachedDataList);
 
+
+    /**
+     * 复制数据
+     */
+    Boolean copy(Long sliceId);
+
 }
