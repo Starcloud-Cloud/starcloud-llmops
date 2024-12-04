@@ -701,7 +701,20 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         WordCheckContent checkContent = wuyouClient.risk(reqVO.getContent());
         CreativeContentRiskRespVO respVO = new CreativeContentRiskRespVO();
         respVO.setContent(reqVO.getContent());
-        respVO.setResContent(checkContent.getResContent());
+        String resContent = reqVO.getContent();
+        if (StringUtils.isNoneBlank(checkContent.getTopRiskStr())) {
+            for (String topRisk : checkContent.getTopRiskStr().split("、")) {
+                resContent = resContent.replaceAll(topRisk,"<span class=\"jwy-topRisk\">" + topRisk + "</span>");
+            }
+        }
+
+        if (StringUtils.isNoneBlank(checkContent.getLowRiskStr())) {
+            for (String topRisk : checkContent.getLowRiskStr().split("、")) {
+                resContent = resContent.replaceAll(topRisk,"<span class=\"jwy-lowRisk\">" + topRisk + "</span>");
+            }
+        }
+
+        respVO.setResContent(resContent);
         respVO.setLowRiskStr(checkContent.getLowRiskStr());
         respVO.setTopRiskStr(checkContent.getTopRiskStr());
         respVO.setContentLength(checkContent.getContentLength());
