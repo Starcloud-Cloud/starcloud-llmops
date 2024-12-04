@@ -440,7 +440,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 计算现在模板需要的素材数量
         int needMaterialCount = calculateNeedMaterialCount(style);
         // 如果需要的素材数量为 -1，说明不需要素材，直接返回
-        if (needMaterialCount == -1 || needMaterialCount >= materialList.size()) {
+        if (needMaterialCount == -1) {
             return;
         }
 
@@ -450,18 +450,31 @@ public class PosterActionHandler extends BaseActionHandler {
         List<Map<String, Object>> copyMaterialList = SerializationUtils.clone(new ArrayList<>(materialList));
 
         if (Objects.nonNull(copyTemplate.getIsUseAllMaterial()) && copyTemplate.getIsUseAllMaterial()) {
-            subCopyMaterialList = copyMaterialList.subList(copyTemplateNeedMaterialCount, copyMaterialList.size());
-            // 计算需要复制的次数，取余如果余数不为 0 则加 1
-            int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
-            // 获取相除的整数部分
-            copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+            // 如果素材足够
+            if (copyTemplateNeedMaterialCount < copyMaterialList.size()) {
+                subCopyMaterialList = copyMaterialList.subList(copyTemplateNeedMaterialCount, copyMaterialList.size());
+                // 计算需要复制的次数，取余如果余数不为 0 则加 1
+                int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
+                // 获取相除的整数部分
+                copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+            } else {
+                subCopyMaterialList = new ArrayList<>();
+                copyCount = 0;
+            }
+
         } else {
-            // 此为需要进行复制的素材
-            subCopyMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
-            // 计算需要复制的次数，取余如果余数不为 0 则加 1
-            int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
-            // 获取相除的整数部分
-            copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+            // 如果素材足够
+            if (needMaterialCount < copyMaterialList.size()) {
+                // 此为需要进行复制的素材
+                subCopyMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
+                // 计算需要复制的次数，取余如果余数不为 0 则加 1
+                int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
+                // 获取相除的整数部分
+                copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+            } else {
+                subCopyMaterialList = new ArrayList<>();
+                copyCount = 0;
+            }
         }
 
         for (int i = 0; i < copyCount; i++) {
