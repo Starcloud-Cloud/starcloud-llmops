@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.plan.CreativePlanConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
+import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
@@ -107,6 +108,7 @@ public class AppManager {
                 // 不校验应用，因为应用更新时候已经进行过校验
                 planRequest.setValidateApp(false);
                 planRequest.setSource(CreativePlanSourceEnum.APP.name());
+                planRequest.setValidateType(ValidateTypeEnum.UPDATE.name());
                 planRequest.setE(request.getE());
 
                 // 将计划配置信息中的应用信息替换为最新的应用信息
