@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request;
 import cn.hutool.extra.pinyin.PinyinUtil;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.RiskReplaceRespVO;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
-import com.starcloud.ops.business.app.util.SensitiveWordUtil;
 import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -34,7 +33,7 @@ public class RiskReplaceReqVO {
 
     public RiskReplaceRespVO riskReplace() {
         if (Objects.equals(processManner, ProcessMannerEnum.riskPinyin.getCode())) {
-            StringJoiner sj = new StringJoiner(",");
+            StringJoiner sj = new StringJoiner("、");
             if (StringUtils.isNotBlank(topRiskStr)) {
                 sj.add(topRiskStr);
             }
@@ -44,7 +43,7 @@ public class RiskReplaceReqVO {
             if (sj.length() == 0) {
                 return new RiskReplaceRespVO(content);
             }
-            for (String riskword : sj.toString().split(",")) {
+            for (String riskword : sj.toString().split("、")) {
                 content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
             }
             return new RiskReplaceRespVO(content);
@@ -52,7 +51,7 @@ public class RiskReplaceReqVO {
             if (StringUtils.isBlank(topRiskStr)) {
                 return new RiskReplaceRespVO(content);
             }
-            for (String riskword : topRiskStr.split(",")) {
+            for (String riskword : topRiskStr.split("、")) {
                 content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
             }
             return new RiskReplaceRespVO(content);
@@ -60,12 +59,12 @@ public class RiskReplaceReqVO {
             if (StringUtils.isBlank(lowRiskStr)) {
                 return new RiskReplaceRespVO(content);
             }
-            for (String riskword : lowRiskStr.split(",")) {
+            for (String riskword : lowRiskStr.split("、")) {
                 content = content.replaceAll(riskword, PinyinUtil.getPinyin(riskword, StringUtils.EMPTY));
             }
             return new RiskReplaceRespVO(content);
         } else if (Objects.equals(processManner, ProcessMannerEnum.riskEmpty.getCode())) {
-            StringJoiner sj = new StringJoiner(",");
+            StringJoiner sj = new StringJoiner("、");
             if (StringUtils.isNotBlank(topRiskStr)) {
                 sj.add(topRiskStr);
             }
@@ -75,7 +74,7 @@ public class RiskReplaceReqVO {
             if (sj.length() == 0) {
                 return new RiskReplaceRespVO(content);
             }
-            for (String riskword : sj.toString().split(",")) {
+            for (String riskword : sj.toString().split("、")) {
                 content = content.replaceAll(riskword, StringUtils.EMPTY);
             }
             return new RiskReplaceRespVO(content);
@@ -83,7 +82,7 @@ public class RiskReplaceReqVO {
             if (StringUtils.isBlank(topRiskStr)) {
                 return new RiskReplaceRespVO(content);
             }
-            for (String riskword : topRiskStr.split(",")) {
+            for (String riskword : topRiskStr.split("、")) {
                 content = content.replaceAll(riskword, StringUtils.EMPTY);
             }
             return new RiskReplaceRespVO(content);
@@ -91,7 +90,7 @@ public class RiskReplaceReqVO {
             if (StringUtils.isBlank(lowRiskStr)) {
                 return new RiskReplaceRespVO(content);
             }
-            for (String riskword : lowRiskStr.split(",")) {
+            for (String riskword : lowRiskStr.split("、")) {
                 content = content.replaceAll(riskword, StringUtils.EMPTY);
             }
             return new RiskReplaceRespVO(content);
