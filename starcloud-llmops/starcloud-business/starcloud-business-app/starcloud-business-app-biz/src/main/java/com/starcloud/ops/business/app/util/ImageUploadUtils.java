@@ -367,6 +367,7 @@ public class ImageUploadUtils {
             URL url = new URL(imageUrl);
             URLConnection urlConnection = url.openConnection();
             String contentType = urlConnection.getContentType();
+            urlConnection.setRequestProperty("User-Agent","Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
             return StringUtils.isNoneBlank(contentType) && contentType.startsWith("image");
         } catch (Exception e) {
             return false;
