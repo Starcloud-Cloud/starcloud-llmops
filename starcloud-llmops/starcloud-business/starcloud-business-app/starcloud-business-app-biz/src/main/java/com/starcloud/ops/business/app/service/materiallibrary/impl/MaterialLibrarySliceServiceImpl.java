@@ -792,17 +792,15 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
     public void asyncUploadImage(List<String> imageUrls, Long libraryId) {
         String prefix = LocalDateTimeUtil.format(LocalDateTimeUtil.now(), PURE_DATETIME_MS_PATTERN) + RandomUtil.randomInt(1000, 9999);
         imageUrls.forEach(url -> {
-            try {
-                ImgUtil.read(new URL(url));
+            if (ImageUploadUtils.isImage(url)) {
                 // excel 中有内容 为http图片地址
                 threadPoolTaskExecutor.execute(() -> {
-                            String relativePath = "material" + File.separator + prefix;
-                            String ossUrl = ImageUploadUtils.dumpToOss(url, IdUtil.fastSimpleUUID(), relativePath);
-                            setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(ossUrl));
-                        }
-                );
-            }catch (Exception e){
-                log.error("图片上传失败",e);
+                    String relativePath = "material" + File.separator + prefix;
+                    String ossUrl = ImageUploadUtils.dumpToOss(url, IdUtil.fastSimpleUUID(), relativePath);
+                    setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(ossUrl));
+                });
+
+            } else {
                 setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_IMAGE_TYPE_ERROR));
             }
         });
