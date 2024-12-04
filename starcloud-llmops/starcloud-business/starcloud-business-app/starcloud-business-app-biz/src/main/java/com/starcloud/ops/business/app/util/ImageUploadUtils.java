@@ -367,9 +367,10 @@ public class ImageUploadUtils {
             URL url = new URL(imageUrl);
             URLConnection urlConnection = url.openConnection();
             String contentType = urlConnection.getContentType();
-            urlConnection.setRequestProperty("User-Agent","Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
+            urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
             return StringUtils.isNoneBlank(contentType) && contentType.startsWith("image");
         } catch (Exception e) {
+            log.error("校验url是不是图片异常", e);
             return false;
         }
     }
