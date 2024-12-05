@@ -14,16 +14,23 @@ import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.*;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.SensitiveWordActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
+import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
+import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.service.plugins.handler.PluginExecuteFactory;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
@@ -51,6 +58,18 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Resource
     private PluginExecuteFactory pluginExecuteFactory;
+
+    @Resource
+    private MaterialLibraryAppBindService libraryAppBindService;
+
+    @Resource
+    private MaterialLibraryService libraryService;
+
+    @Resource
+    private PluginsDefinitionService pluginsDefinitionService;
+
+    @Resource
+    private PluginConfigService pluginConfigService;
 
 
     @Override
@@ -136,6 +155,41 @@ public class PluginsServiceImpl implements PluginsService {
         return execute("IntelligentTextExtraction", variableMap);
     }
 
+    @Override
+    public AppBindPluginRespVO bindPlugin(AppBindPluginReqVO resultReqVO) {
+        MaterialLibraryAppBindDO libraryAppBindDO;
+        List<PluginDetailVO> result = new ArrayList<>();
+        if (CreativePlanSourceEnum.isApp(resultReqVO.getSource())) {
+            libraryAppBindDO = libraryAppBindService.getMaterialLibraryAppBind(resultReqVO.getAppUid());
+        } else if (CreativePlanSourceEnum.isMarket(resultReqVO.getSource()))
+            libraryAppBindDO = libraryAppBindService.getMaterialLibraryAppBind(resultReqVO.getPlanUid());
+        else {
+            return new AppBindPluginRespVO(result);
+        }
+        if (Objects.isNull(libraryAppBindDO)) {
+            return new AppBindPluginRespVO(result);
+        }
+        MaterialLibraryDO materialLibrary = libraryService.getMaterialLibrary(libraryAppBindDO.getLibraryId());
+        if (Objects.isNull(materialLibrary)) {
+            return new AppBindPluginRespVO(result);
+        }
+        List<PluginConfigRespVO> pluginConfigRespList = pluginConfigService.configList(materialLibrary.getUid());
+        if (CollectionUtils.isEmpty(pluginConfigRespList)) {
+            return new AppBindPluginRespVO(result);
+        }
+        for (PluginConfigRespVO pluginConfigRespVO : pluginConfigRespList) {
+            if (StringUtils.isBlank(pluginConfigRespVO.getFieldMap())) {
+                continue;
+            }
+            PluginRespVO detail = pluginsDefinitionService.detail(pluginConfigRespVO.getPluginUid());
+            if (Objects.isNull(detail)) {
+                continue;
+            }
+            PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
+            result.add(pluginDetailVO);
+        }
+        return new AppBindPluginRespVO(result);
+    }
 
     /**
      * 不考虑前端传入的类型，因为开始节点参数都是定义出来的
