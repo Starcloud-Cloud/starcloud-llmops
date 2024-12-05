@@ -43,7 +43,6 @@ import com.starcloud.ops.business.app.model.poster.PosterTitleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.xhs.executor.PosterThreadPoolHolder;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.model.multimodal.qwen.ChatVLQwen;
@@ -227,65 +226,70 @@ public class PosterActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
-        // 开始日志打印
-        loggerBegin(context, "海报图片生成步骤");
+        try {
+            // 开始日志打印
+            loggerBegin(context, "海报图片生成步骤");
 
-        /*
-         * 获取到待执行的海报风格，并进行校验
-         */
-        // 获取海报风格
-        PosterStyleDTO style = getPosterStyle(context);
-        // 校验海报模版
-        style.validate();
+            /*
+             * 获取到待执行的海报风格，并进行校验
+             */
+            // 获取海报风格
+            PosterStyleDTO style = getPosterStyle(context);
+            // 校验海报模版
+            style.validate();
 
-        /*
-         * 对风格的模板进行标记处理
-         * 是否依赖别的模板的生成结果
-         * 只做标记和必要的校验，不进行参数的填充。
-         */
-        markerDependencyTemplate(context, style);
+            /*
+             * 对风格的模板进行标记处理
+             * 是否依赖别的模板的生成结果
+             * 只做标记和必要的校验，不进行参数的填充。
+             */
+            markerDependencyTemplate(context, style);
 
-        /*
-         * 处理需要复制的模板 <br>
-         * 并且进行复制模版的关于素材的变量的填充。
-         * 需要依赖结果的模板，即使是复制的模板，也不会复制。
-         */
-        handlerCopyTemplate(context, style);
+            /*
+             * 处理需要复制的模板 <br>
+             * 并且进行复制模版的关于素材的变量的填充。
+             * 需要依赖结果的模板，即使是复制的模板，也不会复制。
+             */
+            handlerCopyTemplate(context, style);
 
-        /*
-         * 执行不依赖结果的海报模板，并且获取到结果
-         */
-        List<PosterGenerationHandler.Response> undependencyResponse = batchPoster(context, style, Boolean.FALSE);
+            /*
+             * 执行不依赖结果的海报模板，并且获取到结果
+             */
+            List<PosterGenerationHandler.Response> undependencyResponse = batchPoster(context, style, Boolean.FALSE);
 
-        /*
-         * 判断是否要执行依赖结果的模板，
-         * 只要有一个依赖其他模板生成结果，该值就为true。
-         * 如果没有依赖其他模板生成结果的模板，则直接返回结果，此时顺序已经天然一致，不需要进行额外的排序
-         * 如果有依赖其他模板生成结果的模板，执行依赖结果的模板
-         */
-        boolean hasDependency = hasDependencyTemplate(style);
-        if (!hasDependency) {
-            return successResponse(undependencyResponse, style);
+            /*
+             * 判断是否要执行依赖结果的模板，
+             * 只要有一个依赖其他模板生成结果，该值就为true。
+             * 如果没有依赖其他模板生成结果的模板，则直接返回结果，此时顺序已经天然一致，不需要进行额外的排序
+             * 如果有依赖其他模板生成结果的模板，执行依赖结果的模板
+             */
+            boolean hasDependency = hasDependencyTemplate(style);
+            if (!hasDependency) {
+                return successResponse(undependencyResponse, style);
+            }
+
+            /*
+             * 执行依赖结果的模板
+             * 首先将不依赖结果的模板结果放入到全局上下文中，以便后续的依赖结果的模板可以使用
+             * 其次执行依赖结果的模板
+             */
+            // 将不依赖的模板结果的模板结果放入到全局上下文中
+            putNoDependencyResultContext(context, style, undependencyResponse);
+            // 执行依赖结果的模板列表
+            List<PosterGenerationHandler.Response> dependencyResponse = batchPoster(context, style, Boolean.TRUE);
+            // 对最终结果进行处理，合并，排序
+            List<PosterGenerationHandler.Response> list = handlerAllResponse(style, dependencyResponse, undependencyResponse);
+            // 处理并且返回结果
+            ActionResponse response = successResponse(list, style);
+
+            // 结束日志打印
+            loggerSuccess(context, response, "海报图片生成步骤");
+
+            return response;
+        } catch (Exception exception) {
+            // 抛出异常，一个总的错误码。
+            throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_EXCEPTION.getCode(), exception.getMessage());
         }
-
-        /*
-         * 执行依赖结果的模板
-         * 首先将不依赖结果的模板结果放入到全局上下文中，以便后续的依赖结果的模板可以使用
-         * 其次执行依赖结果的模板
-         */
-        // 将不依赖的模板结果的模板结果放入到全局上下文中
-        putNoDependencyResultContext(context, style, undependencyResponse);
-        // 执行依赖结果的模板列表
-        List<PosterGenerationHandler.Response> dependencyResponse = batchPoster(context, style, Boolean.TRUE);
-        // 对最终结果进行处理，合并，排序
-        List<PosterGenerationHandler.Response> list = handlerAllResponse(style, dependencyResponse, undependencyResponse);
-        // 处理并且返回结果
-        ActionResponse response = successResponse(list, style);
-
-        // 结束日志打印
-        loggerSuccess(context, response, "海报图片生成步骤");
-
-        return response;
     }
 
     /**
@@ -438,22 +442,38 @@ public class PosterActionHandler extends BaseActionHandler {
         if (CollectionUtil.isEmpty(materialList)) {
             return;
         }
-        // 计算现在模板需要的素材数量
-        int needMaterialCount = calculateNeedMaterialCount(style);
-        // 如果需要的素材数量为 -1，说明不需要素材，直接返回
-        if (needMaterialCount == -1 || needMaterialCount >= materialList.size()) {
-            return;
-        }
-
         // 复制素材，并且截取需要的素材
         List<Map<String, Object>> copyMaterialList = SerializationUtils.clone(new ArrayList<>(materialList));
 
-        // 此为需要进行复制的素材
-        List<Map<String, Object>> subMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
-        // 计算需要复制的次数，取余如果余数不为 0 则加 1
-        int remainder = subMaterialList.size() % copyTemplateNeedMaterialCount;
-        // 获取相除的整数部分
-        int copyCount = (subMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+        int copyCount = 0;
+        List<Map<String, Object>> subCopyMaterialList = new ArrayList<>();
+        copyTemplate.setIsUseAllMaterial(true);
+
+        if (Objects.nonNull(copyTemplate.getIsUseAllMaterial()) && copyTemplate.getIsUseAllMaterial()) {
+            if (copyTemplateNeedMaterialCount < copyMaterialList.size()) {
+                subCopyMaterialList = copyMaterialList.subList(copyTemplateNeedMaterialCount, copyMaterialList.size());
+                int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
+                copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+            } else {
+                subCopyMaterialList = new ArrayList<>();
+                copyCount = 0;
+            }
+        } else {
+            // 计算现在模板需要的素材数量
+            int needMaterialCount = calculateNeedMaterialCount(style);
+            // 如果素材足够
+            if (needMaterialCount < copyMaterialList.size()) {
+                // 此为需要进行复制的素材
+                subCopyMaterialList = copyMaterialList.subList(needMaterialCount, copyMaterialList.size());
+                // 计算需要复制的次数，取余如果余数不为 0 则加 1
+                int remainder = subCopyMaterialList.size() % copyTemplateNeedMaterialCount;
+                // 获取相除的整数部分
+                copyCount = (subCopyMaterialList.size() / copyTemplateNeedMaterialCount) + (remainder == 0 ? 0 : 1);
+            } else {
+                subCopyMaterialList = new ArrayList<>();
+                copyCount = 0;
+            }
+        }
 
         for (int i = 0; i < copyCount; i++) {
             PosterTemplateDTO copy = SerializationUtils.clone(copyTemplate);
@@ -461,15 +481,15 @@ public class PosterActionHandler extends BaseActionHandler {
             copy.setName("copy");
 
             List<Map<String, Object>> materials = new ArrayList<>();
-            if (subMaterialList.isEmpty()) {
+            if (subCopyMaterialList.isEmpty()) {
                 break;
             }
-            if (copyTemplateNeedMaterialCount >= subMaterialList.size()) {
-                materials = subMaterialList;
-                subMaterialList = new ArrayList<>();
+            if (copyTemplateNeedMaterialCount >= subCopyMaterialList.size()) {
+                materials = subCopyMaterialList;
+                subCopyMaterialList = new ArrayList<>();
             } else {
-                materials = subMaterialList.subList(0, copyTemplateNeedMaterialCount);
-                subMaterialList = subMaterialList.subList(copyTemplateNeedMaterialCount, subMaterialList.size());
+                materials = subCopyMaterialList.subList(0, copyTemplateNeedMaterialCount);
+                subCopyMaterialList = subCopyMaterialList.subList(copyTemplateNeedMaterialCount, subCopyMaterialList.size());
             }
 
             WorkflowStepWrapper materialStepWrapper = context.getStepWrapper(MaterialActionHandler.class);
@@ -605,6 +625,7 @@ public class PosterActionHandler extends BaseActionHandler {
         // 获取海报模版列表
         List<PosterTemplateDTO> posterTemplateList = posterStyle.posterTemplateList();
         String stepCode = context.getStepWrapper().getStepCode();
+        WorkflowStepWrapper materialStepWrapper = context.getStepWrapper(MaterialActionHandler.class);
 
         // 循环处理海报模板列表
         for (PosterTemplateDTO posterTemplate : posterTemplateList) {
@@ -638,8 +659,21 @@ public class PosterActionHandler extends BaseActionHandler {
                 replaceValueMap = context.parseMapFromVariables(variableMap, stepCode);
             }
 
+            // 循环处理变量列表，进行值填充
+            for (PosterVariableDTO variable : variableList) {
+                // 从作用域数据中获取变量值
+                Object value = replaceValueMap.get(variable.getUuid());
+                // 如果从作用域数据中获取的变量值为空，则为空字符串。
+                if (StringUtil.objectBlank(value)) {
+                    value = StrUtil.EMPTY;
+                }
+                variable.setValue(value);
+            }
+            posterTemplate.setIsExecute(Boolean.TRUE);
+
             // 判断变量替换之后，是否所有的变量都是空的。
-            boolean isAllValueIsInvalid = MapUtil.emptyIfNull(replaceValueMap).values().stream().allMatch(item -> StringUtil.objectBlank(item));
+            boolean isAllValueIsInvalid = MapUtil.emptyIfNull(replaceValueMap)
+                    .values().stream().allMatch(item -> StringUtil.objectBlank(item));
 
             // 如果所有变量处理之后值为空
             if (isAllValueIsInvalid) {
@@ -656,17 +690,6 @@ public class PosterActionHandler extends BaseActionHandler {
                 }
             }
 
-            // 循环处理变量列表，进行值填充
-            for (PosterVariableDTO variable : variableList) {
-                // 从作用域数据中获取变量值
-                Object value = replaceValueMap.get(variable.getUuid());
-                // 如果从作用域数据中获取的变量值为空，则为空字符串。
-                if (StringUtil.objectBlank(value)) {
-                    value = StrUtil.EMPTY;
-                }
-                variable.setValue(value);
-            }
-            posterTemplate.setIsExecute(Boolean.TRUE);
             posterTemplate.setVariableList(variableList);
         }
 
