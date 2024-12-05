@@ -44,6 +44,12 @@ public class PluginsExecuteController {
         return CommonResult.success(pluginsService.intelligentTextExtraction(reqVO));
     }
 
+    @PostMapping(value = "/sensitive")
+    @Operation(summary = "敏感词检测")
+    public CommonResult<JSONObject> sensitiveWord(@Valid @RequestBody RiskWordReqVO reqVO) {
+        return CommonResult.success(pluginsService.sensitiveWord(reqVO));
+    }
+
     @PostMapping(value = "/execute")
     @Operation(summary = "执行插件")
     public CommonResult<String> executePlugin(@Valid @RequestBody PluginExecuteReqVO reqVO) {

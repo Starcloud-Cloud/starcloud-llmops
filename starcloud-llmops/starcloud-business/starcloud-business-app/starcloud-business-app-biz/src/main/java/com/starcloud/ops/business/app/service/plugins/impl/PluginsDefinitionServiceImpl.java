@@ -24,10 +24,7 @@ import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
-import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
-import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
-import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
-import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
+import com.starcloud.ops.business.app.enums.plugin.*;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
 import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
@@ -94,6 +91,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         metadata.put("platform", PlatformEnum.options());
         metadata.put("scene", PluginSceneEnum.options());
         metadata.put("outputType", OutputTypeEnum.options());
+        metadata.put("processManner", ProcessMannerEnum.options());
         return metadata;
     }
 

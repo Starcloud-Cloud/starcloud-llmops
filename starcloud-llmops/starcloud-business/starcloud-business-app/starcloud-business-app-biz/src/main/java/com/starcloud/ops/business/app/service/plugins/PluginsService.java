@@ -52,4 +52,9 @@ public interface PluginsService {
      * 验证结果
      */
     VerifyResult verifyResult(PluginTestResultReqVO resultReqVO);
+
+    /**
+     * 敏感词检测
+     */
+    JSONObject sensitiveWord(RiskWordReqVO reqVO);
 }

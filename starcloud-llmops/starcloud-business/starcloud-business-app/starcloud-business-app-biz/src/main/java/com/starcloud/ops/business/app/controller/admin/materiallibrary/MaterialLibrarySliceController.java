@@ -114,4 +114,12 @@ public class MaterialLibrarySliceController {
     }
 
 
+    @PostMapping("/copy")
+    @Operation(summary = "复制数据", description = "复制数据")
+    public CommonResult<Boolean> copy(@RequestParam("id") Long id) {
+        return CommonResult.success(materialLibrarySliceService.copy(id));
+    }
+
+
+
 }

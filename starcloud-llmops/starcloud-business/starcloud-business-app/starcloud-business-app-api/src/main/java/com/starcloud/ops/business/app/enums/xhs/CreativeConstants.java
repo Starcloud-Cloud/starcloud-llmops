@@ -44,6 +44,8 @@ public interface CreativeConstants {
      */
     String IMAGE_OCR_URL = "IMAGE_OCR_URL";
 
+    String SENSITIVE_WORD = "SENSITIVE_WORD";
+
     /**
      * 参考内容 带模仿要求
      */

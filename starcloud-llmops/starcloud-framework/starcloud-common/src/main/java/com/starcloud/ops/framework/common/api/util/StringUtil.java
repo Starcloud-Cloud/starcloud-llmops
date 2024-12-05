@@ -132,4 +132,22 @@ public class StringUtil {
         }
     }
 
+    /**
+     * 字符串内容请进行UNICODE中文编码
+     */
+    public static String encodeToUnicode(String s) {
+        StringBuilder unicode = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            // 如果是ASCII字符，直接添加
+            if (c < 128) {
+                unicode.append(c);
+            } else {
+                // 否则，转换为Unicode格式
+                unicode.append("\\u").append(Integer.toHexString(c | 0x10000).substring(1));
+            }
+        }
+        return unicode.toString();
+    }
+
 }
