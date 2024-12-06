@@ -2,6 +2,8 @@ package com.starcloud.ops.business.job.biz.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
+import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.BusinessJobBaseVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.request.BusinessJobModifyReqVO;
 import com.starcloud.ops.business.job.biz.controller.admin.vo.response.BusinessJobRespVO;
@@ -13,6 +15,7 @@ import com.starcloud.ops.business.job.biz.enums.TriggerTypeEnum;
 import com.starcloud.ops.business.job.biz.powerjob.PowerjobManager;
 import com.starcloud.ops.business.job.biz.service.BusinessJobService;
 import com.starcloud.ops.business.job.utils.CronUtils;
+import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,12 +36,18 @@ import static com.starcloud.ops.business.job.biz.enums.JobErrorCodeConstants.JOB
 @Service
 public class BusinessJobServiceImpl implements BusinessJobService {
 
-//    @Resource
+    //    @Resource
     @Autowired(required = false)
     private PowerjobManager powerjobManager;
 
     @Resource
     private BusinessJobMapper businessJobMapper;
+
+    @Resource
+    private DeptPermissionApi deptPermissionApi;
+
+    @Resource
+    private PluginConfigService pluginConfigService;
 
     @Override
     public Map<String, Object> metadata() {
@@ -57,6 +66,8 @@ public class BusinessJobServiceImpl implements BusinessJobService {
         if (Objects.nonNull(existJob)) {
             throw exception(EXIST_JOB, existJob.getForeignKey());
         }
+        PluginConfigDO pluginConfigDO = pluginConfigService.getByUid(businessJobBaseVO.getForeignKey());
+        deptPermissionApi.adminEditPermission(pluginConfigDO.getDeptId());
 
         Long jobId = powerjobManager.saveJob(businessJobBaseVO, null);
         BusinessJobDO businessJobDO = BusinessJobConvert.INSTANCE.convert(businessJobBaseVO);
@@ -72,6 +83,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     public void modify(BusinessJobModifyReqVO reqVO) {
         reqVO.getConfig().valid();
         BusinessJobDO businessJobDO = getByUid(reqVO.getUid());
+        deptPermissionApi.adminEditPermission(businessJobDO.getDeptId());
         BusinessJobDO updateDO = BusinessJobConvert.INSTANCE.convert(reqVO);
         updateDO.setId(businessJobDO.getId());
         updateDO.setRemainCount(REMAIN_NUM);
@@ -83,6 +95,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         BusinessJobDO businessJobDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(businessJobDO.getDeptId());
         businessJobMapper.deleteById(businessJobDO.getId());
         powerjobManager.deleteJob(businessJobDO.getJobId());
     }
@@ -91,6 +104,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     @Transactional(rollbackFor = Exception.class)
     public void stop(String uid) {
         BusinessJobDO businessJobDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(businessJobDO.getDeptId());
         businessJobDO.setEnable(false);
         businessJobMapper.updateById(businessJobDO);
         powerjobManager.disable(businessJobDO.getJobId());
@@ -100,6 +114,7 @@ public class BusinessJobServiceImpl implements BusinessJobService {
     @Transactional(rollbackFor = Exception.class)
     public void start(String uid) {
         BusinessJobDO businessJobDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(businessJobDO.getDeptId());
         businessJobDO.setEnable(true);
         businessJobDO.setRemainCount(REMAIN_NUM);
         businessJobMapper.updateById(businessJobDO);
