@@ -210,7 +210,7 @@ public class CreativeContentController {
 
     @PostMapping("/riskword")
     @Operation(summary = "敏感词检测", description = "敏感词检测")
-    public CommonResult<CreativeContentRiskRespVO> risk(@RequestBody CreativeContentRiskReqVO reqVO) {
+    public CommonResult<CreativeContentRiskRespVO> risk(@Valid @RequestBody CreativeContentRiskReqVO reqVO) {
         CreativeContentRiskRespVO respVO = creativeContentService.risk(reqVO);
         return CommonResult.success(respVO);
     }
@@ -218,7 +218,7 @@ public class CreativeContentController {
 
     @PostMapping("/riskReplace")
     @Operation(summary = "敏感词替换", description = "敏感词替换")
-    public CommonResult<RiskReplaceRespVO> riskReplace(@RequestBody RiskReplaceReqVO reqVO) {
+    public CommonResult<RiskReplaceRespVO> riskReplace(@Valid @RequestBody RiskReplaceReqVO reqVO) {
         return CommonResult.success(reqVO.riskReplace());
     }
 

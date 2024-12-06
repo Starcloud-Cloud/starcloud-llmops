@@ -67,8 +67,7 @@ public class SocialUserController {
     @GetMapping("/page")
     @Operation(summary = "获得社交用户分页")
     public CommonResult<PageResult<SocialUserRespVO>> getSocialUserPage(@Valid SocialUserPageReqVO pageVO) {
-        PageResult<SocialUserDO> pageResult = socialUserService.getSocialUserPage(pageVO);
-        return success(SocialUserConvert.INSTANCE.convertPage(pageResult));
+        return success(socialUserService.getSocialUserPage2(pageVO));
     }
 
 

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.map.MapUtil;
@@ -49,6 +50,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -800,7 +802,6 @@ public class MaterialLibrarySliceServiceImpl implements MaterialLibrarySliceServ
             } else {
                 setRedisValue(getRedisKey(url, libraryId), JSONUtil.toJsonStr(MATERIAL_LIBRARY_IMAGE_TYPE_ERROR));
             }
-
         });
 
     }
