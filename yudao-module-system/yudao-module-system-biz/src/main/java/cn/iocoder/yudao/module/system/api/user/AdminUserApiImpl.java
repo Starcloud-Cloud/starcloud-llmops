@@ -1,16 +1,20 @@
 package cn.iocoder.yudao.module.system.api.user;
 
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import cn.iocoder.yudao.module.system.api.permission.RoleApi;
 import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import cn.iocoder.yudao.module.system.convert.user.UserConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -23,6 +27,12 @@ public class AdminUserApiImpl implements AdminUserApi {
 
     @Resource
     private AdminUserService userService;
+
+    @Resource
+    private RoleApi roleApi;
+
+    @Resource
+    private DeptService deptService;
 
     @Override
     public AdminUserRespDTO getUser(Long id) {
@@ -71,5 +81,18 @@ public class AdminUserApiImpl implements AdminUserApi {
 
     }
 
-
+    @Override
+    @DataPermission(enable = false)
+    public boolean checkDeptRole(Long userId) {
+        List<String> roleCodeList = roleApi.getRoleCodeList(userId);
+        if (!roleCodeList.contains("super_admin")) {
+            return false;
+        }
+        AdminUserDO user = userService.getUser(userId);
+        Long superUserId = deptService.getSuperUserId(user.getDeptId());
+        if (Objects.equals(userId, superUserId)) {
+            return true;
+        }
+        return false;
+    }
 }
