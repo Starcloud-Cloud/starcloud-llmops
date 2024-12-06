@@ -39,6 +39,8 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_POSTER_FAILURE = new ErrorCode(300_100_551, "海报执行异常！请稍候重试！");
 
+    ErrorCode EXECUTE_POSTER_EXCEPTION = new ErrorCode(350400200, "海报执行异常！请稍候重试！");
+
     /**
      * 基础响应状态码：响应结果不存在。<br>
      * 比如：查询用户详情的时候，未查询到用户信息。即可以使用该状态码。
