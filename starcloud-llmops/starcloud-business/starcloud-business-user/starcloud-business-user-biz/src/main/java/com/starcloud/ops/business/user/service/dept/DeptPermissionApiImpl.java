@@ -100,16 +100,16 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
     @Override
     @DataPermission(enable = false)
     public void adminEditPermission(Long... deptIds) {
-        Long currentUserId = WebFrameworkUtils.getLoginUserId();
-        List<String> roleCodeList = roleApi.getRoleCodeList(currentUserId);
-        if (!roleCodeList.contains("super_admin")) {
-            return;
-        }
-        AdminUserRespDTO user = adminUserApi.getUser(currentUserId);
-        for (Long deptId : deptIds) {
-            if (!Objects.equals(user.getDeptId(), deptId)) {
-                throw exception(SUPER_ADMIN_PERMISSION);
-            }
-        }
+//        Long currentUserId = WebFrameworkUtils.getLoginUserId();
+//        List<String> roleCodeList = roleApi.getRoleCodeList(currentUserId);
+//        if (!roleCodeList.contains("super_admin")) {
+//            return;
+//        }
+//        AdminUserRespDTO user = adminUserApi.getUser(currentUserId);
+//        for (Long deptId : deptIds) {
+//            if (!Objects.equals(user.getDeptId(), deptId)) {
+//                throw exception(SUPER_ADMIN_PERMISSION);
+//            }
+//        }
     }
 }
