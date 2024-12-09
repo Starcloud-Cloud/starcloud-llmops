@@ -135,8 +135,8 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
 
         // 校验coze token 的部门
-        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(pluginVO.getCozeTokenId()));
-        deptPermissionApi.adminEditPermission(socialUser.getDeptId());
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(pluginVO.getCozeTokenId()));
+//        deptPermissionApi.adminEditPermission(socialUser.getDeptId());
 
         PluginDefinitionDO pluginConfigDO = PluginDefinitionConvert.INSTANCE.convert(pluginVO);
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
@@ -250,9 +250,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Override
     public PluginRespVO modifyPlugin(PluginConfigModifyReqVO reqVO) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(reqVO.getUid());
-        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(reqVO.getCozeTokenId()));
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(reqVO.getCozeTokenId()));
 
-        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId(), socialUser.getDeptId());
+//        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId(), socialUser.getDeptId());
         deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_edit, Long.valueOf(pluginDefinitionDO.getCreator()));
 
         PluginDefinitionDO updatePlugin = PluginDefinitionConvert.INSTANCE.convert(reqVO);
