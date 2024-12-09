@@ -135,6 +135,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(NAME_DUPLICATE, pluginVO.getPluginName());
         }
 
+        // 校验coze token 的部门
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(pluginVO.getCozeTokenId()));
+//        deptPermissionApi.adminEditPermission(socialUser.getDeptId());
+
         PluginDefinitionDO pluginConfigDO = PluginDefinitionConvert.INSTANCE.convert(pluginVO);
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
             CozeBotInfo cozeBotInfo = botInfo(pluginConfigDO.getEntityUid(), pluginConfigDO.getCozeTokenId());
@@ -238,15 +242,18 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (UserUtils.isNotAdmin()) {
             throw exception(NO_PERMISSIONS);
         }
-        PluginDefinitionDO pluginConfigDO = getByUid(uid);
-
-        pluginConfigDO.setPublished(true);
-        pluginDefinitionMapper.updateById(pluginConfigDO);
+        PluginDefinitionDO pluginDefinitionDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId());
+        pluginDefinitionDO.setPublished(true);
+        pluginDefinitionMapper.updateById(pluginDefinitionDO);
     }
 
     @Override
     public PluginRespVO modifyPlugin(PluginConfigModifyReqVO reqVO) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(reqVO.getUid());
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(reqVO.getCozeTokenId()));
+
+//        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId(), socialUser.getDeptId());
         deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_edit, Long.valueOf(pluginDefinitionDO.getCreator()));
 
         PluginDefinitionDO updatePlugin = PluginDefinitionConvert.INSTANCE.convert(reqVO);
@@ -263,6 +270,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId());
         deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginDefinitionDO.getCreator()));
         pluginDefinitionMapper.deleteById(pluginDefinitionDO.getId());
         configService.deleteByPluginUid(pluginDefinitionDO.getUid());

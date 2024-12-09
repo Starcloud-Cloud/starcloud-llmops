@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
@@ -12,12 +13,14 @@ import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginConfigMapper;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
 import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
+import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +50,10 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Resource
     private DeptPermissionApi deptPermissionApi;
 
+    @Resource
+    @Lazy
+    private MaterialLibraryService materialLibraryService;
+
     @Override
     public PluginConfigRespVO create(PluginConfigVO pluginConfigVO) {
         PluginConfigDO oldConfig = pluginConfigMapper.selectByLibraryUid(pluginConfigVO.getLibraryUid(), pluginConfigVO.getPluginUid());
@@ -59,8 +66,14 @@ public class PluginConfigServiceImpl implements PluginConfigService {
             if (Objects.isNull(pluginDefinitionDO)) {
                 throw exception(PLUGIN_NOT_EXIST, pluginConfigVO.getPluginUid());
             }
-            deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_add, Long.valueOf(pluginDefinitionDO.getCreator()));
+            if (!pluginDefinitionDO.getPublished()) {
+                deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId());
+            }
         });
+
+        MaterialLibraryRespVO libraryRespVO = materialLibraryService.getMaterialLibraryByUid(pluginConfigVO.getLibraryUid());
+        deptPermissionApi.adminEditPermission(libraryRespVO.getDeptId());
+        deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_add, Long.valueOf(libraryRespVO.getCreator()));
 
         PluginConfigDO pluginConfigDO = PluginConfigConvert.INSTANCE.convert(pluginConfigVO);
         pluginConfigDO.setUid(IdUtil.fastSimpleUUID());
@@ -72,6 +85,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     @Override
     public void modify(PluginConfigReqVO pluginVO) {
         PluginConfigDO pluginConfigDO = getByUid(pluginVO.getUid());
+        deptPermissionApi.adminEditPermission(pluginConfigDO.getDeptId());
         PluginConfigDO updateConfig = PluginConfigConvert.INSTANCE.convert(pluginVO);
         updateConfig.setId(pluginConfigDO.getId());
         pluginConfigMapper.updateById(updateConfig);
@@ -82,6 +96,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
     public void delete(String uid, boolean forced) {
         PluginConfigDO pluginConfigDO = getByUid(uid);
         if (!forced) {
+            deptPermissionApi.adminEditPermission(pluginConfigDO.getDeptId());
             deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_bind_delete, Long.valueOf(pluginConfigDO.getCreator()));
         }
 
@@ -119,6 +134,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
         return PluginConfigConvert.INSTANCE.convert(pluginConfigDOList);
     }
 
+    @Override
     public PluginConfigDO getByUid(String uid) {
         PluginConfigDO pluginConfigDO = pluginConfigMapper.selectByUid(uid);
         if (Objects.isNull(pluginConfigDO)) {
