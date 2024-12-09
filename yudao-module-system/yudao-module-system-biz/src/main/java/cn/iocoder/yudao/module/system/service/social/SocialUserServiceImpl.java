@@ -10,9 +10,11 @@ import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.mybatis.core.util.MyBatisUtils;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserRespVO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserUpdateSimpleReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
@@ -21,6 +23,7 @@ import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserBindMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper;
 import cn.iocoder.yudao.module.system.enums.social.SocialTypeEnum;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.xingyuv.jushauth.model.AuthToken;
 import com.xingyuv.jushauth.model.AuthUser;
 import lombok.extern.slf4j.Slf4j;
@@ -264,6 +267,19 @@ public class SocialUserServiceImpl implements SocialUserService {
         }
 
         return socialUserMapper.selectPage2(pageReqVO, convertSet(socialUserBinds, SocialUserBindDO::getSocialUserId));
+    }
+
+    @Override
+    public PageResult<SocialUserRespVO> getSocialUserPage2(SocialUserPageReqVO pageReqVO) {
+
+        // 获得绑定
+        List<SocialUserBindDO> socialUserBinds = socialUserBindMapper.selectListByUserIdAndUserType(null, UserTypeEnum.ADMIN.getValue());
+        if (CollUtil.isEmpty(socialUserBinds)) {
+            return PageResult.empty();
+        }
+        IPage<SocialUserRespVO> pageResult = socialUserMapper.selectPage3(MyBatisUtils.buildPage(pageReqVO, null), pageReqVO, convertSet(socialUserBinds, SocialUserBindDO::getSocialUserId));
+        // 3. 拼接数据并返回
+        return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
     }
 
     @Override

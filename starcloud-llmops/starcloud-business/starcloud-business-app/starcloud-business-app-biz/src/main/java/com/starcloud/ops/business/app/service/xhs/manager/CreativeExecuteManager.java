@@ -97,7 +97,9 @@ public class CreativeExecuteManager {
             USER_RIGHTS_NOT_ENOUGH.getCode(),
             USER_RIGHTS_MATRIX_BEAN_NOT_ENOUGH.getCode(),
             // JSON 解析失败
-            ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR.getCode()
+            ErrorCodeConstants.EXECUTE_JSON_RESULT_PARSE_ERROR.getCode(),
+            // 海报执行失败
+            ErrorCodeConstants.EXECUTE_POSTER_EXCEPTION.getCode()
     );
 
     @Resource
