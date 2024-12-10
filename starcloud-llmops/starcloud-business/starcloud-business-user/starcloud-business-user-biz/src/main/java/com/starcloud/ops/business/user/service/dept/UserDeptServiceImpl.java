@@ -343,7 +343,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             userId = WebFrameworkUtils.getLoginUserId();
         }
         if (Objects.isNull(userId)) {
-            throw exception(USER_NOT_EXISTS);
+            return UserDeptRoleEnum.SUPER_ADMIN.getPermissions();
         }
 
         AdminUserRespDTO user = adminUserApi.getUser(userId);
