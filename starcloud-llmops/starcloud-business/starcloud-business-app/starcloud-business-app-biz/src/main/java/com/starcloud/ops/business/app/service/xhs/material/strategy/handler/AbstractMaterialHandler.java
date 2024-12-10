@@ -132,8 +132,12 @@ public abstract class AbstractMaterialHandler {
         List<Map<String, Object>> list = new ArrayList<>();
         map.values().forEach(list::addAll);
         // 去重
-        // list = new ArrayList<>(list.stream().collect(Collectors.toMap(m -> m.get("__id__"), m -> m, (existing,
-        // replacement) -> existing)).values());
+        list = new ArrayList<>(list.stream()
+                .collect(Collectors.toMap(
+                        m -> m.get("__id__"),
+                        m -> m,
+                        (existing, replacement) -> existing))
+                .values());
         List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
         for (Map<String, Object> mapItem : list) {
             Long id = (Long) mapItem.get("__id__");

@@ -13,6 +13,7 @@ import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.PermissionApi;
 import cn.iocoder.yudao.module.system.api.permission.dto.DeptDataPermissionRespDTO;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,18 +27,18 @@ import java.util.*;
 
 /**
  * 基于部门的 {@link DataPermissionRule} 数据权限规则实现
- *
+ * <p>
  * 注意，使用 DeptDataPermissionRule 时，需要保证表中有 dept_id 部门编号的字段，可自定义。
- *
+ * <p>
  * 实际业务场景下，会存在一个经典的问题？当用户修改部门时，冗余的 dept_id 是否需要修改？
  * 1. 一般情况下，dept_id 不进行修改，则会导致用户看不到之前的数据。【yudao-server 采用该方案】
  * 2. 部分情况下，希望该用户还是能看到之前的数据，则有两种方式解决：【需要你改造该 DeptDataPermissionRule 的实现代码】
- *  1）编写洗数据的脚本，将 dept_id 修改成新部门的编号；【建议】
- *      最终过滤条件是 WHERE dept_id = ?
- *  2）洗数据的话，可能涉及的数据量较大，也可以采用 user_id 进行过滤的方式，此时需要获取到 dept_id 对应的所有 user_id 用户编号；
- *      最终过滤条件是 WHERE user_id IN (?, ?, ? ...)
- *  3）想要保证原 dept_id 和 user_id 都可以看的到，此时使用 dept_id 和 user_id 一起过滤；
- *      最终过滤条件是 WHERE dept_id = ? OR user_id IN (?, ?, ? ...)
+ * 1）编写洗数据的脚本，将 dept_id 修改成新部门的编号；【建议】
+ * 最终过滤条件是 WHERE dept_id = ?
+ * 2）洗数据的话，可能涉及的数据量较大，也可以采用 user_id 进行过滤的方式，此时需要获取到 dept_id 对应的所有 user_id 用户编号；
+ * 最终过滤条件是 WHERE user_id IN (?, ?, ? ...)
+ * 3）想要保证原 dept_id 和 user_id 都可以看的到，此时使用 dept_id 和 user_id 一起过滤；
+ * 最终过滤条件是 WHERE dept_id = ? OR user_id IN (?, ?, ? ...)
  *
  * @author 芋道源码
  */
@@ -57,10 +58,12 @@ public class DeptDataPermissionRule implements DataPermissionRule {
 
     private final PermissionApi permissionApi;
 
+    private final AdminUserApi adminUserApi;
+
     /**
      * 基于部门的表字段配置
      * 一般情况下，每个表的部门编号字段是 dept_id，通过该配置自定义。
-     *
+     * <p>
      * key：表名
      * value：字段名
      */
@@ -68,7 +71,7 @@ public class DeptDataPermissionRule implements DataPermissionRule {
     /**
      * 基于用户的表字段配置
      * 一般情况下，每个表的部门编号字段是 dept_id，通过该配置自定义。
-     *
+     * <p>
      * key：表名
      * value：字段名
      */
@@ -105,6 +108,10 @@ public class DeptDataPermissionRule implements DataPermissionRule {
                 throw new NullPointerException(String.format("LoginUser(%d) Table(%s/%s) 未返回数据权限",
                         loginUser.getId(), tableName, tableAlias.getName()));
             }
+
+            if (adminUserApi.checkDeptRole(loginUser.getId())) {
+                deptDataPermission.setAll(true);
+            }
             // 添加到上下文中，避免重复计算
             loginUser.setContext(CONTEXT_KEY, deptDataPermission);
         }
@@ -116,12 +123,12 @@ public class DeptDataPermissionRule implements DataPermissionRule {
 
         // 情况二，即不能查看部门，又不能查看自己，则说明 100% 无权限
         if (CollUtil.isEmpty(deptDataPermission.getDeptIds())
-            && Boolean.FALSE.equals(deptDataPermission.getSelf())) {
+                && Boolean.FALSE.equals(deptDataPermission.getSelf())) {
             return new EqualsTo(null, null); // WHERE null = null，可以保证返回的数据为空
         }
 
         // 情况三，拼接 Dept 和 User 的条件，最后组合
-        Expression deptExpression = buildDeptExpression(tableName,tableAlias, deptDataPermission.getDeptIds());
+        Expression deptExpression = buildDeptExpression(tableName, tableAlias, deptDataPermission.getDeptIds());
         Expression userExpression = buildUserExpression(tableName, tableAlias, deptDataPermission.getSelf(), loginUser.getId());
         if (deptExpression == null && userExpression == null) {
             // TODO 芋艿：获得不到条件的时候，暂时不抛出异常，而是不返回数据
@@ -180,7 +187,7 @@ public class DeptDataPermissionRule implements DataPermissionRule {
 
     public void addDeptColumn(Class<? extends BaseDO> entityClass, String columnName) {
         String tableName = TableInfoHelper.getTableInfo(entityClass).getTableName();
-       addDeptColumn(tableName, columnName);
+        addDeptColumn(tableName, columnName);
     }
 
     public void addDeptColumn(String tableName, String columnName) {

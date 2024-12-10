@@ -84,4 +84,8 @@ public class MaterialLibraryRespVO {
     @Schema(description = "绑定的app信息")
     private List<BindAppContentRespVO> bindAppContent;
 
+    private String creator;
+
+    private Long deptId;
+
 }
