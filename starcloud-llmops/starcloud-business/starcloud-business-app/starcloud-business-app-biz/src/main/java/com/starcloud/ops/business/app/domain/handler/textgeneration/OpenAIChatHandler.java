@@ -23,12 +23,15 @@ import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatGeneration;
 import com.starcloud.ops.llm.langchain.core.model.llm.base.ChatResult;
 import com.starcloud.ops.llm.langchain.core.prompt.base.HumanMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.StringPromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.SystemMessagePromptTemplate;
+import com.starcloud.ops.llm.langchain.core.prompt.base.template.BaseMessagePromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.ChatPromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.template.PromptTemplate;
 import com.starcloud.ops.llm.langchain.core.prompt.base.variable.BaseVariable;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import com.starcloud.ops.llm.langchain.core.schema.message.BaseMessage;
 import com.starcloud.ops.llm.langchain.core.schema.message.HumanMessage;
+import com.starcloud.ops.llm.langchain.core.schema.message.SystemMessage;
 import com.starcloud.ops.llm.langchain.core.utils.JsonUtils;
 import com.starcloud.ops.llm.langchain.core.utils.TokenCalculator;
 import com.theokanning.openai.OpenAiHttpException;
@@ -36,6 +39,7 @@ import com.theokanning.openai.completion.chat.ChatCompletionChoice;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -165,9 +169,22 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             chatOpenAI.setN(request.getN());
             chatOpenAI.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
-            // 构建消息提示词 prompt
-            HumanMessage message = new HumanMessage(request.getPrompt());
-            List<List<BaseMessage>> chatMessages = Collections.singletonList(Collections.singletonList(message));
+            // 构建系统消息提示词
+            List<BaseMessage> messages = new ArrayList<>();
+            String systemPrompt = request.getPrompt();
+            if (StringUtils.isNotBlank(systemPrompt)) {
+                SystemMessage systemMessage = new SystemMessage(systemPrompt);
+                messages.add(systemMessage);
+            }
+
+            // 构建用户提示词
+            String userPrompt = request.getUserPrompt();
+            if (StringUtils.isNotBlank(userPrompt)) {
+                HumanMessage userMessage = new HumanMessage(userPrompt);
+                messages.add(userMessage);
+            }
+
+            List<List<BaseMessage>> chatMessages = Collections.singletonList(messages);
 
             // 执行 OpenAI 大模型
             ChatResult<ChatCompletionResult> chatResult = chatOpenAI.generate(chatMessages);
@@ -234,10 +251,24 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             chatQwen.setStream(false);
             chatQwen.addCallbackHandler(this.getStreamingSseCallBackHandler());
 
-            // 构建消息提示 ChatPromptTemplate
-            StringPromptTemplate stringPromptTemplate = new PromptTemplate(prompt, new ArrayList<>());
-            HumanMessagePromptTemplate humanMessagePromptTemplate = new HumanMessagePromptTemplate(stringPromptTemplate);
-            ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(Collections.singletonList(humanMessagePromptTemplate));
+            List<BaseMessagePromptTemplate> messages = new ArrayList<>();
+            // 构建系统消息提示词
+            String systemPrompt = request.getPrompt();
+            if (StringUtils.isNotBlank(systemPrompt)) {
+                StringPromptTemplate systemPromptTemplate = new PromptTemplate(systemPrompt, new ArrayList<>());
+                SystemMessagePromptTemplate systemMessagePromptTemplate = new SystemMessagePromptTemplate(systemPromptTemplate);
+                messages.add(systemMessagePromptTemplate);
+            }
+
+            // 构建用户消息提示词
+            String userPrompt = request.getUserPrompt();
+            if (StringUtils.isNotBlank(userPrompt)) {
+                StringPromptTemplate userPromptTemplate = new PromptTemplate(userPrompt, new ArrayList<>());
+                HumanMessagePromptTemplate userMessagePromptTemplate = new HumanMessagePromptTemplate(userPromptTemplate);
+                messages.add(userMessagePromptTemplate);
+            }
+
+            ChatPromptTemplate chatPromptTemplate = ChatPromptTemplate.fromMessages(messages);
 
             // 构建 LLMChain 对象，用于调用通义千问大模型
             LLMChain<GenerationResult> llmChain = new LLMChain<>(chatQwen, chatPromptTemplate);
@@ -275,6 +306,8 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
          * 后续新参数 都是一个个独立字段即可
          */
         private String prompt;
+
+        private String userPrompt;
 
         /**
          * 温度

@@ -384,6 +384,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 获取到参数列表
         Map<String, Object> params = context.getContextVariablesValues();
+        String userPrompt = "";
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -392,8 +393,10 @@ public class CustomActionHandler extends BaseActionHandler {
         boolean isCustom;
         if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
             isCustom = false;
+            userPrompt = params.getOrDefault(CreativeConstants.PARODY_REQUIREMENT, "").toString();
         } else if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
             isCustom = true;
+            userPrompt = params.getOrDefault(CreativeConstants.CUSTOM_REQUIREMENT, "").toString();
         } else {
             throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 不支持的生成模式！", context.getStepId());
         }
@@ -418,6 +421,7 @@ public class CustomActionHandler extends BaseActionHandler {
         handlerRequest.setModel(model);
         handlerRequest.setN(n);
         handlerRequest.setPrompt(prompt);
+        handlerRequest.setUserPrompt(userPrompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
         // 构建请求上下文
