@@ -12,7 +12,7 @@
     </select>
 
     <select id="pagePurchaseExperienceParams"
-            resultType="com.starcloud.ops.business.user.dal.dataObject.notify.PurchaseExperienceParamsDTO">
+            resultType="com.starcloud.ops.business.user.dal.dataobject.notify.PurchaseExperienceParamsDTO">
         SELECT users.id                                   as userId,
                users.nickname                             as nickname,
                DATE_FORMAT(users.create_time, '%Y-%m-%d') as createTime,
@@ -27,7 +27,7 @@
     </select>
 
     <select id="purchaseExperienceParams"
-            resultType="com.starcloud.ops.business.user.dal.dataObject.notify.PurchaseExperienceParamsDTO">
+            resultType="com.starcloud.ops.business.user.dal.dataobject.notify.PurchaseExperienceParamsDTO">
         SELECT users.id                                   as userId,
                users.nickname                             as nickname,
                DATE_FORMAT(users.create_time, '%Y-%m-%d') as createTime,

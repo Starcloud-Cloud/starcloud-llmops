@@ -10,7 +10,7 @@ import com.starcloud.ops.business.user.controller.admin.dept.vo.request.CreateUs
 import com.starcloud.ops.business.user.controller.admin.dept.vo.request.UserDeptUpdateReqVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO;
-import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
+import com.starcloud.ops.business.user.dal.dataobject.dept.UserDeptDO;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
