@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.dal.dataObject.notify;
+package com.starcloud.ops.business.user.dal.dataobject.notify;
 
 import lombok.Data;
 

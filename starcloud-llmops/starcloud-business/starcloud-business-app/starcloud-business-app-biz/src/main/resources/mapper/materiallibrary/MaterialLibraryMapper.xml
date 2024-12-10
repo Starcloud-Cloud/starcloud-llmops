@@ -31,8 +31,7 @@
   LEFT JOIN system_users u ON a.creator = u.id    AND u.deleted = 0
   <where>
    <if test="query.name != null and query.name != '' ">
-    <bind name="name" value="query.name+'%'"/>
-    AND a.name LIKE #{query.name}
+    AND a.name LIKE CONCAT('%', #{query.name}, '%')
    </if>
    <if test="query.libraryType != null and query.libraryType != '' ">
     AND a.library_type = #{query.libraryType}

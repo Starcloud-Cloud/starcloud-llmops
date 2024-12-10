@@ -1,4 +1,4 @@
-package com.starcloud.ops.business.user.dal.dataObject.dept;
+package com.starcloud.ops.business.user.dal.dataobject.dept;
 
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;

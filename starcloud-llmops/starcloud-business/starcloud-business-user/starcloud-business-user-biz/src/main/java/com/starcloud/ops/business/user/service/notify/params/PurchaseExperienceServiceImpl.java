@@ -6,7 +6,7 @@ import cn.iocoder.yudao.framework.common.util.object.PageUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.notify.NotifyTemplateDO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.FilterUserReqVO;
 import com.starcloud.ops.business.user.controller.admin.notify.vo.NotifyContentRespVO;
-import com.starcloud.ops.business.user.dal.dataObject.notify.PurchaseExperienceParamsDTO;
+import com.starcloud.ops.business.user.dal.dataobject.notify.PurchaseExperienceParamsDTO;
 import com.starcloud.ops.business.user.dal.mysql.notify.NotifyParamsMapper;
 import com.starcloud.ops.business.user.enums.notify.NotifyTemplateEnum;
 import lombok.extern.slf4j.Slf4j;
