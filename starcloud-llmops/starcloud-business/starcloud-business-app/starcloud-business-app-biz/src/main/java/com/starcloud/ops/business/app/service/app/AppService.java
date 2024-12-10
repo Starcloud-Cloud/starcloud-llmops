@@ -11,6 +11,7 @@ import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.category.vo.AppCategoryVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppTestExecuteReqVO;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 
@@ -148,6 +149,13 @@ public interface AppService {
      * @param request 应用执行请求信息
      */
     void asyncExecute(AppExecuteReqVO request);
+
+    /**
+     * 测试执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    void executeTest(AppTestExecuteReqVO request);
 
     /**
      * 生成field
