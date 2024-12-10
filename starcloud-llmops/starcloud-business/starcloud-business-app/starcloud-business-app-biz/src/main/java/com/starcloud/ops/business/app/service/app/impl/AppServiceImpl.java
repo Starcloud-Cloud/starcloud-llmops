@@ -486,7 +486,7 @@ public class AppServiceImpl implements AppService {
     @SuppressWarnings("all")
     public void executeTest(AppTestExecuteReqVO request) {
         BaseAppEntity app;
-        if ("APP".equals(request.getScene())) {
+        if ("APP".equals(request.getSource())) {
             app = AppFactory.factoryApp(request);
         } else if ("MARKET".equals(request.getSource())) {
             app = AppFactory.factoryMarket(request);
