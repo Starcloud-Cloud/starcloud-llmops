@@ -66,8 +66,8 @@ public class NewUserRightHandler implements NewUserHandler {
 
         if (TenantContextHolder.getTenantId() == 3) {
             commonDTO.setRightsBasicDTO(new UserRightsBasicDTO()
-                            .setMagicBean(99999)
-                            .setMagicImage(99999)
+                            .setMagicBean(999999)
+                            .setMagicImage(999999)
                             .setMatrixBean(100)
                             .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
                             .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))

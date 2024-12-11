@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -47,7 +49,7 @@ public class MaterialLibraryTableColumnController {
     @Operation(summary = "删除素材知识库表格信息")
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<Boolean> deleteMaterialLibraryTableColumn(@RequestParam("id") Long id) {
-        materialLibraryTableColumnService.deleteMaterialLibraryTableColumn(id);
+        DataPermissionUtils.executeIgnore(() -> materialLibraryTableColumnService.deleteMaterialLibraryTableColumn(id));
         return success(true);
     }
 
@@ -61,15 +63,23 @@ public class MaterialLibraryTableColumnController {
 
     @GetMapping("/list")
     @Operation(summary = "获取表头数据列表")
-    public CommonResult<List<MaterialLibraryTableColumnRespVO>> updateBatch(@RequestParam("libraryId") Long libraryId) {
-        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(libraryId);
-        return success(BeanUtils.toBean(tableColumnDOList, MaterialLibraryTableColumnRespVO.class));
+    public CommonResult<List<MaterialLibraryTableColumnRespVO>> list(@RequestParam("libraryId") Long libraryId) {
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        AtomicReference<List<MaterialLibraryTableColumnRespVO>>  dataPermissionResult = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> {
+            List<MaterialLibraryTableColumnRespVO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibraryAndName(libraryId);
+            dataPermissionResult.set(tableColumnDOList);
+        });
+        return success(dataPermissionResult.get());
     }
 
     @PostMapping("/update-batch")
     @Operation(summary = "批量更新表头数据")
     public CommonResult<Boolean> updateBatch(@Valid @RequestBody MaterialLibraryTableColumnBatchSaveReqVO batchSaveReqVO) {
-        materialLibraryTableColumnService.updateBatchByLibraryId(batchSaveReqVO);
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        DataPermissionUtils.executeIgnore(() -> {
+            materialLibraryTableColumnService.updateBatchByLibraryId(batchSaveReqVO);
+        });
         return success(true);
     }
 

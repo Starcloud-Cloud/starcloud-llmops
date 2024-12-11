@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.controller.admin.materiallibrary;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.*;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryAppBindService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -46,7 +48,7 @@ public class MaterialLibrarySliceController {
 
     @PostMapping("/create-batch")
     @Operation(summary = "批量-创建素材知识库数据")
-    public CommonResult< List<Long>> createBatchMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceBatchSaveReqVO batchSaveReqVO) {
+    public CommonResult<List<Long>> createBatchMaterialLibrarySlice(@Valid @RequestBody MaterialLibrarySliceBatchSaveReqVO batchSaveReqVO) {
         return success(materialLibrarySliceService.createBatchMaterialLibrarySlice(batchSaveReqVO));
     }
 
@@ -69,7 +71,9 @@ public class MaterialLibrarySliceController {
     @Operation(summary = "删除素材知识库数据")
     @Parameter(name = "id", description = "编号", required = true)
     public CommonResult<Boolean> deleteMaterialLibrarySlice(@RequestParam("id") Long id) {
-        materialLibrarySliceService.deleteMaterialLibrarySlice(id);
+        DataPermissionUtils.executeIgnore(() -> {
+            materialLibrarySliceService.deleteMaterialLibrarySlice(id);
+        });
         return success(true);
     }
 
@@ -85,15 +89,24 @@ public class MaterialLibrarySliceController {
     @PostMapping("/page-uid")
     @Operation(summary = "获得素材库 UID 素材知识库数据分页")
     public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibrarySlicePageByLibraryUid(@Valid @RequestBody MaterialLibrarySlicePageReqVO pageReqVO) {
-        PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePageByLibraryUid(pageReqVO);
-        return success(BeanUtils.toBean(pageResult, MaterialLibrarySliceRespVO.class));
+        AtomicReference<PageResult<MaterialLibrarySliceDO>> dataPermissionResult = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> {
+            PageResult<MaterialLibrarySliceDO> pageResult = materialLibrarySliceService.getMaterialLibrarySlicePageByLibraryUid(pageReqVO);
+            dataPermissionResult.set(pageResult);
+        });
+        return success(BeanUtils.toBean(dataPermissionResult.get(), MaterialLibrarySliceRespVO.class));
     }
 
     @PostMapping("/page-app-uid")
     @Operation(summary = "通过应用UID获得素材知识库数据分页")
     public CommonResult<PageResult<MaterialLibrarySliceRespVO>> getMaterialLibraryByAppUid(@Valid @RequestBody MaterialLibrarySliceAppPageReqVO appPageReqVO) {
+        AtomicReference<PageResult<MaterialLibrarySliceRespVO>> dataPermissionResult = new AtomicReference<>();
+        DataPermissionUtils.executeIgnore(() -> {
+            PageResult<MaterialLibrarySliceRespVO> tableColumnDOList = materialLibrarySliceService.getMaterialLibrarySlicePageByApp(appPageReqVO);
+            dataPermissionResult.set(tableColumnDOList);
+        });
+        return success(dataPermissionResult.get());
 
-        return success(materialLibrarySliceService.getMaterialLibrarySlicePageByApp(appPageReqVO));
     }
 
 
@@ -119,7 +132,6 @@ public class MaterialLibrarySliceController {
     public CommonResult<Boolean> copy(@RequestParam("id") Long id) {
         return CommonResult.success(materialLibrarySliceService.copy(id));
     }
-
 
 
 }
