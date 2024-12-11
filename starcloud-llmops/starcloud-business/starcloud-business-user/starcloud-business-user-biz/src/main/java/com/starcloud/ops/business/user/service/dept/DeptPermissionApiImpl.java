@@ -5,9 +5,7 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.permission.RoleApi;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
-import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
-import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.business.user.enums.dept.PartEnum;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
@@ -20,7 +18,6 @@ import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.NO_PERMISSION;
-import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.SUPER_ADMIN_PERMISSION;
 
 @Slf4j
 @Component

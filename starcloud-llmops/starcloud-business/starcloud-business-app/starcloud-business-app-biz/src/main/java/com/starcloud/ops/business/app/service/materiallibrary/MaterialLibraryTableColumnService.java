@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnBatchSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 
@@ -69,6 +70,16 @@ public interface MaterialLibraryTableColumnService extends CommonExcelReadServic
      * @return 素材知识库表格信息列表
      */
     List<MaterialLibraryTableColumnDO> getMaterialLibraryTableColumnByLibrary(Long libraryId);
+
+
+    /**
+     * 根据素材库编号获得素材知识库表格信息
+     *
+     * @param libraryId 编号
+     * @return 素材知识库表格信息列表
+     */
+    List<MaterialLibraryTableColumnRespVO> getMaterialLibraryTableColumnByLibraryAndName(Long libraryId);
+
 
     /**
      * 批量更新表格字段

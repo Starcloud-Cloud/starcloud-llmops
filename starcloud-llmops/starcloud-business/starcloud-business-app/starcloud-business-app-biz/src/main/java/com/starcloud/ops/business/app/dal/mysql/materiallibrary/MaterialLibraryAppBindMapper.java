@@ -33,6 +33,7 @@ public interface MaterialLibraryAppBindMapper extends BaseMapperX<MaterialLibrar
         LambdaQueryWrapper<MaterialLibraryAppBindDO> wrapper = Wrappers.lambdaQuery(MaterialLibraryAppBindDO.class)
                 .eq(MaterialLibraryAppBindDO::getAppUid, appUid)
                 .eq(MaterialLibraryAppBindDO::getStatus, true)
+                .orderByDesc(MaterialLibraryAppBindDO::getCreateTime)
                 .last(" limit 1");
         return selectOne(wrapper);
     }

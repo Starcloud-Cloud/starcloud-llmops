@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,4 +63,8 @@ public interface MaterialLibraryTableColumnMapper extends BaseMapperX<MaterialLi
                 .notIn(Objects.nonNull(ignoreId), MaterialLibraryTableColumnDO::getId, ignoreId)
                 .in(MaterialLibraryTableColumnDO::getColumnName, columnName)));
     }
+
+
+    List<MaterialLibraryTableColumnRespVO> selectMaterialLibraryTableColumnByLibraryAndName( @Param("libraryId") Long libraryId);
+
 }

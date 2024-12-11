@@ -26,8 +26,6 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnSaveReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
-import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
-import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
@@ -318,7 +316,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     public PageResult<MaterialLibraryPageRespVO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO) {
         // 2. 分页查询
         IPage<MaterialLibraryPageRespVO> pageResult = materialLibraryMapper.selectPage3(
-                MyBatisUtils.buildPage(pageReqVO,pageReqVO.getSortingFields()), pageReqVO);
+                MyBatisUtils.buildPage(pageReqVO, pageReqVO.getSortingFields()), pageReqVO);
 
         // 3. 拼接数据并返回
         return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
