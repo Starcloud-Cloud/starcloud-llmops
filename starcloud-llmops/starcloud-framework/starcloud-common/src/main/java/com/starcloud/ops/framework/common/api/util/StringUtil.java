@@ -150,11 +150,4 @@ public class StringUtil {
         return unicode.toString();
     }
 
-    public static void main(String[] args) {
-        String s = "\uD83D\uDC4D";
-
-
-        System.out.println(encodeToUnicode(s));
-    }
-
 }

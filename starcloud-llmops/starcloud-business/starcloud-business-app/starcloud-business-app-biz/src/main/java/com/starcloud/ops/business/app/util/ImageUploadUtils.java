@@ -1,8 +1,10 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
@@ -364,12 +366,16 @@ public class ImageUploadUtils {
         try {
             URL url = new URL(imageUrl);
             URLConnection urlConnection = url.openConnection();
+            urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36");
             String contentType = urlConnection.getContentType();
             return StringUtils.isNoneBlank(contentType) && contentType.startsWith("image");
         } catch (Exception e) {
+            log.error("校验url是不是图片异常", e);
             return false;
         }
     }
+
+
 
 
     /**

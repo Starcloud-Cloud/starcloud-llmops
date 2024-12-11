@@ -5,12 +5,14 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
@@ -30,6 +32,7 @@ import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.SpaceListInfo;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.util.UserUtils;
@@ -38,6 +41,7 @@ import com.starcloud.ops.business.job.dto.JobDetailDTO;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -83,6 +87,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
 
     @Resource
     private DeptPermissionApi deptPermissionApi;
+
+    @Resource
+    private AppMarketService appMarketService;
+
 
     @Override
     public Map<String, Object> metadata() {
@@ -310,6 +318,17 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(TOKEN_ERROR, accessTokenId);
         }
         return "Bearer " + socialUser.getToken();
+    }
+
+    @Override
+    public VariableRespVO getVariable() {
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setTags(Collections.singletonList("PLUGIN_INPUT_GENERATE"));
+        List<AppMarketRespVO> list = appMarketService.list(query);
+        if (CollectionUtils.isEmpty(list)) {
+            throw exception(PLUGIN_NOT_EXIST);
+        }
+        return list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariable();
     }
 
     private PluginDefinitionDO getByUid(String uid) {
