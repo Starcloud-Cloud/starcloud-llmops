@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.plugins.handler;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
@@ -78,13 +79,15 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         POOL_EXECUTOR.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
-                log.info("verify start {}", reqVO.getEntityUid());
+                log.info("verify start {},code={}", reqVO.getEntityUid(), code);
                 CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
                 long end = System.currentTimeMillis();
                 redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowResp), 30, TimeUnit.MINUTES);
                 redisTemplate.boundValueOps(VERIFY_PARAMS + code).set(content, 30, TimeUnit.MINUTES);
-                log.info("verify success, {} ms", end - start);
+                log.info("verify success, {} ms, code={}", end - start, code);
             } catch (Exception e) {
+                redisTemplate.boundValueOps(PREFIX_EXECTUE_ERROR + code).set(e.getMessage(), 30, TimeUnit.MINUTES);
+                log.warn("verify error, code={}", code, e);
                 throw exception(COZE_ERROR, e.getMessage());
             }
         });
@@ -94,6 +97,11 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
 
     @Override
     public VerifyResult verifyResult(PluginTestResultReqVO resultReqVO) {
+        String error = redisTemplate.boundValueOps(PREFIX_EXECTUE_ERROR + resultReqVO.getCode()).get();
+        if (StringUtils.isNoneBlank(error)) {
+            throw exception(COZE_ERROR, error);
+        }
+
         String workflowResp = redisTemplate.boundValueOps(PREFIX_EXECTUE + resultReqVO.getCode()).get();
         VerifyResult verifyResult = new VerifyResult();
         if (StringUtils.isBlank(workflowResp)) {
@@ -107,15 +115,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         }
 
         CozeResponse<String> response = JSONUtil.toBean(workflowResp, CozeResponse.class);
-
-        log.info("verify result response: {}", workflowResp);
-
-
-        if (response.getCode() != 0 || Objects.isNull(response.getData())) {
-            throw exception(COZE_ERROR, response.getMsg());
-        }
-        WorkflowResult data = JSONUtil.toBean(response.getData(), WorkflowResult.class);
-        String content = data.getData();
+        String content = parseContent(response);
         if (StringUtils.isBlank(content)) {
             throw exception(COZE_ERROR, "返回结果为空");
         }
@@ -156,14 +156,16 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         String code = IdUtil.fastSimpleUUID();
         POOL_EXECUTOR.execute(() -> {
             try {
-                log.info("execute start {}", executeReqVO.getUuid());
+                log.info("execute start {}, code={}", executeReqVO.getUuid(), code);
                 final long start = System.currentTimeMillis();
                 CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
                 long end = System.currentTimeMillis();
                 redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowResp), 30, TimeUnit.MINUTES);
                 pluginsDefinitionService.updateTime(end - start, reqVO.getUid());
-                log.info("execute success, {} ms", end - start);
+                log.info("execute success, {} ms, code={}", end - start, code);
             } catch (Exception e) {
+                redisTemplate.boundValueOps(PREFIX_EXECTUE_ERROR + code).set(e.getMessage(), 30, TimeUnit.MINUTES);
+                log.warn("execute error, code={}", code, e);
                 throw exception(COZE_ERROR, e.getMessage());
             }
         });
@@ -173,6 +175,10 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
     @Override
     public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
         String code = pluginResultReqVO.getCode();
+        String error = redisTemplate.boundValueOps(PREFIX_EXECTUE_ERROR + code).get();
+        if (StringUtils.isNoneBlank(error)) {
+            throw exception(COZE_ERROR, error);
+        }
         String workflowResp = redisTemplate.boundValueOps(PREFIX_EXECTUE + code).get();
         PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
         if (StringUtils.isBlank(workflowResp)) {
@@ -181,14 +187,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         }
 
         CozeResponse<String> response = JSONUtil.toBean(workflowResp, CozeResponse.class);
-        if (response.getCode() != 0 || Objects.isNull(response.getData())) {
-            throw exception(COZE_ERROR, response.getMsg());
-        }
-        WorkflowResult data = JSONUtil.toBean(response.getData(), WorkflowResult.class);
-        String content = data.getData();
-        if (StringUtils.isBlank(content)) {
-            throw exception(COZE_ERROR, "返回结果为空");
-        }
+        String content = parseContent(response);
 
         if (JSONUtil.isTypeJSONArray(content)) {
             Type listType = new TypeReference<List<Map<String, Object>>>() {
@@ -209,5 +208,22 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         }
         executeRespVO.setStatus("completed");
         return executeRespVO;
+    }
+
+    private String parseContent(CozeResponse<String> response) {
+        log.info("verify result response: {}", response);
+        if (response.getCode() != 0 || Objects.isNull(response.getData())) {
+            throw exception(COZE_ERROR, response.getMsg());
+        }
+        JSONObject jsonObject = JSONObject.parseObject(response.getData());
+
+        String content = jsonObject.getString("data");
+        if (StringUtils.isBlank(content)) {
+            content = jsonObject.getString("output");
+        }
+        if (StringUtils.isBlank(content)) {
+            throw exception(COZE_ERROR, "返回结果为空");
+        }
+        return content;
     }
 }
