@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.plugins;
 
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
@@ -85,5 +86,12 @@ public interface PluginsDefinitionService {
     SpaceListInfo spaceList(String accessTokenId, Integer pageSize, Integer pageIndex);
 
     void updateTime(Long time, String pluginUid);
+
+
+    /**
+     * ai识别 变量
+     *
+     */
+    VariableRespVO getVariable();
 
 }

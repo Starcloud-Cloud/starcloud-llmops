@@ -2,12 +2,13 @@ package com.starcloud.ops.business.app.controller.admin.plugins;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.AppBindPluginRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
-import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
+import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.SpaceListInfo;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
@@ -123,6 +124,12 @@ public class PluginsDefinitionController {
     @OperateLog(enable = false)
     public CommonResult<VerifyResult> verifyResult(@RequestBody @Valid PluginTestResultReqVO resultReqVO) {
         return CommonResult.success(pluginsService.verifyResult(resultReqVO));
+    }
+
+    @GetMapping(value = "/variable")
+    @Operation(summary = "默认prompt")
+    public CommonResult<VariableRespVO> getVariable() {
+        return CommonResult.success(pluginsDefinitionService.getVariable());
     }
 
     @PostMapping(value = "/bindPlugin")

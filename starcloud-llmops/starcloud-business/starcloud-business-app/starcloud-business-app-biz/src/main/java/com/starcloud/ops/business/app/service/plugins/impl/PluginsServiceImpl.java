@@ -5,6 +5,11 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.BooleanSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -34,6 +39,7 @@ import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.service.plugins.handler.PluginExecuteFactory;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -146,6 +152,45 @@ public class PluginsServiceImpl implements PluginsService {
         return execute(SensitiveWordActionHandler.class.getSimpleName(), variableMap);
     }
 
+    @Override
+    public JSONObject aiIdentify(AiIdentifyReqVO reqVO) {
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put("USER_INPUT", reqVO.getUserInput());
+
+        String inputFormat = reqVO.getInputFormart();
+        List<InputFormat> inputFormatList = JSONUtil.parseArray(inputFormat).toList(InputFormat.class);
+        variableMap.put("RESULT_FORMAT", parseSchema(inputFormatList));
+        variableMap.put("PLUGIN_DESC", reqVO.getDescription());
+        variableMap.put("PLUGIN_NAME", reqVO.getPluginName());
+        if (StringUtils.isNoneBlank(reqVO.getUserPrompt())) {
+            variableMap.put("USER_PROMPT", reqVO.getUserPrompt());
+        }
+        return execute("PLUGIN_INPUT_GENERATE", variableMap);
+    }
+
+    private String parseSchema(List<InputFormat> inputFormatList) {
+        ObjectSchema obj = new ObjectSchema();
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(inputFormatList.size());
+        for (InputFormat inputFormat : inputFormatList) {
+            if (Objects.equals("String", inputFormat.getVariableType())) {
+                StringSchema stringSchema = new StringSchema();
+                stringSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), stringSchema);
+            } else if (Objects.equals("Boolean", inputFormat.getVariableType())) {
+                BooleanSchema booleanSchema = new BooleanSchema();
+                booleanSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), booleanSchema);
+            } else if (Objects.equals("Array<String>", inputFormat.getVariableType())) {
+                ArraySchema arraySchema = new ArraySchema();
+                arraySchema.setDescription(inputFormat.getVariableDesc());
+                arraySchema.setItemsSchema(new StringSchema());
+                properties.put(inputFormat.getVariableKey(), arraySchema);
+            }
+        }
+        obj.setProperties(properties);
+        return JsonSchemaUtils.jsonNode2Str(obj);
+    }
+
 
     @Override
     public JSONObject intelligentTextExtraction(TextExtractionReqVO reqVO) {
@@ -183,6 +228,9 @@ public class PluginsServiceImpl implements PluginsService {
             }
             PluginRespVO detail = pluginsDefinitionService.detail(pluginConfigRespVO.getPluginUid());
             if (Objects.isNull(detail)) {
+                continue;
+            }
+            if (!detail.getEnableAi()) {
                 continue;
             }
             PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
@@ -252,8 +300,14 @@ public class PluginsServiceImpl implements PluginsService {
             throw exception(PLUGIN_EXECUTE_ERROR);
         }
 
-        return JSONObject.parseObject(String.valueOf(executeResponse.getResult()));
+        String result = String.valueOf(executeResponse.getResult());
+        if (!JSONUtil.isTypeJSON(result)) {
+            log.warn("输出结果不是json格式，{}", result);
+            throw exception(PLUGIN_EXECUTE_ERROR, "不是json格式输出");
+        }
+        return JSONObject.parseObject(result);
     }
+
 
     private AppMarketRespVO getApp(String tag) {
         AppMarketListQuery query = new AppMarketListQuery();
