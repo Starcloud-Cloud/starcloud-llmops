@@ -79,15 +79,15 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         POOL_EXECUTOR.execute(() -> {
             try {
                 long start = System.currentTimeMillis();
-                log.info("verify start {}", reqVO.getEntityUid());
+                log.info("verify start {},code={}", reqVO.getEntityUid(), code);
                 CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
                 long end = System.currentTimeMillis();
                 redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowResp), 30, TimeUnit.MINUTES);
                 redisTemplate.boundValueOps(VERIFY_PARAMS + code).set(content, 30, TimeUnit.MINUTES);
-                log.info("verify success, {} ms", end - start);
+                log.info("verify success, {} ms, code={}", end - start, code);
             } catch (Exception e) {
                 redisTemplate.boundValueOps(PREFIX_EXECTUE_ERROR + code).set(e.getMessage(), 30, TimeUnit.MINUTES);
-                log.warn("verify error", e);
+                log.warn("verify error, code={}", code, e);
                 throw exception(COZE_ERROR, e.getMessage());
             }
         });
@@ -156,16 +156,16 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         String code = IdUtil.fastSimpleUUID();
         POOL_EXECUTOR.execute(() -> {
             try {
-                log.info("execute start {}", executeReqVO.getUuid());
+                log.info("execute start {}, code={}", executeReqVO.getUuid(), code);
                 final long start = System.currentTimeMillis();
                 CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
                 long end = System.currentTimeMillis();
                 redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowResp), 30, TimeUnit.MINUTES);
                 pluginsDefinitionService.updateTime(end - start, reqVO.getUid());
-                log.info("execute success, {} ms", end - start);
+                log.info("execute success, {} ms, code={}", end - start, code);
             } catch (Exception e) {
                 redisTemplate.boundValueOps(PREFIX_EXECTUE_ERROR + code).set(e.getMessage(), 30, TimeUnit.MINUTES);
-                log.warn("execute error", e);
+                log.warn("execute error, code={}", code, e);
                 throw exception(COZE_ERROR, e.getMessage());
             }
         });
