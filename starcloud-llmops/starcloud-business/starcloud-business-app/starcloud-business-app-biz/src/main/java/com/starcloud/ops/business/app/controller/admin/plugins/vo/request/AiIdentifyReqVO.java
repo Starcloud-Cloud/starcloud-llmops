@@ -20,11 +20,10 @@ public class AiIdentifyReqVO {
     private String userPrompt;
 
     @Schema(description = "用户输入")
+    @NotBlank(message = "用户输入不能为空")
     private String userInput;
 
-    @Schema(description = "输入")
-    private String input;
-
     @Schema(description = "输入结构")
+    @NotBlank(message = "输入结构不能为空")
     private String inputFormart;
 }
