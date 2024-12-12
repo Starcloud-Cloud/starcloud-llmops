@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.plugins.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -88,6 +89,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             workflowRunResult.setExecuteId(workflowResp.getExecuteId());
             redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowRunResult), 30, TimeUnit.MINUTES);
             redisTemplate.boundValueOps(VERIFY_PARAMS + code).set(content, 30, TimeUnit.MINUTES);
+            redisTemplate.boundValueOps(PREFIX_START + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
             log.info("verify success, {} ms, {}", end - start, JSONUtil.toJsonPrettyStr(workflowRunResult));
         } catch (Exception e) {
             log.warn("verify error, {}", JSONUtil.toJsonPrettyStr(workflowRunResult), e);
@@ -151,6 +153,14 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             throw exception(new CozeErrorCode(content));
         }
 
+        String start = redisTemplate.boundValueOps(PREFIX_START + resultReqVO.getCode()).get();
+        if (NumberUtil.isLong(start)) {
+            redisTemplate.delete(PREFIX_START + resultReqVO.getCode());
+            long end = System.currentTimeMillis();
+            Long time = end - Long.parseLong(start);
+            verifyResult.setExecuteTime(time);
+        }
+
         verifyResult.setStatus("completed");
         verifyResult.setVerifyState(true);
         return verifyResult;
@@ -165,7 +175,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         request.setParameters(executeReqVO.getInputParams());
         String code = IdUtil.fastSimpleUUID();
         request.setIsAsync(true);
-        WorkflowRunResult workflowRunResult = new WorkflowRunResult(code, accessToken, request.getWorkflowId());
+        WorkflowRunResult workflowRunResult = new WorkflowRunResult(code, accessToken, request.getWorkflowId(), executeReqVO.getUuid());
         try {
             log.info("execute start {}", JSONUtil.toJsonPrettyStr(workflowRunResult));
             final long start = System.currentTimeMillis();
@@ -177,7 +187,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
 
             workflowRunResult.setExecuteId(workflowResp.getExecuteId());
             redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowRunResult), 30, TimeUnit.MINUTES);
-            pluginsDefinitionService.updateTime(end - start, reqVO.getUid());
+            redisTemplate.boundValueOps(PREFIX_START + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
             log.info("execute success, {} ms, {}", end - start, JSONUtil.toJsonPrettyStr(workflowRunResult));
         } catch (Exception e) {
             log.warn("execute error, {}", JSONUtil.toJsonPrettyStr(workflowRunResult), e);
@@ -235,6 +245,15 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             throw exception(new CozeErrorCode(content));
         }
         executeRespVO.setStatus("completed");
+
+        String start = redisTemplate.boundValueOps(PREFIX_START + pluginResultReqVO.getCode()).get();
+        if (NumberUtil.isLong(start)) {
+            redisTemplate.delete(PREFIX_START + pluginResultReqVO.getCode());
+            long end = System.currentTimeMillis();
+            Long time = end - Long.parseLong(start);
+            pluginsDefinitionService.updateTime(time, runResult.getPluginUid());
+        }
+
         return executeRespVO;
     }
 

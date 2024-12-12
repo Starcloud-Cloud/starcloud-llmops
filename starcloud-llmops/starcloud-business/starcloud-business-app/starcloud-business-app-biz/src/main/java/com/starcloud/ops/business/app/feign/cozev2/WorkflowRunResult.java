@@ -13,9 +13,18 @@ public class WorkflowRunResult {
 
     private String redisKey;
 
+    private String pluginUid;
+
     public WorkflowRunResult(String redisKey, String accessToken, String workflowId) {
         this.redisKey = redisKey;
         this.accessToken = accessToken;
         this.workflowId = workflowId;
+    }
+
+    public WorkflowRunResult(String redisKey, String accessToken, String workflowId, String pluginUid) {
+        this.redisKey = redisKey;
+        this.accessToken = accessToken;
+        this.workflowId = workflowId;
+        this.pluginUid = pluginUid;
     }
 }
