@@ -124,6 +124,11 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             throw exception(COZE_ERROR, workflowDataAsynResult.getErrorMessage());
         }
 
+        String params = redisTemplate.boundValueOps(VERIFY_PARAMS + resultReqVO.getCode()).get();
+        if (StringUtils.isNotBlank(params)) {
+            verifyResult.setArguments(JSONUtil.parseObj(params));
+        }
+
         String content = parseContent(workflowResp);
 
         if (JSONUtil.isTypeJSONArray(content)) {
