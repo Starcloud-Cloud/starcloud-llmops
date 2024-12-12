@@ -171,6 +171,11 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             final long start = System.currentTimeMillis();
             CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
             long end = System.currentTimeMillis();
+            if (workflowResp.getCode() != 0) {
+                throw exception(COZE_ERROR, workflowResp.getMsg());
+            }
+
+            workflowRunResult.setExecuteId(workflowResp.getExecuteId());
             redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowRunResult), 30, TimeUnit.MINUTES);
             pluginsDefinitionService.updateTime(end - start, reqVO.getUid());
             log.info("execute success, {} ms, {}", end - start, JSONUtil.toJsonPrettyStr(workflowRunResult));
