@@ -265,9 +265,9 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         if (!jsonObject.containsKey("Output")) {
             throw exception(COZE_ERROR, "返回结果为空");
         }
-        String content = jsonObject.getString("Output");
+        String content = jsonObject.getJSONObject("Output").getString("data");
         if (StringUtils.isBlank(content)) {
-            content = jsonObject.getJSONObject("Output").getString("data");
+            content = jsonObject.getString("Output");
         }
 
         if (StringUtils.isBlank(content)) {
