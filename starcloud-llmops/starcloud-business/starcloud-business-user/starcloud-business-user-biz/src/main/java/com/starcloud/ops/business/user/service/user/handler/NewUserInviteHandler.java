@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.service.user.handler;
 
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.user.api.level.dto.OperateDTO;
@@ -63,11 +64,21 @@ public class NewUserInviteHandler implements NewUserHandler {
 
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.USER_INVITE;
 
+
+        int magicBean = bizTypeEnum.getMagicBean();
+        int magicImage = bizTypeEnum.getMagicImage();
+        int matrixBean = bizTypeEnum.getMatrixBean();
+        if (TenantContextHolder.getTenantId() == 3) {
+            magicBean = matrixBean * 1000;
+            magicImage = matrixBean * 20;
+        }
+
+
         AdminUserRightsAndLevelCommonDTO commonDTO = new AdminUserRightsAndLevelCommonDTO()
                 .setRightsBasicDTO(new UserRightsBasicDTO()
-                        .setMagicBean(bizTypeEnum.getMagicBean())
-                        .setMagicImage(bizTypeEnum.getMagicImage())
-                        .setMatrixBean(bizTypeEnum.getMatrixBean())
+                        .setMagicBean(magicBean)
+                        .setMagicImage(magicImage)
+                        .setMatrixBean(matrixBean)
                         .setTimesRange(new TimesRangeDTO().setNums(1).setRange(TimeRangeTypeEnum.MONTH.getType()))
                         .setOperateDTO(new OperateDTO().setIsAdd(true).setIsSuperposition(false)))
                 .setLevelBasicDTO(new UserLevelBasicDTO()
