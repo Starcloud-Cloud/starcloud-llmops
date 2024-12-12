@@ -267,7 +267,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         }
         String content = jsonObject.getJSONObject("Output").getString("data");
         if (StringUtils.isBlank(content)) {
-            content = jsonObject.getString("Output");
+            content = jsonObject.getJSONObject("Output").toJSONString();
         }
 
         if (StringUtils.isBlank(content)) {
