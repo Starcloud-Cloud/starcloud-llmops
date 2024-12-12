@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.feign.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.starcloud.ops.business.app.feign.cozev2.DetailResp;
 import lombok.Data;
 
 /**
@@ -35,5 +36,9 @@ public class CozeResponse<T> implements java.io.Serializable {
     @JsonProperty("debug_url")
     private String debugUrl;
 
+    @JsonProperty("detail")
+    private DetailResp detail;
 
+    @JsonProperty("execute_id")
+    private String executeId;
 }
