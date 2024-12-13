@@ -42,6 +42,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -230,7 +231,7 @@ public class PluginsServiceImpl implements PluginsService {
             if (Objects.isNull(detail)) {
                 continue;
             }
-            if (!detail.getEnableAi()) {
+            if (BooleanUtils.isNotTrue(detail.getEnableAi())) {
                 continue;
             }
             PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
