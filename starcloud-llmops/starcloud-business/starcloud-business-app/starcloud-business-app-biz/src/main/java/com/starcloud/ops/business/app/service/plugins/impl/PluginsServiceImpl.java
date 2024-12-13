@@ -301,11 +301,16 @@ public class PluginsServiceImpl implements PluginsService {
         }
 
         String result = String.valueOf(executeResponse.getResult());
-        if (!JSONUtil.isTypeJSON(result)) {
+
+        JSONObject jsonObject;
+
+        try {
+            jsonObject = JSONObject.parseObject(result);
+        } catch (Exception e) {
             log.warn("输出结果不是json格式，{}", result);
             throw exception(PLUGIN_EXECUTE_ERROR, "不是json格式输出");
         }
-        return JSONObject.parseObject(result);
+        return jsonObject;
     }
 
 
