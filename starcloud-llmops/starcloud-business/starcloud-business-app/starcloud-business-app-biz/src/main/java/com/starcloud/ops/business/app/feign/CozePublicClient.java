@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.feign;
 
 
+import com.starcloud.ops.business.app.feign.cozev2.WorkflowDataAsynResult;
 import com.starcloud.ops.business.app.feign.dto.coze.*;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
 import com.starcloud.ops.business.app.feign.request.coze.CozeWorkflowRequest;
@@ -74,11 +75,6 @@ public interface CozePublicClient {
                                                       @RequestHeader("Authorization") String accessToken);
 
     /**
-     * 空间列表
-     */
-
-
-    /**
      * 查询空间列表
      */
     @GetMapping("/v1/workspaces")
@@ -94,4 +90,10 @@ public interface CozePublicClient {
     @PostMapping("/v1/workflow/run")
     CozeResponse<String> runWorkflow(@Validated @RequestBody CozeWorkflowRequest request,
                                              @RequestHeader("Authorization") String accessToken);
+
+
+    @GetMapping("/v1/workflows/{workflow_id}/run_histories/{execute_id}")
+    CozeResponse<List<WorkflowDataAsynResult>> runHistories(@PathVariable(value = "workflow_id") String workflowId,
+                                                            @PathVariable(value = "execute_id") String executeId,
+                                                            @RequestHeader("Authorization") String accessToken);
 }

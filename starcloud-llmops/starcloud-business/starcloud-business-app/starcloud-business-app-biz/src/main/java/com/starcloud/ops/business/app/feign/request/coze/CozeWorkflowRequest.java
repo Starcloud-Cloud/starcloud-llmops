@@ -10,4 +10,7 @@ public class CozeWorkflowRequest {
     private String workflowId;
 
     private Object parameters;
+
+    @JsonProperty("is_async")
+    private Boolean isAsync;
 }

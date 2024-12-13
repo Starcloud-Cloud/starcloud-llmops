@@ -1,8 +1,7 @@
 package com.starcloud.ops.business.user.dal.mysql.notify;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.starcloud.ops.business.user.controller.admin.notify.vo.FilterUserReqVO;
-import com.starcloud.ops.business.user.dal.dataObject.notify.PurchaseExperienceParamsDTO;
+import com.starcloud.ops.business.user.dal.dataobject.notify.PurchaseExperienceParamsDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

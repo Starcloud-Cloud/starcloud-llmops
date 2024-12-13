@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,6 +68,11 @@ public class VariableActionHandler extends BaseActionHandler {
     @JsonIgnore
     @JSONField(serialize = false)
     public List<Verification> validate(WorkflowStepWrapper wrapper, ValidateTypeEnum validateType) {
+        // 执行的时候再进行校验。
+        if (!ValidateTypeEnum.EXECUTE.equals(validateType)) {
+            return Collections.emptyList();
+        }
+
         List<Verification> verifications = new ArrayList<>();
         VariableEntity variable = wrapper.getVariable();
         List<VariableItemEntity> variableList = variable.getVariables();
