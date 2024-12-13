@@ -126,10 +126,10 @@ public class PluginsDefinitionController {
         return CommonResult.success(pluginsService.verifyResult(resultReqVO));
     }
 
-    @GetMapping(value = "/variable")
+    @PostMapping(value = "/prompt")
     @Operation(summary = "默认prompt")
-    public CommonResult<VariableRespVO> getVariable() {
-        return CommonResult.success(pluginsDefinitionService.getVariable());
+    public CommonResult<String> getVariable(@RequestBody AiIdentifyReqVO reqVO) {
+        return CommonResult.success(pluginsDefinitionService.getPrompt(reqVO));
     }
 
     @PostMapping(value = "/bindPlugin")
