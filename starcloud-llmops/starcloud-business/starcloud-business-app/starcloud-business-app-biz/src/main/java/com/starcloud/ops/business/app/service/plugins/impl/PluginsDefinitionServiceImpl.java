@@ -15,6 +15,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.AiIdentifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
@@ -321,14 +322,21 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     }
 
     @Override
-    public VariableRespVO getVariable() {
+    public String getPrompt(AiIdentifyReqVO reqVO) {
         AppMarketListQuery query = new AppMarketListQuery();
         query.setTags(Collections.singletonList("PLUGIN_INPUT_GENERATE"));
         List<AppMarketRespVO> list = appMarketService.list(query);
         if (CollectionUtils.isEmpty(list)) {
             throw exception(PLUGIN_NOT_EXIST);
         }
-        return list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariable();
+        String userPrompt = list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariableToString("USER_PROMPT");
+
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_DESC\\}", reqVO.getDescription());
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", reqVO.getInputFormart());
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", reqVO.getPluginName());
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.USER_INPUT\\}", reqVO.getUserInput());
+
+        return userPrompt;
     }
 
     private PluginDefinitionDO getByUid(String uid) {
