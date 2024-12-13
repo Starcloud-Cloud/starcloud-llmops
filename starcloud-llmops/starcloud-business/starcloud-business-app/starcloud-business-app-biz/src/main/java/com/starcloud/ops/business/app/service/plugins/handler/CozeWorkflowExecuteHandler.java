@@ -27,9 +27,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -265,14 +263,30 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         if (!jsonObject.containsKey("Output")) {
             throw exception(COZE_ERROR, "返回结果为空");
         }
-        String content = jsonObject.getJSONObject("Output").getString("data");
-        if (StringUtils.isBlank(content)) {
-            content = jsonObject.getJSONObject("Output").toJSONString();
+        // coze 输出两种模式  变量/文本
+        JSONObject cozeOutput = jsonObject.getJSONObject("Output");
+        if (cozeOutput.containsKey("type_for_model") && cozeOutput.containsKey("data")) {
+            // 文本模式
+            String content = cozeOutput.getString("data");
+            if (StringUtils.isBlank(content)) {
+                throw exception(COZE_ERROR, "返回结果为空");
+            }
+            return content;
         }
 
-        if (StringUtils.isBlank(content)) {
-            throw exception(COZE_ERROR, "返回结果为空");
+        // 变量模式
+        TreeMap<String, Object> treeMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        treeMap.putAll(cozeOutput);
+        treeMap.entrySet().removeIf(entry -> Objects.isNull(entry.getValue()));
+        // 自定义变量包含output并且output是个json字符串  直接输出output的值
+        if (treeMap.containsKey("output") && JSONUtil.isTypeJSON(treeMap.get("output").toString())) {
+            return treeMap.get("output").toString();
         }
-        return content;
+        //只有一个字段且是json 输出字段值
+        if (treeMap.size() == 1 && JSONUtil.isTypeJSON(treeMap.firstEntry().getValue().toString())) {
+            return treeMap.firstEntry().getValue().toString();
+        }
+        // 所有字段都不是json 原样直接输出
+        return cozeOutput.toJSONString();
     }
 }
