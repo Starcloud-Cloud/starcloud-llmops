@@ -4,11 +4,17 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.BooleanSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
@@ -16,6 +22,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.AiIdentifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.InputFormat;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
@@ -36,6 +43,7 @@ import com.starcloud.ops.business.app.feign.response.CozeResponse;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.job.dto.JobDetailDTO;
@@ -332,11 +340,36 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         String userPrompt = list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariableToString("USER_PROMPT");
 
         userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_DESC\\}", reqVO.getDescription());
-        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", reqVO.getInputFormart());
+        List<InputFormat> inputFormatList = JSONUtil.parseArray(reqVO.getInputFormart()).toList(InputFormat.class);
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", parseSchema(inputFormatList));
         userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", reqVO.getPluginName());
         userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.USER_INPUT\\}", reqVO.getUserInput());
 
         return userPrompt;
+    }
+
+
+    private String parseSchema(List<InputFormat> inputFormatList) {
+        ObjectSchema obj = new ObjectSchema();
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(inputFormatList.size());
+        for (InputFormat inputFormat : inputFormatList) {
+            if (Objects.equals("String", inputFormat.getVariableType())) {
+                StringSchema stringSchema = new StringSchema();
+                stringSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), stringSchema);
+            } else if (Objects.equals("Boolean", inputFormat.getVariableType())) {
+                BooleanSchema booleanSchema = new BooleanSchema();
+                booleanSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), booleanSchema);
+            } else if (Objects.equals("Array<String>", inputFormat.getVariableType())) {
+                ArraySchema arraySchema = new ArraySchema();
+                arraySchema.setDescription(inputFormat.getVariableDesc());
+                arraySchema.setItemsSchema(new StringSchema());
+                properties.put(inputFormat.getVariableKey(), arraySchema);
+            }
+        }
+        obj.setProperties(properties);
+        return JsonSchemaUtils.jsonNode2Str(obj);
     }
 
     private PluginDefinitionDO getByUid(String uid) {
