@@ -346,10 +346,6 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         }
         userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", StringUtils.isBlank(reqVO.getPluginName()) ? StringUtils.EMPTY : reqVO.getPluginName());
 
-        if (StringUtils.isNoneBlank(reqVO.getUserInput())) {
-            userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.USER_INPUT\\}", StringUtils.isBlank(reqVO.getUserInput()) ? StringUtils.EMPTY : reqVO.getUserInput());
-        }
-
         return userPrompt;
     }
 
