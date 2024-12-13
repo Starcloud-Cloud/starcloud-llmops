@@ -338,12 +338,14 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(PLUGIN_NOT_EXIST);
         }
         String userPrompt = list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariableToString("USER_PROMPT");
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_DESC\\}", StringUtils.isBlank(reqVO.getDescription()) ? StringUtils.EMPTY : reqVO.getDescription());
 
-        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_DESC\\}", reqVO.getDescription());
-        List<InputFormat> inputFormatList = JSONUtil.parseArray(reqVO.getInputFormart()).toList(InputFormat.class);
-        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", parseSchema(inputFormatList));
-        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", reqVO.getPluginName());
-        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.USER_INPUT\\}", reqVO.getUserInput());
+        if (StringUtils.isNoneBlank(reqVO.getInputFormart())) {
+            List<InputFormat> inputFormatList = JSONUtil.parseArray(reqVO.getInputFormart()).toList(InputFormat.class);
+            userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", CollectionUtil.isEmpty(inputFormatList) ? StringUtils.EMPTY : parseSchema(inputFormatList));
+        }
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", StringUtils.isBlank(reqVO.getPluginName()) ? StringUtils.EMPTY : reqVO.getPluginName());
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.USER_INPUT\\}", StringUtils.isBlank(reqVO.getUserInput()) ? StringUtils.EMPTY : reqVO.getUserInput());
 
         return userPrompt;
     }
