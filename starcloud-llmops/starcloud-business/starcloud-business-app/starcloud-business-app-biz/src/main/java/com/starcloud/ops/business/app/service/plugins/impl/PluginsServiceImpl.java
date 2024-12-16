@@ -362,7 +362,7 @@ public class PluginsServiceImpl implements PluginsService {
         try {
             Map<String, Object> templateParams = new HashMap<>();
             templateParams.put("environment", SpringUtil.getActiveProfile());
-            templateParams.put("errorMsg", e.getStackTrace());
+            templateParams.put("errorMsg", e.getMessage());
             templateParams.put("date", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
