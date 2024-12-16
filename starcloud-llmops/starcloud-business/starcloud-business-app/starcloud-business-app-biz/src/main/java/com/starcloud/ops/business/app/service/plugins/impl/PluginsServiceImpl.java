@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
@@ -362,7 +363,7 @@ public class PluginsServiceImpl implements PluginsService {
             Map<String, Object> templateParams = new HashMap<>();
             templateParams.put("environment", SpringUtil.getActiveProfile());
             templateParams.put("errorMsg", e.getStackTrace());
-            templateParams.put("date", LocalDateTime.now());
+            templateParams.put("date", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")
