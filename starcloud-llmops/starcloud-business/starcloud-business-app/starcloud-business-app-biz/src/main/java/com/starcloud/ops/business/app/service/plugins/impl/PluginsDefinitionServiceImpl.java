@@ -345,7 +345,6 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", CollectionUtil.isEmpty(inputFormatList) ? StringUtils.EMPTY : parseSchema(inputFormatList));
         }
         userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", StringUtils.isBlank(reqVO.getPluginName()) ? StringUtils.EMPTY : reqVO.getPluginName());
-        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.USER_INPUT\\}", StringUtils.isBlank(reqVO.getUserInput()) ? StringUtils.EMPTY : reqVO.getUserInput());
 
         return userPrompt;
     }

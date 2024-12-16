@@ -1,9 +1,13 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
@@ -42,10 +46,12 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -77,11 +83,20 @@ public class PluginsServiceImpl implements PluginsService {
     @Resource
     private PluginConfigService pluginConfigService;
 
+    @Resource
+    private SmsSendApi smsSendApi;
+
 
     @Override
     @DataPermission(enable = false)
     public String executePlugin(PluginExecuteReqVO reqVO) {
-        return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+        try {
+            return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+        } catch (Exception e) {
+            log.error("execute plugin error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     /**
@@ -90,7 +105,13 @@ public class PluginsServiceImpl implements PluginsService {
     @Override
     @DataPermission(enable = false)
     public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
-        return pluginExecuteFactory.getHandlerByUid(pluginResultReqVO.getUuid()).getPluginResult(pluginResultReqVO);
+        try {
+            return pluginExecuteFactory.getHandlerByUid(pluginResultReqVO.getUuid()).getPluginResult(pluginResultReqVO);
+        } catch (Exception e) {
+            log.error("get execute plugin result error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     @Override
@@ -117,12 +138,24 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Override
     public String verify(PluginTestReqVO reqVO) {
-        return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
+        try {
+            return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
+        } catch (Exception e) {
+            log.error("verify plugin error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     @Override
     public VerifyResult verifyResult(PluginTestResultReqVO resultReqVO) {
-        return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
+        try {
+            return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
+        } catch (Exception e) {
+            log.error("verify plugin result error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     @Override
@@ -230,7 +263,7 @@ public class PluginsServiceImpl implements PluginsService {
             if (Objects.isNull(detail)) {
                 continue;
             }
-            if (!detail.getEnableAi()) {
+            if (BooleanUtils.isNotTrue(detail.getEnableAi())) {
                 continue;
             }
             PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
@@ -324,5 +357,21 @@ public class PluginsServiceImpl implements PluginsService {
         return list.get(0);
     }
 
+
+    private void sendMsg(Exception e) {
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("environment", SpringUtil.getActiveProfile());
+            templateParams.put("errorMsg", e.getMessage());
+            templateParams.put("date", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("NOTICE_COZE_WARN")
+                            .setTemplateParams(templateParams));
+        } catch (Exception ex) {
+            log.error("send msg error", ex);
+        }
+    }
 
 }
