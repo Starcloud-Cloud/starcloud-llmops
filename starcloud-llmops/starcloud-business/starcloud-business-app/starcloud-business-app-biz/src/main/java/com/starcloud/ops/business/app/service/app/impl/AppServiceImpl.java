@@ -424,8 +424,10 @@ public class AppServiceImpl implements AppService {
             // 删除应用发布信息
             appPublishService.deleteByAppUid(uid);
         }
-        // 删除其他资源
-        appDeleteProducer.send(uid);
+        // 删除执行计划
+        creativePlanService.deleteByAppUid(uid);
+        // 删除素材库
+        creativeMaterialManager.deleteMaterial(uid);
     }
 
     /**
