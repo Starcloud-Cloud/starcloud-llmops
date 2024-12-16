@@ -461,6 +461,8 @@ public class AppMarketServiceImpl implements AppMarketService {
             appMapper.updatePublishUidAfterDeleteMarket(appUid);
         }
         appPublishMapper.updateAfterDeleteMarket(uid);
+        // 删除素材库
+        creativeMaterialManager.deleteMaterial(uid);
     }
 
     /**
