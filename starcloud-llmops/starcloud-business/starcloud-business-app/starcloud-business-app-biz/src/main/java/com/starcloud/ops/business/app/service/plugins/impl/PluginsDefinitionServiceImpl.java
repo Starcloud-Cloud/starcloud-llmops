@@ -338,6 +338,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(PLUGIN_NOT_EXIST);
         }
         String userPrompt = list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariableToString("USER_PROMPT");
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_DESC\\}", StringUtils.isBlank(reqVO.getDescription()) ? StringUtils.EMPTY : reqVO.getDescription());
 
         if (StringUtils.isNoneBlank(reqVO.getInputFormart())) {
             List<InputFormat> inputFormatList = JSONUtil.parseArray(reqVO.getInputFormart()).toList(InputFormat.class);
