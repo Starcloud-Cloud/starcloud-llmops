@@ -56,6 +56,7 @@ import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
+import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
@@ -122,6 +123,9 @@ public class AppServiceImpl implements AppService {
 
     @Resource
     private PluginsDefinitionService pluginsDefinitionService;
+
+    @Resource
+    private CreativePlanService creativePlanService;
 
     @Resource
     private DeptPermissionApi deptPermissionApi;
@@ -412,8 +416,10 @@ public class AppServiceImpl implements AppService {
             // 删除应用发布信息
             appPublishService.deleteByAppUid(uid);
         }
-        // 删除其他资源
-        appDeleteProducer.send(uid);
+        // 删除执行计划
+        creativePlanService.deleteByAppUid(uid);
+        // 删除素材库
+        creativeMaterialManager.deleteMaterial(uid);
     }
 
     /**

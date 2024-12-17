@@ -11,8 +11,6 @@ public abstract class PluginExecuteHandler {
 
     static final String PREFIX_EXECTUE = "coze_exectue_";
 
-    static final String PREFIX_EXECTUE_ERROR = "prefix_exectue_error";
-
     static final String PREFIX_START = "coze_start_";
 
     static final String VERIFY_PARAMS = "verify_params_";
