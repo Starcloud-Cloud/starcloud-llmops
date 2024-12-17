@@ -2,12 +2,14 @@ package com.starcloud.ops.business.open.service.handler;
 
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
+import cn.iocoder.yudao.module.mp.dal.dataobject.user.MpUserDO;
 import cn.iocoder.yudao.module.mp.framework.mp.core.context.MpContextHolder;
 import cn.iocoder.yudao.module.mp.service.user.MpUserService;
 import cn.iocoder.yudao.module.system.dal.dataobject.dict.DictDataDO;
 import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import com.starcloud.ops.business.open.service.WechatService;
 import com.starcloud.ops.business.open.service.manager.WechatUserManager;
+import com.starcloud.ops.business.user.service.SendSocialMsgService;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
@@ -45,6 +47,9 @@ public class WeChatScanHandler implements WxMpMessageHandler {
     @Resource
     private WechatUserManager wechatUserManager;
 
+    @Resource
+    private SendSocialMsgService sendSocialMsgService;
+
     @Override
     // 未登录忽略用户权限
     @DataPermission(enable = false)
@@ -60,15 +65,17 @@ public class WeChatScanHandler implements WxMpMessageHandler {
             wechatUserManager.createSocialUser(wxMpUser, wxMessage);
         }
 
-        mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
+        MpUserDO mpUserDO = mpUserService.saveUser(MpContextHolder.getAppId(), wxMpUser);
         redisTemplate.boundValueOps(wxMessage.getTicket()).set(wxMpUser.getOpenId(), 1L, TimeUnit.MINUTES);
 
         DictDataDO dictDataDO = dictDataService.parseDictData(WECHAT_MSG, "scan_Login_" + TenantContextHolder.getTenantId());
 
+        sendSocialMsgService.asynSendWxRegisterMsg(mpUserDO);
         if (dictDataDO != null) {
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser())
                     .fromUser(wxMessage.getToUser()).content(dictDataDO.getValue()).build();
         }
+
         return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser())
                 .fromUser(wxMessage.getToUser()).content("欢迎回到魔法AI").build();
     }
