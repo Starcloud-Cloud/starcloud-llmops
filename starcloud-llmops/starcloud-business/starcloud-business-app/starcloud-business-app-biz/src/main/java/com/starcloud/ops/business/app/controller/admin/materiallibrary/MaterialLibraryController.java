@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
+import static cn.iocoder.yudao.framework.operatelog.core.enums.OperateTypeEnum.EXPORT;
 import static cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils.getLoginUserId;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_ID_EMPTY;
 import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.MATERIAL_LIBRARY_NOT_EXISTS;
@@ -175,5 +176,11 @@ public class MaterialLibraryController {
         return success(true);
     }
 
+    @GetMapping("/exportData")
+    @Operation(summary = "导出数据")
+    @OperateLog(type = EXPORT)
+    public void exportData(@Valid MaterialLibraryExportReqVO reqVO, HttpServletResponse response) {
+        materialLibraryService.exportData(reqVO, response);
+    }
 
 }

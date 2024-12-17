@@ -276,7 +276,7 @@ public class MaterialGroupServiceImpl implements MaterialGroupService {
         List<MaterialSaveReqVO> materialSaveReqVOS = collect.stream()
                 .peek(t -> t.setId(null))
                 .collect(Collectors.toList());
-        // 检查当前分组是否已经分布过了
+        // 检查当前分组是否已经发布过了
         MaterialGroupDO groupDO = validatePublish(groupUid);
         if (Objects.nonNull(groupDO)) {
             materialService.deleteMaterialByGroup(groupDO.getId());

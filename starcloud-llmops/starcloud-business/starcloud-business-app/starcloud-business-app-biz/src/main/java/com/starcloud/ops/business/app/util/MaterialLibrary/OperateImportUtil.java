@@ -145,11 +145,11 @@ public class OperateImportUtil {
             response.setContentType("application/vnd.ms-excel");
             // 设置编码
             response.setCharacterEncoding("utf-8");
-            // 这里URLEncoder.encode可以防止中文乱码
-            fileName = URLEncoder.encode(fileName, "UTF-8");
-            // 设置响应头信息 Content-disposition
-            response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+
+            // 设置响应头信息 Content-disposition 这里URLEncoder.encode可以防止中文乱码
+            response.setHeader("Content-disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8") + ".xlsx");
             EasyExcel.write(response.getOutputStream())
+                    .registerWriteHandler(new CustomCellWriteWidthConfig())
                     .head(Myhead)
                     .sheet(fileName)
                     .doWrite(data);

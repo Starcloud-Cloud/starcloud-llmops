@@ -657,7 +657,7 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN = new ErrorCode(300704206, "设置素材库列名失败，存在重复的字段名称:{}");
     ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_BATCH_ADD_FAIL = new ErrorCode(300704207, "批量设置素材列失败，类型转换异常");
 
-    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE = new ErrorCode(300702208, "导入素材库模板失败，非表格类型的素材库不支持导出模板");
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE = new ErrorCode(300702208, "导出素材库模板失败，非表格类型的素材库不支持导出模板");
 
     ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_COULMN_EMPTY = new ErrorCode(300702209, "导入素材库模板失败，不存在自定义字段");
     ErrorCode MATERIAL_LIBRARY_IMPORT_FAIL_IMAGE_NO_SUPPRT = new ErrorCode(300702210, "暂不支持图片素材库导入");
