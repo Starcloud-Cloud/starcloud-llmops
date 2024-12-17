@@ -15,7 +15,7 @@ import javax.validation.constraints.Size;
 public class PluginDefinitionVO {
 
     @Schema(description = "插件名称")
-    @NotBlank(message = "用户账号不能为空")
+    @NotBlank(message = "插件名称不能为空")
     @Size(min = 2, max = 20, message = "用户账号长度为 2-20 个字符")
     private String pluginName;
 
@@ -80,5 +80,17 @@ public class PluginDefinitionVO {
 
     @Schema(description = "平均执行时间 ms")
     private Long executeTimeAvg;
+
+    @Schema(description = "开启ai识别")
+    private Boolean enableAi;
+
+    @Schema(description = "用户自定义提示词")
+    private String userPrompt;
+
+    @Schema(description = "用户输入")
+    private String userInput;
+
+    @Schema(description = "识别结果")
+    private String aiResult;
 
 }

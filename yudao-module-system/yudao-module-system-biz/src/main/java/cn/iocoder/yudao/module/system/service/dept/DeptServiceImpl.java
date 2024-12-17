@@ -229,4 +229,8 @@ public class DeptServiceImpl implements DeptService {
         });
     }
 
+    @Override
+    public Long getSuperUserId(Long deptId) {
+        return deptMapper.getSuperUserId(deptId);
+    }
 }

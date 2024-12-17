@@ -42,6 +42,7 @@ public interface PluginsService {
 
     /**
      * 同步执行插件
+     *
      * @param reqVO
      */
     Object syncExecute(PluginExecuteReqVO reqVO);
@@ -55,6 +56,14 @@ public interface PluginsService {
      * 验证结果
      */
     VerifyResult verifyResult(PluginTestResultReqVO resultReqVO);
+
+    /**
+     * ai识别
+     *
+     * @param reqVO
+     * @return
+     */
+    JSONObject aiIdentify(AiIdentifyReqVO reqVO);
 
     /**
      * 敏感词检测

@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.plugins;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
+import com.starcloud.ops.business.app.dal.databoject.plugin.PluginConfigDO;
 import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 
 import java.util.List;
@@ -51,4 +52,6 @@ public interface PluginConfigService {
      * 更新用户插件配置 只新增和删除
      */
     void updatePluginConfig(String sourceUid, String targetUid);
+
+    PluginConfigDO getByUid(String uid);
 }

@@ -103,4 +103,8 @@ public interface DeptService {
      */
     void validateDeptList(Collection<Long> ids);
 
+    /**
+     * 查询部门的创建者
+     */
+    Long getSuperUserId(Long deptId);
 }

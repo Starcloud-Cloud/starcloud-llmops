@@ -85,7 +85,7 @@ public class CreativeMaterialManager {
             reqVO.setAppUid(uid);
             materialLibraryService.deleteMaterialLibraryByApp(reqVO);
         } catch (Exception e) {
-            log.warn("delete material error,{}", e.getMessage());
+            log.warn("delete material error,{}", e.getMessage(), e);
         }
     }
 

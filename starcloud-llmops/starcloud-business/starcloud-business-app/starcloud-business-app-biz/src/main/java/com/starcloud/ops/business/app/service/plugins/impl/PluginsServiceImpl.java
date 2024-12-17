@@ -1,10 +1,19 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
+import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.BooleanSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
@@ -34,12 +43,14 @@ import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.service.plugins.handler.PluginExecuteFactory;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -71,11 +82,20 @@ public class PluginsServiceImpl implements PluginsService {
     @Resource
     private PluginConfigService pluginConfigService;
 
+    @Resource
+    private SmsSendApi smsSendApi;
+
 
     @Override
     @DataPermission(enable = false)
     public String executePlugin(PluginExecuteReqVO reqVO) {
-        return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+        try {
+            return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+        } catch (Exception e) {
+            log.error("execute plugin error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     /**
@@ -84,7 +104,13 @@ public class PluginsServiceImpl implements PluginsService {
     @Override
     @DataPermission(enable = false)
     public PluginExecuteRespVO getPluginResult(PluginResultReqVO pluginResultReqVO) {
-        return pluginExecuteFactory.getHandlerByUid(pluginResultReqVO.getUuid()).getPluginResult(pluginResultReqVO);
+        try {
+            return pluginExecuteFactory.getHandlerByUid(pluginResultReqVO.getUuid()).getPluginResult(pluginResultReqVO);
+        } catch (Exception e) {
+            log.error("get execute plugin result error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     @Override
@@ -111,12 +137,24 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Override
     public String verify(PluginTestReqVO reqVO) {
-        return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
+        try {
+            return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
+        } catch (Exception e) {
+            log.error("verify plugin error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     @Override
     public VerifyResult verifyResult(PluginTestResultReqVO resultReqVO) {
-        return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
+        try {
+            return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
+        } catch (Exception e) {
+            log.error("verify plugin result error", e);
+            sendMsg(e);
+            throw e;
+        }
     }
 
     @Override
@@ -144,6 +182,45 @@ public class PluginsServiceImpl implements PluginsService {
         Map<String, Object> variableMap = new HashMap<>();
         variableMap.put(CreativeConstants.SENSITIVE_WORD, JSONUtil.toJsonStr(reqVO));
         return execute(SensitiveWordActionHandler.class.getSimpleName(), variableMap);
+    }
+
+    @Override
+    public JSONObject aiIdentify(AiIdentifyReqVO reqVO) {
+        Map<String, Object> variableMap = new HashMap<>();
+        variableMap.put("USER_INPUT", reqVO.getUserInput());
+
+        String inputFormat = reqVO.getInputFormart();
+        List<InputFormat> inputFormatList = JSONUtil.parseArray(inputFormat).toList(InputFormat.class);
+        variableMap.put("RESULT_FORMAT", parseSchema(inputFormatList));
+        variableMap.put("PLUGIN_DESC", reqVO.getDescription());
+        variableMap.put("PLUGIN_NAME", reqVO.getPluginName());
+        if (StringUtils.isNoneBlank(reqVO.getUserPrompt())) {
+            variableMap.put("USER_PROMPT", reqVO.getUserPrompt());
+        }
+        return execute("PLUGIN_INPUT_GENERATE", variableMap);
+    }
+
+    private String parseSchema(List<InputFormat> inputFormatList) {
+        ObjectSchema obj = new ObjectSchema();
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(inputFormatList.size());
+        for (InputFormat inputFormat : inputFormatList) {
+            if (Objects.equals("String", inputFormat.getVariableType())) {
+                StringSchema stringSchema = new StringSchema();
+                stringSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), stringSchema);
+            } else if (Objects.equals("Boolean", inputFormat.getVariableType())) {
+                BooleanSchema booleanSchema = new BooleanSchema();
+                booleanSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), booleanSchema);
+            } else if (Objects.equals("Array<String>", inputFormat.getVariableType())) {
+                ArraySchema arraySchema = new ArraySchema();
+                arraySchema.setDescription(inputFormat.getVariableDesc());
+                arraySchema.setItemsSchema(new StringSchema());
+                properties.put(inputFormat.getVariableKey(), arraySchema);
+            }
+        }
+        obj.setProperties(properties);
+        return JsonSchemaUtils.jsonNode2Str(obj);
     }
 
 
@@ -183,6 +260,9 @@ public class PluginsServiceImpl implements PluginsService {
             }
             PluginRespVO detail = pluginsDefinitionService.detail(pluginConfigRespVO.getPluginUid());
             if (Objects.isNull(detail)) {
+                continue;
+            }
+            if (!detail.getEnableAi()) {
                 continue;
             }
             PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
@@ -252,8 +332,19 @@ public class PluginsServiceImpl implements PluginsService {
             throw exception(PLUGIN_EXECUTE_ERROR);
         }
 
-        return JSONObject.parseObject(String.valueOf(executeResponse.getResult()));
+        String result = String.valueOf(executeResponse.getResult());
+
+        JSONObject jsonObject;
+
+        try {
+            jsonObject = JSONObject.parseObject(result);
+        } catch (Exception e) {
+            log.warn("输出结果不是json格式，{}", result);
+            throw exception(PLUGIN_EXECUTE_ERROR, "不是json格式输出");
+        }
+        return jsonObject;
     }
+
 
     private AppMarketRespVO getApp(String tag) {
         AppMarketListQuery query = new AppMarketListQuery();
@@ -265,5 +356,21 @@ public class PluginsServiceImpl implements PluginsService {
         return list.get(0);
     }
 
+
+    private void sendMsg(Exception e) {
+        try {
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("environment", SpringUtil.getActiveProfile());
+            templateParams.put("errorMsg", e.getMessage());
+            templateParams.put("date", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            smsSendApi.sendSingleSmsToAdmin(
+                    new SmsSendSingleToUserReqDTO()
+                            .setUserId(1L).setMobile("17835411844")
+                            .setTemplateCode("NOTICE_COZE_WARN")
+                            .setTemplateParams(templateParams));
+        } catch (Exception ex) {
+            log.error("send msg error", ex);
+        }
+    }
 
 }

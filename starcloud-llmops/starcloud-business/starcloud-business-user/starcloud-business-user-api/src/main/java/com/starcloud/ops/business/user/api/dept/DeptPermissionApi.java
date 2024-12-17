@@ -26,6 +26,7 @@ public interface DeptPermissionApi {
 
     /**
      * 校验权限
+     *
      * @param permission
      * @param creator
      */
@@ -40,4 +41,13 @@ public interface DeptPermissionApi {
      * 判断当前用户是否有权限点
      */
     boolean hasPermission(String permission, Long creator);
+
+    /**
+     * 校验当前用户是不是若依超级管理员，有没有编辑权限
+     * <p>
+     * super_admin 只能修改自己所在团队的数据
+     *
+     * @param deptIds 修改数据的deptId 若有多条数据绑定传入所有数据的deptId
+     */
+    void adminEditPermission(Long... deptIds);
 }

@@ -100,10 +100,11 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
     @Override
     public void asynSendWxRegisterMsg(MpUserDO mpUser) {
         log.info("发送微信注册消息,mpUserId:{}", mpUser.getId());
+        Long tenantId = TenantContextHolder.getTenantId();
         threadPoolExecutor.execute(() -> {
             try {
                 TimeUnit.SECONDS.sleep(1L);
-                sendWxRegisterMsg(mpUser);
+                sendWxRegisterMsg(mpUser, tenantId);
             } catch (Exception e) {
                 log.error("发送图片消息失败", e);
             }
@@ -111,10 +112,10 @@ public class SendSocialMsgServiceImpl implements SendSocialMsgService, SendUserM
 
     }
 
-    private void sendWxRegisterMsg(MpUserDO mpUser) {
+    private void sendWxRegisterMsg(MpUserDO mpUser, Long tenantId) {
         DictDataExportReqVO exportReqVO = new DictDataExportReqVO();
         exportReqVO.setDictType(WX_REGISTER_MSG);
-        exportReqVO.setLabel("image");
+        exportReqVO.setLabel("image-"+ tenantId);
         exportReqVO.setStatus(0);
         List<DictDataDO> dictDataList = dictDataService.getDictDataList(exportReqVO);
         dictDataList.forEach(dictDataDO -> {
