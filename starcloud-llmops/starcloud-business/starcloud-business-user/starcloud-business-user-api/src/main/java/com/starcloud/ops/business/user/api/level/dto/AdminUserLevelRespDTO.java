@@ -21,7 +21,7 @@ public class AdminUserLevelRespDTO {
     /**
      * 等级名称
      */
-    private String name;
+    private String levelName;
     /**
      * 生效开始时间
      */
