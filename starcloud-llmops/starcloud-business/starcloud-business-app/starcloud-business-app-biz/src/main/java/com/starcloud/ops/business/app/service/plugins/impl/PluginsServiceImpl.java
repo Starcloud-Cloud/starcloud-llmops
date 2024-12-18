@@ -37,6 +37,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.SensitiveWordActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
@@ -391,7 +392,7 @@ public class PluginsServiceImpl implements PluginsService {
             msgMap.put("libraryName", library.getName());
             msgMap.put("libraryUid", library.getUid());
             msgMap.put("pluginName", pluginRespVO.getPluginName());
-            msgMap.put("pluginScene", pluginRespVO.getScene());
+            msgMap.put("pluginScene", PluginSceneEnum.getName(pluginRespVO.getScene()));
             msgMap.put("socialNickName", socialUser.getNickname());
             msgMap.put("executeUserName", user.getNickname());
             msgMap.put("executeUserLevel", adminUserLevelList.stream().map(AdminUserLevelRespDTO::getName).collect(Collectors.toList()));
