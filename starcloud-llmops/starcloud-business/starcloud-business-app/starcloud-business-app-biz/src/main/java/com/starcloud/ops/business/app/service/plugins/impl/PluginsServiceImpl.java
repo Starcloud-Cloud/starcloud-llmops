@@ -402,7 +402,7 @@ public class PluginsServiceImpl implements PluginsService {
             msgMap.put("socialNickName", socialUser.getNickname());
             msgMap.put("executeUserName", user.getNickname());
 
-            if (CollectionUtil.isEmpty(roleNames)) {
+            if (CollectionUtil.isNotEmpty(roleNames)) {
                 msgMap.put("executeUserLevel", String.join(",", roleNames));
             } else {
                 msgMap.put("executeUserLevel", "-");
