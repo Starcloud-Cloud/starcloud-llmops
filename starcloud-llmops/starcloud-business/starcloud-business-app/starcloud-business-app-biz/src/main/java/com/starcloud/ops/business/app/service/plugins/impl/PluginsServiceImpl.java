@@ -119,7 +119,7 @@ public class PluginsServiceImpl implements PluginsService {
         try {
             String code = pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
             redisTemplate.boundValueOps(EXECUTE_REQ + code).set(JSONUtil.toJsonStr(reqVO), 30, TimeUnit.MINUTES);
-            return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+            return code;
         } catch (Exception e) {
             log.error("execute plugin error, executeReqStr={}", JSONUtil.toJsonStr(reqVO), e);
             sendMsg(reqVO, e);
