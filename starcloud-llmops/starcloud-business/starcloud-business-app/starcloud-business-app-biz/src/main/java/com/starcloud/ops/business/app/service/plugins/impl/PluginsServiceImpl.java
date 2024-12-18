@@ -53,6 +53,7 @@ import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -396,10 +397,10 @@ public class PluginsServiceImpl implements PluginsService {
             msgMap.put("pluginScene", PluginSceneEnum.getName(pluginRespVO.getScene()));
             msgMap.put("socialNickName", socialUser.getNickname());
             msgMap.put("executeUserName", user.getNickname());
-            msgMap.put("executeUserLevel", adminUserLevelList.stream().map(AdminUserLevelRespDTO::getName).collect(Collectors.toList()));
+            msgMap.put("executeUserLevel", adminUserLevelList.stream().map(AdminUserLevelRespDTO::getLevelName).collect(Collectors.toList()));
             msgMap.put("dateTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             msgMap.put("errorMsg", e.getMessage());
-            msgMap.put("stackTrace", e.getStackTrace());
+            msgMap.put("stackTrace", ExceptionUtil.stackTraceToString(e, 1000));
             msgMap.put("inputParams", JSONUtil.toJsonStr(reqVO.getInputParams()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
