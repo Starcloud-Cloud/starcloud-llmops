@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
@@ -51,6 +52,7 @@ import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.service.plugins.handler.PluginExecuteFactory;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
@@ -385,8 +387,10 @@ public class PluginsServiceImpl implements PluginsService {
             Long loginUserId = WebFrameworkUtils.getLoginUserId();
             MaterialLibraryRespVO library = libraryService.getMaterialLibraryByUid(reqVO.getLibraryUid());
             SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(pluginRespVO.getCozeTokenId()));
-            List<AdminUserLevelRespDTO> adminUserLevelList = adminUserLevelApi.getAdminUserLevelList(loginUserId);
             AdminUserRespDTO user = adminUserApi.getUser(loginUserId);
+
+            Map<Long, List<String>> longListMap = UserUtils.mapUserRoleName(Collections.singletonList(loginUserId));
+            List<String> roleNames = longListMap.get(loginUserId);
 
             HashMap<String, Object> msgMap = new HashMap<>();
             msgMap.put("environment", SpringUtil.getActiveProfile());
@@ -396,7 +400,13 @@ public class PluginsServiceImpl implements PluginsService {
             msgMap.put("pluginScene", PluginSceneEnum.getName(pluginRespVO.getScene()));
             msgMap.put("socialNickName", socialUser.getNickname());
             msgMap.put("executeUserName", user.getNickname());
-            msgMap.put("executeUserLevel", adminUserLevelList.stream().map(AdminUserLevelRespDTO::getLevelName).collect(Collectors.toList()));
+
+            if (CollectionUtil.isEmpty(roleNames)) {
+                msgMap.put("executeUserLevel", String.join(",", roleNames));
+            } else {
+                msgMap.put("executeUserLevel", "-");
+            }
+
             msgMap.put("dateTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
             msgMap.put("errorMsg", e.getMessage());
             msgMap.put("stackTrace", ExceptionUtil.stackTraceToString(e, 1000));
