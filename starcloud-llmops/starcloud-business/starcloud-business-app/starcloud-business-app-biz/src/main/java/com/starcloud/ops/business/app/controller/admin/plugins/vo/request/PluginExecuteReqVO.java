@@ -14,7 +14,6 @@ public class PluginExecuteReqVO {
     private String uuid;
 
     @Schema(description = "执行参数")
-    @NotBlank(message = "执行参数不能为空")
     private Object inputParams;
 
     @Schema(description = "素材库uid")
