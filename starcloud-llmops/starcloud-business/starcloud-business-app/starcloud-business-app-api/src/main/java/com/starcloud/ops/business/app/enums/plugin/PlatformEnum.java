@@ -1,6 +1,5 @@
 package com.starcloud.ops.business.app.enums.plugin;
 
-import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeSchemeRefersSourceEnum;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
 import lombok.Getter;
@@ -36,6 +35,9 @@ public enum PlatformEnum implements IEnumable<String> {
         return name;
     }
 
+    public static String getName(String code) {
+        return PlatformEnum.valueOf(code).getLabel();
+    }
 
     public static List<Option> options() {
         return Arrays.stream(values()).sorted(Comparator.comparingInt(PlatformEnum::ordinal))
