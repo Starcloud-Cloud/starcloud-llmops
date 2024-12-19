@@ -38,6 +38,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.SensitiveWordActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
@@ -398,6 +399,8 @@ public class PluginsServiceImpl implements PluginsService {
             msgMap.put("libraryUid", library.getUid());
             msgMap.put("pluginName", pluginRespVO.getPluginName());
             msgMap.put("pluginScene", PluginSceneEnum.getName(pluginRespVO.getScene()));
+            msgMap.put("pluginType", PlatformEnum.getName(pluginRespVO.getType()));
+            msgMap.put("entityUid", pluginRespVO.getEntityUid());
             msgMap.put("socialNickName", socialUser.getNickname());
             msgMap.put("executeUserName", user.getNickname());
 
