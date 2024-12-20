@@ -328,7 +328,7 @@ public interface CreativeErrorCodeConstants {
     ErrorCode SYSTEM_PLUGIN = new ErrorCode(760100008, "系统插件不可删除");
 
 
-    ErrorCode COZE_ERROR = new ErrorCode(760100009, "调用coze执行失败，{}");
+    ErrorCode COZE_SERVICE_ERROR = new ErrorCode(760100009, "调用coze执行失败，请检查coze本身流程是否可执行:{}");
 
     ErrorCode TOKEN_ERROR = new ErrorCode(760100010, "token不存在，id = {}");
 
@@ -344,4 +344,5 @@ public interface CreativeErrorCodeConstants {
     ErrorCode EXECUTE_POOL_FULL = new ErrorCode(760100015, "线程池已满，请稍后重试");
 
 
+    ErrorCode COZE_ERROR = new ErrorCode(760100016, "调用coze执行失败，{}");
 }
