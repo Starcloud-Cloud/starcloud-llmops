@@ -74,7 +74,7 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
         request.setMessages(Collections.singletonList(cozeMessage));
         CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
         if (chat.getCode() != 0) {
-            throw exception(COZE_ERROR, chat.getMsg());
+            throw exception(COZE_SERVICE_ERROR, chat.getMsg());
         }
         log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
         String code = IdUtil.fastSimpleUUID();
@@ -94,7 +94,7 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
         CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
         log.info("coze result {}", JSONUtil.toJsonPrettyStr(retrieve));
         if (retrieve.getCode() != 0) {
-            throw exception(COZE_ERROR, retrieve.getMsg());
+            throw exception(COZE_SERVICE_ERROR, retrieve.getMsg());
         }
 
         VerifyResult verifyResult = new VerifyResult();
@@ -108,7 +108,7 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
 
         ) {
             String error = Optional.of(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
-            throw exception(COZE_ERROR, error);
+            throw exception(COZE_SERVICE_ERROR, error);
         }
 
         if (!Objects.equals("completed", status)) {
@@ -124,11 +124,11 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
         log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
 
         if (list.getCode() != 0) {
-            throw exception(COZE_ERROR, list.getMsg());
+            throw exception(COZE_SERVICE_ERROR, list.getMsg());
         }
 
         if (CollectionUtil.isEmpty(list.getData())) {
-            throw exception(COZE_ERROR, "未发现正确的执行记录");
+            throw exception(COZE_SERVICE_ERROR, "未发现正确的执行记录");
         }
 
         for (CozeMessageResult datum : list.getData()) {
@@ -204,7 +204,7 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
 
         CozeResponse<CozeChatResult> chat = cozePublicClient.chat(null, request, accessToken);
         if (chat.getCode() != 0) {
-            throw exception(COZE_ERROR, chat.getMsg());
+            throw exception(COZE_SERVICE_ERROR, chat.getMsg());
         }
         log.info("conversationId={}, chatId={}, token={}", chat.getData().getConversationId(), chat.getData().getId(), accessToken);
         String code = IdUtil.fastSimpleUUID();
@@ -229,7 +229,7 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
         CozeResponse<CozeChatResult> retrieve = cozePublicClient.retrieve(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
         log.info("coze result {}", JSONUtil.toJsonPrettyStr(retrieve));
         if (retrieve.getCode() != 0) {
-            throw exception(COZE_ERROR, retrieve.getMsg());
+            throw exception(COZE_SERVICE_ERROR, retrieve.getMsg());
         }
 
         PluginExecuteRespVO executeRespVO = new PluginExecuteRespVO();
@@ -241,7 +241,7 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
 
         ) {
             String error = Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getLastError).map(CozeLastError::getMsg).orElse("bot执行失败");
-            throw exception(COZE_ERROR, error);
+            throw exception(COZE_SERVICE_ERROR, error);
         }
 
         if (!Objects.equals("completed", status)) {
@@ -253,11 +253,11 @@ public class CozeBotExecuteHandler extends PluginExecuteHandler {
         executeRespVO.setCompletedAt(Optional.ofNullable(retrieve).map(CozeResponse::getData).map(CozeChatResult::getCompletedAt).orElse(null));
         CozeResponse<List<CozeMessageResult>> list = cozePublicClient.messageList(cozeChatResult.getConversationId(), cozeChatResult.getId(), accessToken);
         if (list.getCode() != 0) {
-            throw exception(COZE_ERROR, list.getMsg());
+            throw exception(COZE_SERVICE_ERROR, list.getMsg());
         }
 
         if (CollectionUtil.isEmpty(list.getData())) {
-            throw exception(COZE_ERROR, "未发现正确的执行记录");
+            throw exception(COZE_SERVICE_ERROR, "未发现正确的执行记录");
         }
         log.info("messageList list: {}", JSONUtil.toJsonPrettyStr(list));
         for (CozeMessageResult datum : list.getData()) {
