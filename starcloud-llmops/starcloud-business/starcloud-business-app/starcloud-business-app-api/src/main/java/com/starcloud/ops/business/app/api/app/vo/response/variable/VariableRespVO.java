@@ -90,6 +90,7 @@ public class VariableRespVO implements Serializable {
 
             itemResponse.setValue(originalVariableResponse.getValue());
             itemResponse.setDefaultValue(originalVariableResponse.getDefaultValue());
+            itemResponse.setIsShow(originalVariableResponse.getIsShow());
         }
         variables = variableList;
     }
