@@ -12,7 +12,11 @@ import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 推荐应用Action 包装类工厂类
@@ -45,6 +49,7 @@ public class RecommendStepWrapperFactory {
 
     /**
      * xhs + ocr
+     *
      * @return
      */
     public static WorkflowStepWrapperRespVO defXhsOcrStepWrapper() {
@@ -60,6 +65,7 @@ public class RecommendStepWrapperFactory {
 
     /**
      * 图片ocr
+     *
      * @return
      */
     public static WorkflowStepWrapperRespVO defImageOcrStepWrapper() {
@@ -218,7 +224,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String prompt = "{{"+ CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT +"}}";
+        String prompt = "{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
         String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
@@ -340,10 +346,10 @@ public class RecommendStepWrapperFactory {
      *
      * @return
      */
-    public static Map<String, VariableRespVO> getStepVariable() {
-        Map<String, VariableRespVO> result = new HashMap<>();
+    public static Map<String, WorkflowStepWrapperRespVO> getStepVariable() {
+        Map<String, WorkflowStepWrapperRespVO> result = new HashMap<>();
         for (WorkflowStepWrapperRespVO workflowStepWrapperRespVO : defMediaMatrixStepWrapperList()) {
-            result.put(workflowStepWrapperRespVO.getFlowStep().getHandler(), workflowStepWrapperRespVO.getVariable());
+            result.put(workflowStepWrapperRespVO.getHandler(), workflowStepWrapperRespVO);
         }
         return result;
     }

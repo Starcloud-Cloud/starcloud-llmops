@@ -1,19 +1,11 @@
 package com.starcloud.ops.business.app.api.app.vo.response.action;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * 工作流步骤实体
@@ -50,4 +42,8 @@ public class WorkflowStepRespVO extends ActionRespVO {
     @Schema(description = "步骤版本，默认版本 1")
     private Integer version;
 
+
+    public void supplementFlowStep(WorkflowStepRespVO flowStep) {
+
+    }
 }

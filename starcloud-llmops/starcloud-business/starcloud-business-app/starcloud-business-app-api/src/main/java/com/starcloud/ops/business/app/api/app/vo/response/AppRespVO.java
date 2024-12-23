@@ -8,7 +8,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigResp
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -226,16 +225,18 @@ public class AppRespVO implements Serializable {
     @Schema(description = "验证消息")
     private List<Verification> verificationList;
 
-    /*
+    /**
      * 补充步骤默认变量
+     *
+     * @param supplementStepWrapperMap 补充步骤
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
-        if (Objects.isNull(workflowConfig) || CollectionUtil.isEmpty(variableRespVOMap)) {
+    public void supplementStepVariable(Map<String, WorkflowStepWrapperRespVO> supplementStepWrapperMap) {
+        if (Objects.isNull(workflowConfig) || CollectionUtil.isEmpty(supplementStepWrapperMap)) {
             return;
         }
-        workflowConfig.supplementStepVariable(variableRespVOMap);
+        workflowConfig.supplementStepVariable(supplementStepWrapperMap);
     }
 
     /**
