@@ -245,7 +245,11 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @JSONField(serialize = false)
     public void merge(WorkflowStepWrapperRespVO stepWrapper) {
         // 只进行变量合并，不进行其他属性合并，
-        // step 中的内容保持为最新的。直接抛弃旧的内容。
-        this.variable.merge(stepWrapper.getVariable());
+        if (Objects.nonNull(flowStep)) {
+            this.flowStep.merge(stepWrapper.getFlowStep());
+        }
+        if (Objects.nonNull(variable)) {
+            this.variable.merge(stepWrapper.getVariable());
+        }
     }
 }

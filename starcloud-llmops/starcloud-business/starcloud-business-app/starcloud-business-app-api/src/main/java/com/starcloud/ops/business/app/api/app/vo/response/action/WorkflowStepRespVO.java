@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Objects;
+
 /**
  * 工作流步骤实体
  *
@@ -44,6 +46,19 @@ public class WorkflowStepRespVO extends ActionRespVO {
 
 
     public void supplementFlowStep(WorkflowStepRespVO flowStep) {
+        if (Objects.isNull(flowStep)) {
+            return;
+        }
 
+        if (Objects.nonNull(this.getVariable())) {
+            this.getVariable().supplementStepVariable(flowStep.getVariable());
+        }
+    }
+
+    public void merge(WorkflowStepRespVO flowStep) {
+        if (Objects.isNull(flowStep) || Objects.isNull(flowStep.getVariable())) {
+            return;
+        }
+        this.getVariable().merge(flowStep.getVariable());
     }
 }
