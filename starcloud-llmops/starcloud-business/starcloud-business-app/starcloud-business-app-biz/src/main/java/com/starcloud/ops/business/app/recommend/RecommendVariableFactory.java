@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.recommend;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -203,6 +204,9 @@ public class RecommendVariableFactory {
         // 生成模式
         VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaMatrixGenerateVariable();
         generateVariable.setOrder(1);
+        // 目前默认写死为AI自定义生成
+        generateVariable.setValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
+        generateVariable.setDefaultValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
         generateVariable.setIsShow(Boolean.TRUE);
 
         // 素材类型
