@@ -593,12 +593,14 @@ public class AppLogServiceImpl implements AppLogService {
             LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
             wrapper.eq(CreativeContentDO::getConversationUid, appLogMessageResponse.getConversationUid());
             CreativeContentDO content = creativeContentMapper.selectOne(wrapper);
-            CreativeContentRespVO contentResponse = CreativeContentConvert.INSTANCE.convert(content);
-            CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
-            appLogMessageResponse.setExecuteResult(executeResult);
-            appLogMessageResponse.setContentUid(content.getUid());
-            appLogMessageResponse.setPlanUid(content.getPlanUid());
-            appLogMessageResponse.setPlanBatchUid(content.getBatchUid());
+            if (Objects.nonNull(content)) {
+                CreativeContentRespVO contentResponse = CreativeContentConvert.INSTANCE.convert(content);
+                CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
+                appLogMessageResponse.setExecuteResult(executeResult);
+                appLogMessageResponse.setContentUid(content.getUid());
+                appLogMessageResponse.setPlanUid(content.getPlanUid());
+                appLogMessageResponse.setPlanBatchUid(content.getBatchUid());
+            }
         }
         return appLogMessageResponse;
     }
