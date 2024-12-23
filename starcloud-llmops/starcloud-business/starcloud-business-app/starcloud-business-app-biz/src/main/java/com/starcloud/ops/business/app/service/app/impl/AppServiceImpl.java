@@ -529,6 +529,7 @@ public class AppServiceImpl implements AppService {
         }
 
         try {
+            request.setStepId(null);
             request.setContinuous(true);
             app.asyncExecute(request);
         } catch (Exception exception) {
