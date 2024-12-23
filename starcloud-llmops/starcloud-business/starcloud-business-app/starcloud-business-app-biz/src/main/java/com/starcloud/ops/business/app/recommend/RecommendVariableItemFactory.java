@@ -910,8 +910,8 @@ public class RecommendVariableItemFactory {
     public static VariableItemRespVO defAssembleTitle() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.TITLE);
-        variableItem.setLabel("标题");
-        variableItem.setDescription("标题");
+        variableItem.setLabel("笔记标题");
+        variableItem.setDescription("笔记标题");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(105);
@@ -931,8 +931,8 @@ public class RecommendVariableItemFactory {
     public static VariableItemRespVO defAssembleContent() {
         VariableItemRespVO variableItem = new VariableItemRespVO();
         variableItem.setField(CreativeConstants.CONTENT);
-        variableItem.setLabel("内容");
-        variableItem.setDescription("内容");
+        variableItem.setLabel("笔记内容");
+        variableItem.setDescription("笔记内容");
         variableItem.setDefaultValue(StringUtils.EMPTY);
         variableItem.setValue(StringUtils.EMPTY);
         variableItem.setOrder(104);
