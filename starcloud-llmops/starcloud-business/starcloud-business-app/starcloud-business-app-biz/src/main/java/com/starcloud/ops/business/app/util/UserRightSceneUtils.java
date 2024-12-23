@@ -65,6 +65,8 @@ public class UserRightSceneUtils {
                 return AdminUserRightsBizTypeEnum.WECOM_GROUP_SCENE;
             case MP: // 18
                 return AdminUserRightsBizTypeEnum.MP_SCENE;
+            case APP_TEST: // 19
+                return AdminUserRightsBizTypeEnum.APP_TEST_SCENE;
             default:
                 throw ServiceExceptionUtil.exception(ErrorCodeConstants.EXECUTE_SCENE_REQUIRED);
         }
