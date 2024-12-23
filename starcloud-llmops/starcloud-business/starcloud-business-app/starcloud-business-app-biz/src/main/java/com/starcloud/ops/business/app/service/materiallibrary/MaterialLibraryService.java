@@ -200,4 +200,13 @@ public interface MaterialLibraryService {
     // void updateMaterialLibraryFileCount(Long libraryId);
 
 
+    // /**
+    //  * 更新素材库文件数量
+    //  *
+    //  * @param libraryId 素材库编号
+    //  */
+    // void e x(Long libraryId);
+    void exportData(MaterialLibraryExportReqVO reqVO, HttpServletResponse response);
+
+
 }

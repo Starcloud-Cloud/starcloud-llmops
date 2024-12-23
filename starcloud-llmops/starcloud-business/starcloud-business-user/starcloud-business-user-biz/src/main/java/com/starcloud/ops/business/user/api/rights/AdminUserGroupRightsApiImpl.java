@@ -4,7 +4,7 @@ import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import cn.iocoder.yudao.module.system.service.dept.DeptService;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
-import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
+import com.starcloud.ops.business.user.dal.dataobject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.dept.UserDeptService;
 import lombok.extern.slf4j.Slf4j;

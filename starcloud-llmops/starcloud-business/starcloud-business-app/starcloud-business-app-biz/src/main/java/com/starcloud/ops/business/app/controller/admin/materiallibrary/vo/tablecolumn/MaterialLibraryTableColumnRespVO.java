@@ -55,5 +55,15 @@ public class MaterialLibraryTableColumnRespVO {
     @Schema(description = "字段是否为分组字段")
     private Boolean isGroupColumn;
 
+    @Schema(description = "创建人", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @ExcelProperty("创建人")
+    private String createName;
+
+
+    @Schema(description = "创建人", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+    @ExcelProperty("创建人")
+    private String deptName;
+
+
 
 }

@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -60,26 +59,39 @@ public class VariableRespVO implements Serializable {
      * 补充默认变量
      * 如果变量已存在则跳过
      *
-     * @param variableItemRespVO 变量
+     * @param variableResponse 变量
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void supplementStepVariable(List<VariableItemRespVO> variableItemRespVO) {
-        if (CollectionUtil.isEmpty(variableItemRespVO)) {
-            return;
-        }
-        if (CollectionUtil.isEmpty(variables)) {
-            variables = variableItemRespVO;
+    public void supplementStepVariable(VariableRespVO variableResponse) {
+        if (Objects.isNull(variableResponse)) {
             return;
         }
 
-        for (VariableItemRespVO itemRespVO : variableItemRespVO) {
-            boolean contains = variables.stream().anyMatch(variable -> Objects.equals(itemRespVO.getField(), variable.getField()));
-            if (contains) {
+        List<VariableItemRespVO> variableList = variableResponse.getVariables();
+        if (CollectionUtil.isEmpty(variableList)) {
+            return;
+        }
+        // 如果变量为空则直接赋值
+        if (CollectionUtil.isEmpty(variables)) {
+            variables = variableList;
+            return;
+        }
+        // 否则进行变量的更新操作
+        Map<String, VariableItemRespVO> variableItemMap = variables.stream().collect(Collectors.toMap(VariableItemRespVO::getField, Function.identity()));
+        
+        // 现在用户无法修改变量的其余属性，所以其余属性应该保证是系统提供。
+        // 未来如果有变化，需要进行修改此处 TODO
+        for (VariableItemRespVO itemResponse : variableList) {
+            VariableItemRespVO originalVariableResponse = variableItemMap.get(itemResponse.getField());
+            if (Objects.isNull(originalVariableResponse)) {
                 continue;
             }
-            variables.add(itemRespVO);
+
+            itemResponse.setValue(originalVariableResponse.getValue());
+            itemResponse.setDefaultValue(originalVariableResponse.getDefaultValue());
         }
+        variables = variableList;
     }
 
     /**

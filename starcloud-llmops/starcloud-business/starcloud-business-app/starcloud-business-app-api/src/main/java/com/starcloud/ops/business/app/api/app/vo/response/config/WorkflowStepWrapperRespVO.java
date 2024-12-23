@@ -72,20 +72,28 @@ public class WorkflowStepWrapperRespVO implements Serializable {
 
     /**
      * 补充步骤默认变量
+     *
+     * @param supplementStepWrapperMap 补充步骤包装 map
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void supplementStepVariable(Map<String, VariableRespVO> variableRespMap) {
-        if (Objects.isNull(flowStep) || Objects.isNull(variable) || CollectionUtil.isEmpty(variableRespMap)) {
+    public void supplementStepVariable(Map<String, WorkflowStepWrapperRespVO> supplementStepWrapperMap) {
+
+        if (Objects.isNull(flowStep) || Objects.isNull(variable) || CollectionUtil.isEmpty(supplementStepWrapperMap)) {
             return;
         }
 
         String handler = flowStep.getHandler();
-        VariableRespVO defaultVariables = variableRespMap.get(handler);
-        if (Objects.isNull(defaultVariables)) {
+        // 获取补充的步骤
+        WorkflowStepWrapperRespVO handlerStepWrapper = supplementStepWrapperMap.get(handler);
+        if (Objects.isNull(handlerStepWrapper)) {
             return;
         }
-        variable.supplementStepVariable(defaultVariables.getVariables());
+        if (!"CustomActionHandler".equals(handler)) {
+            this.description = handlerStepWrapper.getDescription();
+        }
+        flowStep.supplementFlowStep(handlerStepWrapper.getFlowStep());
+        variable.supplementStepVariable(handlerStepWrapper.getVariable());
     }
 
     /**

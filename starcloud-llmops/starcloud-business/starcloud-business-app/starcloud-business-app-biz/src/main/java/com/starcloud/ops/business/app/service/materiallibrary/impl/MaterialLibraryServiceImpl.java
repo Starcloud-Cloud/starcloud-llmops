@@ -28,6 +28,7 @@ import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablec
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryAppBindDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
+import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum;
@@ -43,6 +44,7 @@ import com.starcloud.ops.business.app.service.materiallibrary.handle.ImageMateri
 import com.starcloud.ops.business.app.service.materiallibrary.handle.MaterialImportStrategy;
 import com.starcloud.ops.business.app.service.materiallibrary.handle.ZipMaterialImportStrategy;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
+import com.starcloud.ops.business.app.util.MaterialLibrary.OperateImportUtil;
 import com.starcloud.ops.business.app.util.MaterialTemplateUtils;
 import com.starcloud.ops.business.mq.producer.LibraryDeleteProducer;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
@@ -58,6 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -316,7 +319,7 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     public PageResult<MaterialLibraryPageRespVO> getMaterialLibraryPage(MaterialLibraryPageReqVO pageReqVO) {
         // 2. 分页查询
         IPage<MaterialLibraryPageRespVO> pageResult = materialLibraryMapper.selectPage3(
-                MyBatisUtils.buildPage(pageReqVO,pageReqVO.getSortingFields()), pageReqVO);
+                MyBatisUtils.buildPage(pageReqVO, pageReqVO.getSortingFields()), pageReqVO);
 
         // 3. 拼接数据并返回
         return new PageResult<>(pageResult.getRecords(), pageResult.getTotal());
@@ -597,6 +600,49 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
     public void materialLibrarySliceUsageCount(SliceUsageCountReqVO sliceUsageCountReqVO) {
         MaterialLibraryRespVO materialLibrary = getMaterialLibraryByApp(sliceUsageCountReqVO);
         sliceUsageCountReqVO.getSliceCountReqVOS().forEach(sliceCountReqVO -> materialLibrarySliceService.updateSliceUsedCount(materialLibrary.getId(), sliceCountReqVO.getSliceId(), sliceCountReqVO.getNums()));
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void exportData(MaterialLibraryExportReqVO reqVO, HttpServletResponse response) {
+        MaterialLibraryDO libraryDO = materialLibraryMapper.selectById(reqVO.getId());
+
+        if (libraryDO == null) {
+            throw exception(MATERIAL_LIBRARY_NOT_EXISTS);
+        }
+
+        if (!MaterialFormatTypeEnum.isExcel(libraryDO.getFormatType())) {
+            throw exception(MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE);
+        }
+        List<MaterialLibraryTableColumnDO> tableColumnDOList = materialLibraryTableColumnService.getMaterialLibraryTableColumnByLibrary(reqVO.getId());
+        if (CollUtil.isEmpty(tableColumnDOList)) {
+            throw exception(MATERIAL_LIBRARY_EXPORT_FAIL_COULMN_EMPTY);
+        }
+        List<String> columnNames = tableColumnDOList.stream().map(MaterialLibraryTableColumnDO::getColumnName).collect(Collectors.toList());
+
+        // 创建 head 列表
+        List<List<String>> heads = columnNames.stream()
+                .map(Arrays::asList)
+                .collect(Collectors.toList());
+
+        // 获取数据
+        List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceService.getMaterialLibrarySlice(reqVO.getId(), reqVO.getSliceIds());
+        List<List<Object>> data = sliceDOList.stream()
+                .map(sliceDO -> {
+                    // 创建一个新的列表来存储每个 sliceDO 的内容
+                    List<Object> sliceData = new ArrayList<>();
+
+                    // 遍历 sliceDO 的内容并添加到 sliceData 列表中
+                    sliceDO.getContent().forEach(content -> sliceData.add(content.getValue()));
+
+                    return sliceData;
+                })
+                .collect(Collectors.toList());
+
+        // 导出数据
+        OperateImportUtil.writeExcel(response, libraryDO.getName(), heads, data);
     }
 
     // /**

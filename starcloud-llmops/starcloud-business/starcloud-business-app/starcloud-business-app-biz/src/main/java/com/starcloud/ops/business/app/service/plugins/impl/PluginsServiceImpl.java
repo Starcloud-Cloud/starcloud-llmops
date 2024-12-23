@@ -59,6 +59,7 @@ import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
 import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -287,7 +288,7 @@ public class PluginsServiceImpl implements PluginsService {
             if (Objects.isNull(detail)) {
                 continue;
             }
-            if (!detail.getEnableAi()) {
+            if (BooleanUtils.isNotTrue(detail.getEnableAi())) {
                 continue;
             }
             PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
