@@ -207,9 +207,6 @@ public class RecommendVariableFactory {
         // 生成模式
         VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaMatrixGenerateVariable();
         generateVariable.setOrder(1);
-        // 目前默认写死为AI自定义生成
-        generateVariable.setValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
-        generateVariable.setDefaultValue(CreativeContentGenerateModelEnum.AI_CUSTOM.name());
         generateVariable.setIsShow(Boolean.TRUE);
         generateVariable.setIsKeepUserValue(Boolean.TRUE);
 
@@ -234,13 +231,21 @@ public class RecommendVariableFactory {
         // AI自定义生成要求
         VariableItemRespVO customRequirement = RecommendVariableItemFactory.defCustomRequirement();
         customRequirement.setOrder(5);
-        customRequirement.setIsShow(Boolean.TRUE);
+        if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateVariable.getValue())) {
+            customRequirement.setIsShow(Boolean.TRUE);
+        } else {
+            customRequirement.setIsShow(Boolean.FALSE);
+        }
         customRequirement.setIsKeepUserValue(Boolean.TRUE);
 
         // AI仿写生成要求
         VariableItemRespVO parodyRequirement = RecommendVariableItemFactory.defParodyRequirement();
         parodyRequirement.setOrder(6);
-        parodyRequirement.setIsShow(Boolean.TRUE);
+        if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateVariable.getValue())) {
+            parodyRequirement.setIsShow(Boolean.TRUE);
+        } else {
+            parodyRequirement.setIsShow(Boolean.FALSE);
+        }
         parodyRequirement.setIsKeepUserValue(Boolean.TRUE);
 
         // JSON Schema
