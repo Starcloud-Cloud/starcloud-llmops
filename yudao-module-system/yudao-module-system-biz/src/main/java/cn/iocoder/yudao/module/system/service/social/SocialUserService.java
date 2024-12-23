@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserBindReqDTO;
 import cn.iocoder.yudao.module.system.api.social.dto.SocialUserRespDTO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserPageReqVO;
+import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserRespVO;
 import cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserUpdateSimpleReqVO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserBindDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
@@ -134,6 +135,9 @@ public interface SocialUserService {
      *更新社交昵称
      */
     void updateNickname(SocialUserUpdateSimpleReqVO simpleReqVO);
+
+
+    PageResult<SocialUserRespVO> getSocialUserPage2(SocialUserPageReqVO pageReqVO);
 
 
 }

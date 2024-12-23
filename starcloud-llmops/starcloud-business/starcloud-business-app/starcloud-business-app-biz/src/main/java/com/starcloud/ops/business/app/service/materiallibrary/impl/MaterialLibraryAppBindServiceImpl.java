@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.materiallibrary.impl;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.BindMigrationReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.bind.MaterialLibraryAppBindPageReqVO;
@@ -67,8 +68,12 @@ public class MaterialLibraryAppBindServiceImpl implements MaterialLibraryAppBind
     @Transactional
     public Long createMaterialLibraryAppBind(MaterialLibraryAppBindSaveReqVO createReqVO) {
 
-        // 处理之前的绑定
-        handleBindStatus(createReqVO);
+        // 关闭数据权限，避免因为没有数据权限，查询不到数据，进而导致唯一校验不正确
+        DataPermissionUtils.executeIgnore(() -> {
+            // 处理之前的绑定
+            handleBindStatus(createReqVO);
+
+        });
 
         // 插入
         MaterialLibraryAppBindDO materialLibraryAppBind = BeanUtils.toBean(createReqVO, MaterialLibraryAppBindDO.class);

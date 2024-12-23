@@ -82,4 +82,11 @@ public interface AdminUserApi {
      */
     AdminUserRespDTO getUserByUsername(String name);
 
+    /**
+     * 判断用户角色是否是super_admin 并且是部门创建者
+     * @param userId
+     * @return
+     */
+    boolean checkDeptRole(Long userId);
+
 }

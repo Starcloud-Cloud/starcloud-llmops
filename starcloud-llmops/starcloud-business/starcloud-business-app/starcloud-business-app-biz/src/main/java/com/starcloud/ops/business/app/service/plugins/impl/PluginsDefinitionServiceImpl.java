@@ -4,15 +4,25 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
-import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.BooleanSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.google.common.collect.Maps;
+import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
+import com.starcloud.ops.business.app.api.market.vo.request.AppMarketListQuery;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.AiIdentifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.InputFormat;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginConfigModifyReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.PluginListReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginConfigRespVO;
@@ -24,23 +34,23 @@ import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryAppBindMapper;
 import com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryMapper;
 import com.starcloud.ops.business.app.dal.mysql.plugin.PluginDefinitionMapper;
-import com.starcloud.ops.business.app.enums.plugin.OutputTypeEnum;
-import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
-import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
-import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
+import com.starcloud.ops.business.app.enums.plugin.*;
 import com.starcloud.ops.business.app.feign.CozePublicClient;
 import com.starcloud.ops.business.app.feign.dto.coze.BotListInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.CozeBotInfo;
 import com.starcloud.ops.business.app.feign.dto.coze.SpaceListInfo;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
+import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.plugins.PluginConfigService;
 import com.starcloud.ops.business.app.service.plugins.PluginsDefinitionService;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.business.job.api.BusinessJobApi;
 import com.starcloud.ops.business.job.dto.JobDetailDTO;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -87,6 +97,9 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Resource
     private DeptPermissionApi deptPermissionApi;
 
+    @Resource
+    private AppMarketService appMarketService;
+
 
     @Override
     public Map<String, Object> metadata() {
@@ -94,6 +107,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         metadata.put("platform", PlatformEnum.options());
         metadata.put("scene", PluginSceneEnum.options());
         metadata.put("outputType", OutputTypeEnum.options());
+        metadata.put("processManner", ProcessMannerEnum.options());
         return metadata;
     }
 
@@ -136,6 +150,10 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (Objects.nonNull(pluginConfig)) {
             throw exception(NAME_DUPLICATE, pluginVO.getPluginName());
         }
+
+        // 校验coze token 的部门
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(pluginVO.getCozeTokenId()));
+//        deptPermissionApi.adminEditPermission(socialUser.getDeptId());
 
         PluginDefinitionDO pluginConfigDO = PluginDefinitionConvert.INSTANCE.convert(pluginVO);
         if (PlatformEnum.coze.getCode().equalsIgnoreCase(pluginConfigDO.getType())) {
@@ -240,15 +258,18 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
         if (UserUtils.isNotAdmin()) {
             throw exception(NO_PERMISSIONS);
         }
-        PluginDefinitionDO pluginConfigDO = getByUid(uid);
-
-        pluginConfigDO.setPublished(true);
-        pluginDefinitionMapper.updateById(pluginConfigDO);
+        PluginDefinitionDO pluginDefinitionDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId());
+        pluginDefinitionDO.setPublished(true);
+        pluginDefinitionMapper.updateById(pluginDefinitionDO);
     }
 
     @Override
     public PluginRespVO modifyPlugin(PluginConfigModifyReqVO reqVO) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(reqVO.getUid());
+//        SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(reqVO.getCozeTokenId()));
+
+//        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId(), socialUser.getDeptId());
         deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_edit, Long.valueOf(pluginDefinitionDO.getCreator()));
 
         PluginDefinitionDO updatePlugin = PluginDefinitionConvert.INSTANCE.convert(reqVO);
@@ -265,6 +286,7 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(String uid) {
         PluginDefinitionDO pluginDefinitionDO = getByUid(uid);
+        deptPermissionApi.adminEditPermission(pluginDefinitionDO.getDeptId());
         deptPermissionApi.checkPermission(DeptPermissionEnum.plugin_delete, Long.valueOf(pluginDefinitionDO.getCreator()));
         pluginDefinitionMapper.deleteById(pluginDefinitionDO.getId());
         configService.deleteByPluginUid(pluginDefinitionDO.getUid());
@@ -305,6 +327,50 @@ public class PluginsDefinitionServiceImpl implements PluginsDefinitionService {
             throw exception(TOKEN_ERROR, accessTokenId);
         }
         return "Bearer " + socialUser.getToken();
+    }
+
+    @Override
+    public String getPrompt(AiIdentifyReqVO reqVO) {
+        AppMarketListQuery query = new AppMarketListQuery();
+        query.setTags(Collections.singletonList("PLUGIN_INPUT_GENERATE"));
+        List<AppMarketRespVO> list = appMarketService.list(query);
+        if (CollectionUtils.isEmpty(list)) {
+            throw exception(PLUGIN_NOT_EXIST);
+        }
+        String userPrompt = list.get(0).getWorkflowConfig().getStepByHandler("OpenAIChatActionHandler").getVariableToString("USER_PROMPT");
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_DESC\\}", StringUtils.isBlank(reqVO.getDescription()) ? StringUtils.EMPTY : reqVO.getDescription());
+
+        if (StringUtils.isNoneBlank(reqVO.getInputFormart())) {
+            List<InputFormat> inputFormatList = JSONUtil.parseArray(reqVO.getInputFormart()).toList(InputFormat.class);
+            userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.RESULT_FORMAT\\}", CollectionUtil.isEmpty(inputFormatList) ? StringUtils.EMPTY : parseSchema(inputFormatList));
+        }
+        userPrompt = userPrompt.replaceAll("\\{STEP.生成文本.PLUGIN_NAME\\}", StringUtils.isBlank(reqVO.getPluginName()) ? StringUtils.EMPTY : reqVO.getPluginName());
+
+        return userPrompt;
+    }
+
+
+    private String parseSchema(List<InputFormat> inputFormatList) {
+        ObjectSchema obj = new ObjectSchema();
+        Map<String, JsonSchema> properties = new LinkedHashMap<>(inputFormatList.size());
+        for (InputFormat inputFormat : inputFormatList) {
+            if (Objects.equals("String", inputFormat.getVariableType())) {
+                StringSchema stringSchema = new StringSchema();
+                stringSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), stringSchema);
+            } else if (Objects.equals("Boolean", inputFormat.getVariableType())) {
+                BooleanSchema booleanSchema = new BooleanSchema();
+                booleanSchema.setDescription(inputFormat.getVariableDesc());
+                properties.put(inputFormat.getVariableKey(), booleanSchema);
+            } else if (Objects.equals("Array<String>", inputFormat.getVariableType())) {
+                ArraySchema arraySchema = new ArraySchema();
+                arraySchema.setDescription(inputFormat.getVariableDesc());
+                arraySchema.setItemsSchema(new StringSchema());
+                properties.put(inputFormat.getVariableKey(), arraySchema);
+            }
+        }
+        obj.setProperties(properties);
+        return JsonSchemaUtils.jsonNode2Str(obj);
     }
 
     private PluginDefinitionDO getByUid(String uid) {

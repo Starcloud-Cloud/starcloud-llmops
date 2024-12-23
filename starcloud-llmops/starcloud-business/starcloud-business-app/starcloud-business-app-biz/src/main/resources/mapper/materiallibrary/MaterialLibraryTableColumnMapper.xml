@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.starcloud.ops.business.app.dal.mysql.materiallibrary.MaterialLibraryTableColumnMapper">
+
+
+
+
+ <!-- 查询素材库列表 -->
+ <select id="selectMaterialLibraryTableColumnByLibraryAndName" resultType="com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO">
+
+  SELECT
+  c.id,
+  c.library_id,
+  c.column_name,
+  c.column_width,
+  c.column_code,
+  c.column_type,
+  c.description,
+  c.is_required,
+  c.sequence,
+  c.is_group_column,
+  c.create_time,
+  u.username AS create_name,
+  d.`name` AS dept_name
+  FROM
+  llm_material_library_table_column AS c
+  LEFT JOIN
+  system_users AS u
+  ON
+  c.creator = u.id
+  LEFT JOIN
+  system_dept AS d
+  ON
+  c.dept_id = d.id
+  where c.library_id = #{libraryId} and c.deleted = 0
+  GROUP BY
+  c.id
+
+ </select>
+ </mapper>

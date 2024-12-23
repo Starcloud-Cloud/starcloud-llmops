@@ -17,7 +17,7 @@
 
     <properties>
         <starcloud.revision>1.0.0-SNAPSHOT</starcloud.revision>
-        <java-langchain.version>v1.1.0</java-langchain.version>
+        <java-langchain.version>v1.1.1</java-langchain.version>
         <poi-version>3.17</poi-version>
         <aspose-version>23.1</aspose-version>
     </properties>

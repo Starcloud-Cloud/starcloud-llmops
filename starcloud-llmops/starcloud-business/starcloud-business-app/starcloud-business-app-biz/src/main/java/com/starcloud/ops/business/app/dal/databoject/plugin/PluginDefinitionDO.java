@@ -125,6 +125,26 @@ public class PluginDefinitionDO extends DeptBaseDO {
      */
     private Long executeTimeAvg;
 
+    /**
+     * 开启ai识别
+     */
+    private Boolean enableAi;
+
+    /**
+     * 用户自定义提示词
+     */
+    private String userPrompt;
+
+    /**
+     * 用户输入
+     */
+    private String userInput;
+
+    /**
+     * 识别结果
+     */
+    private String aiResult;
+
 
     @Override
     public boolean equals(Object o) {

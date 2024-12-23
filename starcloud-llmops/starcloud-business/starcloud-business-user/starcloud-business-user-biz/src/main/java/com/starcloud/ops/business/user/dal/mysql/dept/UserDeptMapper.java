@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUserRespVO;
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO;
-import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
+import com.starcloud.ops.business.user.dal.dataobject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -25,6 +25,14 @@ public interface UserDeptMapper extends BaseMapperX<UserDeptDO> {
     default UserDeptDO selectByDeptAndRole(Long deptId, UserDeptRoleEnum role) {
         LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
                 .eq(UserDeptDO::getDeptId, deptId)
+                .eq(UserDeptDO::getDeptRole, role.getRoleCode())
+                .last("limit 1");
+        return selectOne(wrapper);
+    }
+
+    default UserDeptDO selectByUserAndRole(Long userId, UserDeptRoleEnum role) {
+        LambdaQueryWrapper<UserDeptDO> wrapper = Wrappers.lambdaQuery(UserDeptDO.class)
+                .eq(UserDeptDO::getUserId, userId)
                 .eq(UserDeptDO::getDeptRole, role.getRoleCode())
                 .last("limit 1");
         return selectOne(wrapper);

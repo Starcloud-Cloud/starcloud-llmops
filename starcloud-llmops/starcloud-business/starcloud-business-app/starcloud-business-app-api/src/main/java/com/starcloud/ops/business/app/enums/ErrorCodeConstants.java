@@ -39,6 +39,8 @@ public interface ErrorCodeConstants {
      */
     ErrorCode EXECUTE_POSTER_FAILURE = new ErrorCode(300_100_551, "海报执行异常！请稍候重试！");
 
+    ErrorCode EXECUTE_POSTER_EXCEPTION = new ErrorCode(350400200, "海报执行异常！请稍候重试！");
+
     /**
      * 基础响应状态码：响应结果不存在。<br>
      * 比如：查询用户详情的时候，未查询到用户信息。即可以使用该状态码。
@@ -636,6 +638,9 @@ public interface ErrorCodeConstants {
 
     ErrorCode IMAGE_OCR_ERROR = new ErrorCode(300701302, "ocr 异常：{}");
 
+    // 敏感词检测
+    ErrorCode RISK_WORD_ERROR = new ErrorCode(300701401, "敏感词检测错误：{}");
+
 
     // ==========素材库 错误码 ==========
     ErrorCode MATERIAL_LIBRARY_NOT_EXISTS = new ErrorCode(300702201, "素材库不存在，请刷新后再试");
@@ -652,7 +657,7 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_ADD_FAIL_SAME_COULMN = new ErrorCode(300704206, "设置素材库列名失败，存在重复的字段名称:{}");
     ErrorCode MATERIAL_LIBRARY_TABLE_COULMN_BATCH_ADD_FAIL = new ErrorCode(300704207, "批量设置素材列失败，类型转换异常");
 
-    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE = new ErrorCode(300702208, "导入素材库模板失败，非表格类型的素材库不支持导出模板");
+    ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_ERROR_TYPE = new ErrorCode(300702208, "导出素材库模板失败，非表格类型的素材库不支持导出模板");
 
     ErrorCode MATERIAL_LIBRARY_EXPORT_FAIL_COULMN_EMPTY = new ErrorCode(300702209, "导入素材库模板失败，不存在自定义字段");
     ErrorCode MATERIAL_LIBRARY_IMPORT_FAIL_IMAGE_NO_SUPPRT = new ErrorCode(300702210, "暂不支持图片素材库导入");

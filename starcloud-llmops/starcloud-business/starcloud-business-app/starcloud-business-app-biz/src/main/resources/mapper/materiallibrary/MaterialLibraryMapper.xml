@@ -5,7 +5,7 @@
 
 
 
- <!-- 查询收藏应用列表 -->
+ <!-- 查询素材库列表 -->
  <select id="selectPage3" resultType="com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageRespVO">
   SELECT
   a.id,
@@ -31,17 +31,12 @@
   LEFT JOIN system_users u ON a.creator = u.id    AND u.deleted = 0
   <where>
    <if test="query.name != null and query.name != '' ">
-    <bind name="name" value="query.name+'%'"/>
-    AND a.name LIKE #{query.name}
+    AND a.name LIKE CONCAT('%', #{query.name}, '%')
    </if>
    <if test="query.libraryType != null and query.libraryType != '' ">
     AND a.library_type = #{query.libraryType}
    </if>
-   <if test="query.createName != null and query.createName != '' ">
-    AND u.nickname = #{query.createName}
-   </if>
    AND a.deleted = 0
-
    AND u.deleted = 0
   </where>
   Group By  a.id;

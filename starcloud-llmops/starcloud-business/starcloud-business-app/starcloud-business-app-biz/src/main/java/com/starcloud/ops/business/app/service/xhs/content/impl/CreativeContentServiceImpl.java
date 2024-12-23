@@ -5,6 +5,7 @@ import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.hutool.extra.qrcode.QrConfig;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -13,26 +14,26 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
+import com.aliyun.green20220302.models.TextModerationRequest;
+import com.aliyun.green20220302.models.TextModerationResponse;
+import com.aliyun.green20220302.models.TextModerationResponseBody;
+import com.aliyun.teautil.models.RuntimeOptions;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
+import com.starcloud.ops.business.app.api.plugin.AliRiskReason;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
@@ -56,6 +57,7 @@ import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.service.plugins.WuyouClient;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
@@ -64,6 +66,7 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -76,16 +79,13 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.RISK_WORD_ERROR;
 
 /**
  * @author nacoyer
@@ -123,6 +123,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Resource
     private CreativeThreadPoolHolder creativeThreadPoolHolder;
+
+    @Resource
+    private WuyouClient wuyouClient;
 
     /**
      * 获取创作内容详情
@@ -691,6 +694,32 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             responseList.add(response);
         }
         return responseList;
+    }
+
+    @Override
+    public CreativeContentRiskRespVO risk(CreativeContentRiskReqVO reqVO) {
+        WordCheckContent checkContent = wuyouClient.risk(reqVO.getContent());
+        CreativeContentRiskRespVO respVO = new CreativeContentRiskRespVO();
+        respVO.setContent(reqVO.getContent());
+        String resContent = reqVO.getContent();
+        if (StringUtils.isNoneBlank(checkContent.getTopRiskStr())) {
+            for (String topRisk : checkContent.getTopRiskStr().split("、")) {
+                resContent = resContent.replaceAll(topRisk,"<span class=\"jwy-topRisk\">" + topRisk + "</span>");
+            }
+        }
+
+        if (StringUtils.isNoneBlank(checkContent.getLowRiskStr())) {
+            for (String topRisk : checkContent.getLowRiskStr().split("、")) {
+                resContent = resContent.replaceAll(topRisk,"<span class=\"jwy-lowRisk\">" + topRisk + "</span>");
+            }
+        }
+
+        respVO.setResContent(resContent);
+        respVO.setLowRiskStr(checkContent.getLowRiskStr());
+        respVO.setTopRiskStr(checkContent.getTopRiskStr());
+        respVO.setContentLength(checkContent.getContentLength());
+        respVO.setRiskList(checkContent.getRiskList());
+        return respVO;
     }
 
     /**

@@ -4,7 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.AppBindPluginRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
+
+import javax.validation.Valid;
 
 public interface PluginsService {
 
@@ -39,6 +42,7 @@ public interface PluginsService {
 
     /**
      * 同步执行插件
+     *
      * @param reqVO
      */
     Object syncExecute(PluginExecuteReqVO reqVO);
@@ -52,4 +56,22 @@ public interface PluginsService {
      * 验证结果
      */
     VerifyResult verifyResult(PluginTestResultReqVO resultReqVO);
+
+    /**
+     * ai识别
+     *
+     * @param reqVO
+     * @return
+     */
+    JSONObject aiIdentify(AiIdentifyReqVO reqVO);
+
+    /**
+     * 敏感词检测
+     */
+    JSONObject sensitiveWord(RiskWordReqVO reqVO);
+
+    /**
+     * 应用绑定的插件
+     */
+    AppBindPluginRespVO bindPlugin(@Valid AppBindPluginReqVO resultReqVO);
 }

@@ -1,7 +1,10 @@
 package com.starcloud.ops.business.user.service.dept;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
+import cn.iocoder.yudao.module.system.api.permission.RoleApi;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
 import com.starcloud.ops.business.user.enums.dept.DeptPermissionEnum;
 import com.starcloud.ops.business.user.enums.dept.PartEnum;
@@ -22,6 +25,12 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
 
     @Resource
     private UserDeptService userDeptService;
+
+    @Resource
+    private RoleApi roleApi;
+
+    @Resource
+    private AdminUserApi adminUserApi;
 
     @Override
     public Set<String> getUserPermission() {
@@ -83,5 +92,21 @@ public class DeptPermissionApiImpl implements DeptPermissionApi {
         }
         Set<String> userPermission = getUserPermission();
         return userPermission.contains(permission);
+    }
+
+    @Override
+    @DataPermission(enable = false)
+    public void adminEditPermission(Long... deptIds) {
+//        Long currentUserId = WebFrameworkUtils.getLoginUserId();
+//        List<String> roleCodeList = roleApi.getRoleCodeList(currentUserId);
+//        if (!roleCodeList.contains("super_admin")) {
+//            return;
+//        }
+//        AdminUserRespDTO user = adminUserApi.getUser(currentUserId);
+//        for (Long deptId : deptIds) {
+//            if (!Objects.equals(user.getDeptId(), deptId)) {
+//                throw exception(SUPER_ADMIN_PERMISSION);
+//            }
+//        }
     }
 }

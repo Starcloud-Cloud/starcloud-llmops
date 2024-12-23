@@ -5,20 +5,14 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.google.common.collect.Maps;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.ShareContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
+import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -27,14 +21,7 @@ import com.starcloud.ops.business.app.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -219,6 +206,28 @@ public class CreativeContentController {
                 .collect(Collectors.toList());
         List<CreativeContentExecuteRespVO> response = creativeContentService.batchExecute(collect);
         return CommonResult.success(response);
+    }
+
+    @PostMapping("/riskword")
+    @Operation(summary = "敏感词检测", description = "敏感词检测")
+    public CommonResult<CreativeContentRiskRespVO> risk(@Valid @RequestBody CreativeContentRiskReqVO reqVO) {
+        CreativeContentRiskRespVO respVO = creativeContentService.risk(reqVO);
+        return CommonResult.success(respVO);
+    }
+
+
+    @PostMapping("/riskReplace")
+    @Operation(summary = "敏感词替换", description = "敏感词替换")
+    public CommonResult<RiskReplaceRespVO> riskReplace(@Valid @RequestBody RiskReplaceReqVO reqVO) {
+        return CommonResult.success(reqVO.riskReplace());
+    }
+
+    @GetMapping("/metadata")
+    @Operation(summary = "元数据", description = "元数据")
+    public CommonResult<Map<String, Object>> metadata() {
+        Map<String, Object> metadata = Maps.newHashMap();
+        metadata.put("processManner", ProcessMannerEnum.options());
+        return CommonResult.success(metadata);
     }
 
 }

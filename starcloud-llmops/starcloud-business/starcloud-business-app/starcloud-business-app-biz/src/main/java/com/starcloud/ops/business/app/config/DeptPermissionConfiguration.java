@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.plan.CreativePlanDO;
+import com.starcloud.ops.business.core.config.translate.TranslatorProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,5 +37,15 @@ public class DeptPermissionConfiguration {
             rule.addDeptColumn(SocialUserBindDO.class);
             rule.addDeptColumn(SocialUserDO.class);
         };
+    }
+
+    @Bean("greenClient")
+    public com.aliyun.green20220302.Client greenClient(TranslatorProperties.AliyunTranslatorProperties aliyunTranslatorProperties) throws Exception {
+        com.aliyun.teaopenapi.models.Config config = new com.aliyun.teaopenapi.models.Config()
+                .setAccessKeyId(aliyunTranslatorProperties.getAccessKey())
+                .setAccessKeySecret(aliyunTranslatorProperties.getSecretKey());
+        // Endpoint 请参考 https://api.aliyun.com/product/Green
+        config.endpoint = "green-cip.cn-beijing.aliyuncs.com";
+        return new com.aliyun.green20220302.Client(config);
     }
 }

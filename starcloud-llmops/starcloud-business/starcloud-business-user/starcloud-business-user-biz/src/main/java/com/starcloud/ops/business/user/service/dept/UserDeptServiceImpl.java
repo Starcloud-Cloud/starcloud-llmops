@@ -21,7 +21,7 @@ import com.starcloud.ops.business.user.controller.admin.dept.vo.response.DeptUse
 import com.starcloud.ops.business.user.controller.admin.dept.vo.response.UserDeptRespVO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.convert.dept.DeptConvert;
-import com.starcloud.ops.business.user.dal.dataObject.dept.UserDeptDO;
+import com.starcloud.ops.business.user.dal.dataobject.dept.UserDeptDO;
 import com.starcloud.ops.business.user.dal.mysql.dept.UserDeptMapper;
 import com.starcloud.ops.business.user.enums.dept.UserDeptRoleEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -306,7 +306,7 @@ public class UserDeptServiceImpl implements UserDeptService {
 
     @Override
     public UserDeptDO selectOwnerDept(Long userId) {
-        return userDeptMapper.selectByDeptAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
+        return userDeptMapper.selectByUserAndRole(userId, UserDeptRoleEnum.SUPER_ADMIN);
     }
 
     @Override
@@ -343,7 +343,7 @@ public class UserDeptServiceImpl implements UserDeptService {
             userId = WebFrameworkUtils.getLoginUserId();
         }
         if (Objects.isNull(userId)) {
-            throw exception(USER_NOT_EXISTS);
+            return UserDeptRoleEnum.SUPER_ADMIN.getPermissions();
         }
 
         AdminUserRespDTO user = adminUserApi.getUser(userId);

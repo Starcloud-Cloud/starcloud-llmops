@@ -104,6 +104,8 @@ public interface ErrorCodeConstant {
 
     ErrorCode NO_PERMISSION =  new ErrorCode(2000500011, "用户没有[{}]权限");
 
+    ErrorCode SUPER_ADMIN_PERMISSION =  new ErrorCode(2000500012, "管理员无法修改数据");
+
     // 用户通知
 
     ErrorCode NOT_SUPPORTED_NOTIFY_MEDIA =  new ErrorCode(2000600001, "不支持的消息媒介 {}");

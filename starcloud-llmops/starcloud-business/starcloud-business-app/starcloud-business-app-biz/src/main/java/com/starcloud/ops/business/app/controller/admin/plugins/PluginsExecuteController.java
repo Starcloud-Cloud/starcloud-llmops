@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.alibaba.fastjson.JSONObject;
 import com.starcloud.ops.business.app.api.app.handler.ImageOcr.HandlerResponse;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
+import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginDefinitionVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginExecuteRespVO;
 import com.starcloud.ops.business.app.service.plugins.PluginsService;
@@ -42,6 +43,18 @@ public class PluginsExecuteController {
     @Operation(summary = "文本智能提取")
     public CommonResult<JSONObject> intelligentTextExtraction(@Valid @RequestBody TextExtractionReqVO reqVO) {
         return CommonResult.success(pluginsService.intelligentTextExtraction(reqVO));
+    }
+
+    @PostMapping(value = "/sensitive")
+    @Operation(summary = "敏感词检测")
+    public CommonResult<JSONObject> sensitiveWord(@Valid @RequestBody RiskWordReqVO reqVO) {
+        return CommonResult.success(pluginsService.sensitiveWord(reqVO));
+    }
+
+    @PostMapping(value = "/aiIdentify")
+    @Operation(summary = "ai识别")
+    public CommonResult<JSONObject> aiIdentify(@Valid @RequestBody AiIdentifyReqVO reqVO) {
+        return CommonResult.success(pluginsService.aiIdentify(reqVO));
     }
 
     @PostMapping(value = "/execute")
