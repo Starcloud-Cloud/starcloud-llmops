@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.system.dal.mysql.social.SocialUserMapper">
+
+
+
+
+ <!-- 查询素材库列表 -->
+ <select id="selectPage3" resultType="cn.iocoder.yudao.module.system.controller.admin.socail.vo.user.SocialUserRespVO">
+  SELECT
+  a.id,
+  a.type,
+  a.openid,
+  a.token,
+  a.raw_token_info,
+  a.nickname,
+  a.avatar,
+  a.raw_user_info,
+  a.`code`,
+  a.state,
+  a.create_time,
+  a.update_time,
+  a.expire_in,
+  a.refresh_token,
+  a.refresh_token_expire_in,
+  u.username AS create_name
+  FROM
+  system_social_user AS a
+  LEFT JOIN
+  system_users AS u
+  ON
+  a.creator = u.id
+  <where>
+   <if test="query.type != null and query.type != '' ">
+    AND a.type = #{query.type}
+   </if>
+   <if test="ids != null and ids.size() > 0">
+    AND a.id IN
+    <foreach item="id" collection="ids" open="(" separator="," close=")">
+     #{id}
+    </foreach>
+   </if>
+   AND a.deleted = 0
+   AND u.deleted = 0
+  </where>
+  Group By  a.id;
+ </select>
+</mapper>

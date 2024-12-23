@@ -267,7 +267,7 @@ public class SellerSpriteServiceImpl implements SellerSpriteService {
             }
 
 
-            Boolean resultSuccess = sellerSpriteResult.getSuccess();
+            Boolean resultSuccess =  sellerSpriteResult != null ? sellerSpriteResult.getSuccess() : false;
             if (resultSuccess) {
                 result = JSONUtil.toJsonStr(sellerSpriteResult.getData());
                 break; // 找到有效 cookie，退出循环

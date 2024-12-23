@@ -5,7 +5,7 @@
 
 
 
- <!-- 查询收藏应用列表 -->
+ <!-- 查询素材库列表 -->
  <select id="selectPage3" resultType="com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryPageRespVO">
   SELECT
   a.id,
@@ -37,11 +37,7 @@
    <if test="query.libraryType != null and query.libraryType != '' ">
     AND a.library_type = #{query.libraryType}
    </if>
-   <if test="query.createName != null and query.createName != '' ">
-    AND u.nickname = #{query.createName}
-   </if>
    AND a.deleted = 0
-
    AND u.deleted = 0
   </where>
   Group By  a.id;
