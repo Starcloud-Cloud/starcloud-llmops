@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.service.plugins.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.PluginConfigVO;
@@ -110,6 +111,7 @@ public class PluginConfigServiceImpl implements PluginConfigService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    @DataPermission(enable = false)
     public void deleteByPluginUid(String pluginUid) {
         List<PluginConfigDO> pluginConfigList = pluginConfigMapper.selectByPluginUid(pluginUid);
         if (CollectionUtil.isEmpty(pluginConfigList)) {

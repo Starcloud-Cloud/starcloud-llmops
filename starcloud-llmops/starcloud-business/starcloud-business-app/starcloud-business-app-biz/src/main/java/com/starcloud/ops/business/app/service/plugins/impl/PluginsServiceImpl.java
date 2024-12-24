@@ -284,15 +284,19 @@ public class PluginsServiceImpl implements PluginsService {
             if (StringUtils.isBlank(pluginConfigRespVO.getFieldMap())) {
                 continue;
             }
-            PluginRespVO detail = pluginsDefinitionService.detail(pluginConfigRespVO.getPluginUid());
-            if (Objects.isNull(detail)) {
-                continue;
+            try {
+                PluginRespVO detail = pluginsDefinitionService.detail(pluginConfigRespVO.getPluginUid());
+                if (Objects.isNull(detail)) {
+                    continue;
+                }
+                if (BooleanUtils.isNotTrue(detail.getEnableAi())) {
+                    continue;
+                }
+                PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
+                result.add(pluginDetailVO);
+            } catch (Exception e) {
+                log.warn("plugin error {}", e.getMessage());
             }
-            if (BooleanUtils.isNotTrue(detail.getEnableAi())) {
-                continue;
-            }
-            PluginDetailVO pluginDetailVO = new PluginDetailVO(detail, pluginConfigRespVO);
-            result.add(pluginDetailVO);
         }
         return new AppBindPluginRespVO(result);
     }

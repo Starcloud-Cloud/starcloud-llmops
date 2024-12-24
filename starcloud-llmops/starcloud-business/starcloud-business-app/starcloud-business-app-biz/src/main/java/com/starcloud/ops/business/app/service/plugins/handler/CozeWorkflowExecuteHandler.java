@@ -136,23 +136,27 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
 
         String content = parseContent(workflowResp);
 
-        if (JSONUtil.isTypeJSONArray(content)) {
-            Type listType = new TypeReference<List<Map<String, Object>>>() {
-            }.getType();
-            List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
-            listMap.forEach(this::cleanMap);
-            verifyResult.setOutput(listMap);
-            verifyResult.setOutputType(OutputTypeEnum.list.getCode());
-        } else if (JSONUtil.isTypeJSONObject(content)) {
-            Type mapType = new TypeReference<Map<String, Object>>() {
-            }.getType();
-            Map<String, Object> objectMap = JSON.parseObject(content, mapType);
-            cleanMap(objectMap);
-            verifyResult.setOutput(objectMap);
-            verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
-        } else {
+        try {
+            if (JSONUtil.isTypeJSONArray(content)) {
+                Type listType = new TypeReference<List<Map<String, Object>>>() {
+                }.getType();
+                List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
+                listMap.forEach(this::cleanMap);
+                verifyResult.setOutput(listMap);
+                verifyResult.setOutputType(OutputTypeEnum.list.getCode());
+            } else if (JSONUtil.isTypeJSONObject(content)) {
+                Type mapType = new TypeReference<Map<String, Object>>() {
+                }.getType();
+                Map<String, Object> objectMap = JSON.parseObject(content, mapType);
+                cleanMap(objectMap);
+                verifyResult.setOutput(objectMap);
+                verifyResult.setOutputType(OutputTypeEnum.obj.getCode());
+            } else {
+                log.error("输出结果格式错误 {}", content);
+                throw exception(new CozeErrorCode(content));
+            }
+        } catch (Exception e) {
             log.error("输出结果格式错误 {}", content);
-            //处理一些场景的错误，并返回
             throw exception(new CozeErrorCode(content));
         }
 
@@ -233,21 +237,25 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
 
         String content = parseContent(workflowResp);
 
-        if (JSONUtil.isTypeJSONArray(content)) {
-            Type listType = new TypeReference<List<Map<String, Object>>>() {
-            }.getType();
-            List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
-            listMap.forEach(this::cleanMap);
-            executeRespVO.setOutput(listMap);
-        } else if (JSONUtil.isTypeJSONObject(content)) {
-            Type mapType = new TypeReference<Map<String, Object>>() {
-            }.getType();
-            Map<String, Object> objectMap = JSON.parseObject(content, mapType);
-            cleanMap(objectMap);
-            executeRespVO.setOutput(objectMap);
-        } else {
+        try {
+            if (JSONUtil.isTypeJSONArray(content)) {
+                Type listType = new TypeReference<List<Map<String, Object>>>() {
+                }.getType();
+                List<Map<String, Object>> listMap = JSON.parseObject(content, listType);
+                listMap.forEach(this::cleanMap);
+                executeRespVO.setOutput(listMap);
+            } else if (JSONUtil.isTypeJSONObject(content)) {
+                Type mapType = new TypeReference<Map<String, Object>>() {
+                }.getType();
+                Map<String, Object> objectMap = JSON.parseObject(content, mapType);
+                cleanMap(objectMap);
+                executeRespVO.setOutput(objectMap);
+            } else {
+                log.error("输出结果格式错误 {}", content);
+                throw exception(new CozeErrorCode(content));
+            }
+        } catch (Exception e) {
             log.error("输出结果格式错误 {}", content);
-            //处理一些场景的错误，并返回
             throw exception(new CozeErrorCode(content));
         }
         executeRespVO.setStatus("completed");

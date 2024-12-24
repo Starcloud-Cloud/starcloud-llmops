@@ -683,4 +683,8 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_IMPORT_DATA_EMPTY = new ErrorCode(300702222, "数据导入失败，数据为空数据");
 
 
+    ErrorCode PROMPT_NOT_EXIST = new ErrorCode(300703001, "提示词不存在");
+
+    ErrorCode NO_PERMISSION = new ErrorCode(300703002, "用户没有权限推荐提示词");
+
 }
