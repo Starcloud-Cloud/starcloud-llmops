@@ -9,7 +9,6 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigResp
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -250,14 +249,15 @@ public class AppMarketRespVO implements Serializable {
 
     /**
      * 补充步骤默认变量
+     * @param supplementStepWrapperMap 补充步骤包装 map
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
-        if (Objects.isNull(workflowConfig) || CollectionUtil.isEmpty(variableRespVOMap)) {
+    public void supplementStepVariable(Map<String, WorkflowStepWrapperRespVO> supplementStepWrapperMap) {
+        if (Objects.isNull(workflowConfig) || CollectionUtil.isEmpty(supplementStepWrapperMap)) {
             return;
         }
-        workflowConfig.supplementStepVariable(variableRespVOMap);
+        workflowConfig.supplementStepVariable(supplementStepWrapperMap);
     }
 
     /**

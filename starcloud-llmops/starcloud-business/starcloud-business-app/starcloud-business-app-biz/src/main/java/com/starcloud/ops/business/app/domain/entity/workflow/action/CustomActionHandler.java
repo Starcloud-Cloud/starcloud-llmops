@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -384,6 +385,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 获取到参数列表
         Map<String, Object> params = context.getContextVariablesValues();
+        String userPrompt = "";
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -392,14 +394,17 @@ public class CustomActionHandler extends BaseActionHandler {
         boolean isCustom;
         if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
             isCustom = false;
+            userPrompt = params.getOrDefault(CreativeConstants.PARODY_REQUIREMENT, "").toString();
         } else if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
             isCustom = true;
+            userPrompt = params.getOrDefault(CreativeConstants.CUSTOM_REQUIREMENT, "").toString();
         } else {
             throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 不支持的生成模式！", context.getStepId());
         }
 
         // 获取到 prompt
-        String prompt = this.getPrompt(context, params, isCustom);
+        String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, StrUtil.EMPTY));
+                //this.getPrompt(context, params, isCustom);
         // 获取到大模型 model
         String model = this.getLlmModelType(context);
         // 获取到生成数量 n
@@ -418,6 +423,7 @@ public class CustomActionHandler extends BaseActionHandler {
         handlerRequest.setModel(model);
         handlerRequest.setN(n);
         handlerRequest.setPrompt(prompt);
+        handlerRequest.setUserPrompt(userPrompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
         // 构建请求上下文
@@ -430,7 +436,9 @@ public class CustomActionHandler extends BaseActionHandler {
                 handlerRequest
         );
         // 构建OpenAI处理器
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
+        ChatRequestVO chatRequest = new ChatRequestVO();
+        chatRequest.setConversationUid(context.getConversationUid());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter(), chatRequest);
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
         // 执行OpenAI处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);

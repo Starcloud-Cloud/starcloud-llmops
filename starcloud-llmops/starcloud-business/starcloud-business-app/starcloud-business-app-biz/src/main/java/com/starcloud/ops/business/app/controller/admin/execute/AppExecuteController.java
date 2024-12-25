@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.controller.admin.execute;
 
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppTestExecuteReqVO;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.service.app.AppService;
@@ -82,6 +83,28 @@ public class AppExecuteController {
 
         // 异步执行应用
         appService.asyncExecute(executeRequest);
+        return emitter;
+    }
+
+    @PostMapping("/test")
+    @Operation(summary = "测试执行应用")
+    public SseEmitter test(@RequestBody AppTestExecuteReqVO executeRequest, HttpServletResponse httpServletResponse) {
+        // 设置响应头
+        httpServletResponse.setHeader(AppConstants.CACHE_CONTROL, AppConstants.CACHE_CONTROL_VALUE);
+        httpServletResponse.setHeader(AppConstants.X_ACCEL_BUFFERING, AppConstants.X_ACCEL_BUFFERING_VALUE);
+        // 设置 SSE
+        SseEmitter emitter = SseEmitterUtil.ofSseEmitterExecutor(5 * 60000L, "app-test");
+
+        executeRequest.setSseEmitter(emitter);
+        // WEB_ADMIN 场景
+        executeRequest.setScene(AppSceneEnum.APP_TEST.name());
+        // 执行限流
+        AppLimitRequest limitRequest = AppLimitRequest.of(executeRequest.getAppUid(), executeRequest.getScene());
+        if (!appLimitService.appLimit(limitRequest, emitter)) {
+            return emitter;
+        }
+        // 异步执行应用
+        appService.executeTest(executeRequest);
         return emitter;
     }
 

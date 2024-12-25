@@ -17,6 +17,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -91,6 +92,12 @@ public class VariableItemRespVO implements Serializable {
      */
     @Schema(description = "变量是否为点位")
     private Boolean isPoint;
+
+    /**
+     * 是否升级<br>
+     * 如果该值为 true, 则保留用户配置的值，否则则使用系统默认值。
+     */
+    private Boolean isKeepUserValue;
 
     /**
      * 应用描述
@@ -207,7 +214,7 @@ public class VariableItemRespVO implements Serializable {
     @JSONField(serialize = false)
     public void merge(VariableItemRespVO item) {
         // 如果变量是可见的，则使用原来的值，否则最用最新变量的值。
-        if (this.isShow) {
+        if (Objects.nonNull(isKeepUserValue) && this.isKeepUserValue) {
             this.defaultValue = item.getDefaultValue();
             this.value = item.getValue();
         }

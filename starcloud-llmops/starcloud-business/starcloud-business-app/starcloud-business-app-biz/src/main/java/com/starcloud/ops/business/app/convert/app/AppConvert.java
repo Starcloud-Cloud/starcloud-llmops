@@ -295,6 +295,7 @@ public interface AppConvert {
                 appResponse.setImageConfig(JsonUtils.parseObject(app.getConfig(), ImageConfigRespVO.class));
             }
         }
+        // 进行推荐步骤变量的补充，更新基础信息等。
         appResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
 
         return appResponse;

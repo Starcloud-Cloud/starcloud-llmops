@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.context.TenantContextHolder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -25,7 +26,10 @@ import com.starcloud.ops.business.app.api.publish.vo.response.AppPublishRespVO;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.app.vo.AppTestExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.PluginRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.request.CreativePlanGetQuery;
+import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
@@ -34,6 +38,9 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.BaseAppEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.factory.AppFactory;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
@@ -47,6 +54,7 @@ import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableGroupEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableStyleEnum;
 import com.starcloud.ops.business.app.enums.app.AppVariableTypeEnum;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialTypeEnum;
 import com.starcloud.ops.business.app.recommend.RecommendAppCache;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
@@ -463,6 +471,66 @@ public class AppServiceImpl implements AppService {
     public void asyncExecute(AppExecuteReqVO request) {
         try {
             BaseAppEntity app = AppFactory.factory(request);
+            app.asyncExecute(request);
+        } catch (Exception exception) {
+            if (request.getSseEmitter() != null) {
+                request.getSseEmitter().completeWithError(exception);
+            }
+        }
+    }
+
+    /**
+     * 测试执行应用
+     *
+     * @param request 应用执行请求信息
+     */
+    @Override
+    @SuppressWarnings("all")
+    public void executeTest(AppTestExecuteReqVO request) {
+        BaseAppEntity app;
+        if ("APP".equals(request.getSource())) {
+            app = AppFactory.factoryApp(request);
+        } else if ("MARKET".equals(request.getSource())) {
+            app = AppFactory.factoryMarket(request);
+        } else {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.APP_NON_EXISTENT);
+        }
+
+        WorkflowConfigEntity workflowConfig = app.getWorkflowConfig();
+        List<WorkflowStepWrapper> steps = workflowConfig.getSteps();
+        if (CollectionUtil.isEmpty(steps)) {
+            throw ServiceExceptionUtil.exception(ErrorCodeConstants.WORKFLOW_CONFIG_FAILURE);
+        }
+
+        List<WorkflowStepWrapper> stepWrapperList = new ArrayList<>();
+
+        // 只获取到当前步骤和之前的步骤
+        for (WorkflowStepWrapper stepWrapper : steps) {
+            stepWrapperList.add(stepWrapper);
+            if (stepWrapper.getStepCode().equalsIgnoreCase(request.getStepId())) {
+                break;
+            }
+        }
+
+        workflowConfig.setSteps(stepWrapperList);
+        app.setWorkflowConfig(workflowConfig);
+
+        // 如果是矩阵应用，获取素材列表。将素材列表作为该步骤的临时变量。
+        if (AppTypeEnum.MEDIA_MATRIX.name().equals(app.getType())) {
+            CreativePlanGetQuery query = new CreativePlanGetQuery();
+            query.setAppUid(app.getUid());
+            query.setSource(request.getSource());
+            CreativePlanRespVO plan = creativePlanService.getOrCreate(query);
+            List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(plan);
+            if (CollectionUtil.isNotEmpty(materialList)) {
+                app.putVariable(MaterialActionHandler.class, CreativeConstants.MATERIAL_LIST,
+                        JsonUtils.toJsonString(materialList));
+            }
+        }
+
+        try {
+            request.setStepId(null);
+            request.setContinuous(true);
             app.asyncExecute(request);
         } catch (Exception exception) {
             if (request.getSseEmitter() != null) {
