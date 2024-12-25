@@ -184,4 +184,5 @@ public interface AppConstants {
      */
     String CHARS = "ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+    String SYSTEM_USER_PROMPT_SPLIT = "------SYSTEM_USER_PROMPT_SPLIT------";
 }

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.starcloud.ops.business.app.domain.handler.common.BaseHandler;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerResponse;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.llm.langchain.core.callbacks.StreamingSseCallBackHandler;
 import com.starcloud.ops.llm.langchain.core.chain.LLMChain;
@@ -128,10 +129,11 @@ public class OpenAIChatHandler extends BaseHandler<OpenAIChatHandler.Request, St
             BigDecimal totalPrice = messagePrice.add(answerPrice);
 
             // 构建返回结果
+            String prompt = request.getPrompt() + AppConstants.SYSTEM_USER_PROMPT_SPLIT + request.getUserPrompt();
             HandlerResponse<String> appStepResponse = new HandlerResponse<>();
             appStepResponse.setSuccess(true);
             appStepResponse.setStepConfig(JSONUtil.toJsonStr(request));
-            appStepResponse.setMessage(request.getPrompt());
+            appStepResponse.setMessage(prompt);
             appStepResponse.setAnswer(message);
             appStepResponse.setOutput(message);
             appStepResponse.setMessageUnitPrice(messageUnitPrice);

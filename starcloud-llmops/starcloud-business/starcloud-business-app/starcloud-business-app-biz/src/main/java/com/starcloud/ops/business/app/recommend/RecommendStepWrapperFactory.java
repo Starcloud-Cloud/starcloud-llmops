@@ -6,7 +6,6 @@ import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.excel.util.StringUtils;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
-import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.MessageUtil;
@@ -224,7 +223,7 @@ public class RecommendStepWrapperFactory {
     public static WorkflowStepWrapperRespVO defCustomStepWrapper() {
         String name = MessageUtil.getMessage("WORKFLOW_STEP_CUSTOM_NAME");
         String field = AppUtils.obtainField(name);
-        String prompt = "{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
+        String prompt = "";//"{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
         String defaultPrompt = StringUtil.isBlank(prompt) ? "" : prompt;
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);

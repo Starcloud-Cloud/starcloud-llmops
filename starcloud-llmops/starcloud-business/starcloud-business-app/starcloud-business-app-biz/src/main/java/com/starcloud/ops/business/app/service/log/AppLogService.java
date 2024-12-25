@@ -128,5 +128,6 @@ public interface AppLogService {
      */
     ImageLogMessageRespVO getLogImageMessageDetail(LogAppMessagePageReqVO query);
 
+    //AppExecutedPromptRespVO getAppExecutedPrompt(String appUid);
 
 }
