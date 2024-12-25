@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -435,7 +436,9 @@ public class CustomActionHandler extends BaseActionHandler {
                 handlerRequest
         );
         // 构建OpenAI处理器
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
+        ChatRequestVO chatRequest = new ChatRequestVO();
+        chatRequest.setConversationUid(context.getConversationUid());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter(), chatRequest);
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
         // 执行OpenAI处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);

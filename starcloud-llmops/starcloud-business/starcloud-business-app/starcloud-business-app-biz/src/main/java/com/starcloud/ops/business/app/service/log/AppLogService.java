@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.service.log;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.controller.admin.log.vo.request.AppLogMessageQuery;
+import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppExecutedPromptRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.log.api.conversation.vo.query.AppLogConversationInfoPageReqVO;
@@ -128,6 +129,6 @@ public interface AppLogService {
      */
     ImageLogMessageRespVO getLogImageMessageDetail(LogAppMessagePageReqVO query);
 
-    //AppExecutedPromptRespVO getAppExecutedPrompt(String appUid);
+    AppExecutedPromptRespVO getAppExecutedPrompt(LogAppMessagePageReqVO query);
 
 }
