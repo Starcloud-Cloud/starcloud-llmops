@@ -402,7 +402,8 @@ public class CustomActionHandler extends BaseActionHandler {
         }
 
         // 获取到 prompt
-        String prompt = this.getPrompt(context, params, isCustom);
+        String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, StrUtil.EMPTY));
+                //this.getPrompt(context, params, isCustom);
         // 获取到大模型 model
         String model = this.getLlmModelType(context);
         // 获取到生成数量 n

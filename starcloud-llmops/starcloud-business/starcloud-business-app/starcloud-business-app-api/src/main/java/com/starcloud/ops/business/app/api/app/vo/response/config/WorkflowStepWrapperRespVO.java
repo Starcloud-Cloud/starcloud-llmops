@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -89,11 +90,13 @@ public class WorkflowStepWrapperRespVO implements Serializable {
         if (Objects.isNull(handlerStepWrapper)) {
             return;
         }
+        // 复制 handlerStepWrapper
+        WorkflowStepWrapperRespVO clone = SerializationUtils.clone(handlerStepWrapper);
         if (!"CustomActionHandler".equals(handler)) {
-            this.description = handlerStepWrapper.getDescription();
+            this.description = clone.getDescription();
         }
-        flowStep.supplementFlowStep(handlerStepWrapper.getFlowStep());
-        variable.supplementStepVariable(handlerStepWrapper.getVariable());
+        flowStep.supplementFlowStep(clone.getFlowStep());
+        variable.supplementStepVariable(clone.getVariable());
     }
 
     /**
