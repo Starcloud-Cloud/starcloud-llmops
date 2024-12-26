@@ -317,7 +317,9 @@ public class CreativeUtils {
      * @param latestAppInformation   最新应用
      * @return 应用
      */
-    public static AppMarketRespVO mergeAppInformation(AppMarketRespVO originalAppInformation, AppMarketRespVO latestAppInformation) {
+    public static AppMarketRespVO mergeAppInformation(AppMarketRespVO originalAppInformation,
+                                                      AppMarketRespVO latestAppInformation,
+                                                      Boolean ishandlerPosterStyleVariable) {
 
         // 获取最新应用海报步骤
         WorkflowStepWrapperRespVO latestWrapper = latestAppInformation.getStepByHandler(PosterActionHandler.class.getSimpleName());
@@ -331,7 +333,9 @@ public class CreativeUtils {
                 // 放入到应用中
                 originalAppInformation.putModelVariable(wrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(latestSystemPosterList));
                 originalAppInformation.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE_CONFIG, JsonUtils.toJsonString(Collections.emptyList()));
-                originalAppInformation.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
+                if (ishandlerPosterStyleVariable) {
+                    originalAppInformation.putVariable(wrapper.getField(), CreativeConstants.POSTER_STYLE, StrUtil.EMPTY_JSON);
+                }
             }
         }
 
