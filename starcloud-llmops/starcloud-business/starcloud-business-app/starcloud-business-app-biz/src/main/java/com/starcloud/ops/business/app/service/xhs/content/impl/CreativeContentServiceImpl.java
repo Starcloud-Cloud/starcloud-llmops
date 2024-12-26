@@ -434,8 +434,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 构建素材库元数据
             MaterialMetadata materialMetadata = new MaterialMetadata();
-            materialMetadata.setPlanUid(planResponse.getUid());
             materialMetadata.setAppUid(appInformation.getUid());
+            materialMetadata.setPlanUid(planResponse.getUid());
             materialMetadata.setUserId(SecurityFrameworkUtils.getLoginUserId());
             materialMetadata.setPlanSource(CreativePlanSourceEnum.of(request.getSource()));
             materialMetadata.setMaterialType(businessType);
@@ -443,11 +443,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             materialMetadata.setPosterStepId(posterStepId);
             materialMetadata.setMaterialUsageModel(materialUsageModel);
             materialMetadata.setMaterialFieldList(materialFieldList);
+            materialMetadata.setAppInformation(appInformation);
+            materialMetadata.setIsUpdateMaterialUsageCount(Boolean.FALSE);
 
             Map<String, PosterStyleDTO> posterStyleMap = Collections.singletonMap(content.getConversationUid(), posterStyle);
             Map<String, List<Map<String, Object>>> materialMap = materialHandler.handleMaterialMap(materialList, posterStyleMap, materialMetadata);
             // 获取该风格下，处理之后的素材列表
-            List<Map<String, Object>> usageMaterialList = materialMap.get(0);
+            List<Map<String, Object>> usageMaterialList = materialMap.get(content.getConversationUid());
             // 处理海报风格
             PosterStyleDTO handlePosterStyle = materialHandler.handlePosterStyle(posterStyle, usageMaterialList, materialMetadata);
 

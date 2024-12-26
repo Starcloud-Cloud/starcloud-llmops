@@ -127,7 +127,10 @@ public abstract class AbstractMaterialHandler {
                                                                     MaterialMetadata metadata) {
 
         Map<String, List<Map<String, Object>>> map = this.doHandleMaterialMap(materialList, posterStyleMap, metadata);
-
+        // 如果不需要更新素材使用量，直接返回，默认更新素材使用量
+        if (!metadata.getIsUpdateMaterialUsageCount()) {
+            return map;
+        }
         // 素材使用量增加
         List<Map<String, Object>> list = new ArrayList<>();
         map.values().forEach(list::addAll);
@@ -140,7 +143,7 @@ public abstract class AbstractMaterialHandler {
                 .values());
         List<SliceCountReqVO> sliceCountRequestList = new ArrayList<>();
         for (Map<String, Object> mapItem : list) {
-            Long id = (Long) mapItem.get("__id__");
+            Long id = Long.parseLong(mapItem.get("__id__").toString());
             SliceCountReqVO sliceCountRequest = new SliceCountReqVO();
             sliceCountRequest.setSliceId(id);
             sliceCountRequest.setNums(1);
