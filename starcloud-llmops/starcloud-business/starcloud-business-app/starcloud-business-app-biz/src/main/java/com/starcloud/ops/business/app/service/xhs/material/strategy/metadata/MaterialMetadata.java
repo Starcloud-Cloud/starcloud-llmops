@@ -81,4 +81,9 @@ public class MaterialMetadata implements java.io.Serializable {
      */
     private AppMarketRespVO appInformation;
 
+    /**
+     * 是否更新素材使用次数
+     */
+    private Boolean isUpdateMaterialUsageCount = true;
+
 }
