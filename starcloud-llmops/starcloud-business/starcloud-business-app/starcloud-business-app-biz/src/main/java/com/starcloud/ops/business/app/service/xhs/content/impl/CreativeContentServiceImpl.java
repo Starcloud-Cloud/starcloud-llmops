@@ -5,7 +5,6 @@ import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.hutool.extra.qrcode.QrConfig;
-import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -14,22 +13,25 @@ import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.framework.tenant.core.aop.TenantIgnore;
-import com.aliyun.green20220302.models.TextModerationRequest;
-import com.aliyun.green20220302.models.TextModerationResponse;
-import com.aliyun.green20220302.models.TextModerationResponseBody;
-import com.aliyun.teautil.models.RuntimeOptions;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.api.plugin.AliRiskReason;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
@@ -66,7 +68,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,13 +80,16 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.ErrorCodeConstants.RISK_WORD_ERROR;
 
 /**
  * @author nacoyer
@@ -751,7 +755,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
         AppMarketRespVO latestAppMarket = creativePlanService.getAppInformation(appInformation.getUid(), request.getSource());
         // 合并应用市场配置，某一些配置项需要保持最新
-        AppMarketRespVO app = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
+        AppMarketRespVO app = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket, false);
         executeParam.setAppInformation(app);
         request.setExecuteParam(executeParam);
         return app;

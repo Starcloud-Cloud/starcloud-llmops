@@ -256,7 +256,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
             CreativePlanConfigurationDTO configuration = creativePlanResponse.getConfiguration();
 
             // 合并应用市场配置，某一些配置项需要保持最新
-            AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse);
+            AppMarketRespVO appInformation = CreativeUtils.mergeAppInformation(configuration.getAppInformation(), appMarketResponse, true);
             appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
             configuration.setAppInformation(appInformation);
             // 迁移旧素材数据
