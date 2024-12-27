@@ -119,64 +119,56 @@ public class CustomActionHandler extends BaseActionHandler {
         String stepName = wrapper.getName();
         String stepCode = wrapper.getStepCode();
         // 获取到生成模式变量
-        Object generateModel = wrapper.getVariable(CreativeConstants.GENERATE_MODE);
-        VerificationUtils.notNullStep(verifications, generateModel, stepCode,
-                "【" + stepName + "】步骤参数错误，生成模式为必选项！");
-        if (Objects.isNull(generateModel)) {
+        String generateModel = wrapper.getVariableToString(CreativeConstants.GENERATE_MODE);
+        if (StringUtils.isBlank(generateModel) || !IEnumable.contains(generateModel, CreativeContentGenerateModelEnum.class)) {
+            VerificationUtils.addVerificationStep(verifications, stepCode,
+                    "【" + stepName + "】步骤参数错误，生成模式为空或者不支持！");
             return verifications;
         }
 
-        // 生成模式校验
-        String generate = String.valueOf(generateModel);
-        if (!IEnumable.contains(generate, CreativeContentGenerateModelEnum.class)) {
-            VerificationUtils.notNullStep(verifications, generateModel, stepCode,
-                    "【" + stepName + "】步骤参数错误，生成模式不合法！");
-        }
-
         // 生成模式校验, 随机生成和AI模仿生成需要参考素材
-        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generate) ||
-                CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
+        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generateModel) ||
+                CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateModel)) {
 
             // 参考素材类型变量
-            Object materialTypeValue = wrapper.getVariable(CreativeConstants.MATERIAL_TYPE);
-            VerificationUtils.notNullStep(verifications, materialTypeValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，参考素材类型不能为空！");
-            if (Objects.isNull(materialTypeValue)) {
+            String materialType = wrapper.getVariableToString(CreativeConstants.MATERIAL_TYPE);
+            if (StringUtils.isBlank(materialType) || (
+                    !MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) && !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType))) {
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤参数错误，参考素材类型为空或者不支持！");
                 return verifications;
-            }
-            // 参考素材类型校验
-            String materialType = String.valueOf(materialTypeValue);
-            if (!MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) &&
-                    !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType)) {
-                VerificationUtils.notNullStep(verifications, materialTypeValue, stepCode,
-                        "【" + stepName + "】步骤参数错误，参考素材类型不合法！");
             }
 
             // 参考素材变量
-            Object refersValue = wrapper.getVariable(CreativeConstants.REFERS);
-            VerificationUtils.notNullStep(verifications, refersValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，参考素材不能为空！");
-            if (Objects.isNull(refersValue)) {
-                return verifications;
-            }
-            String refers = String.valueOf(refersValue);
+            String refers = wrapper.getVariableToString(CreativeConstants.REFERS);
             if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
                 VerificationUtils.addVerificationStep(verifications, stepCode,
                         "【" + stepName + "】步骤参数错误，参考素材不能为空！");
+                return verifications;
+            }
+            if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateModel)) {
+                // 文案生成要求变量
+                String requirementValue = wrapper.getVariableToString(CreativeConstants.PARODY_REQUIREMENT);
+                String prompt = wrapper.getModelVariableToString(AppConstants.PROMPT);
+                String defaultPrompt = "{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
+                if (StringUtils.isBlank(requirementValue) && (StringUtils.isBlank(prompt) || defaultPrompt.equals(prompt))) {
+                    VerificationUtils.addVerificationStep(
+                            verifications, stepCode, "【" + stepName + "】步骤参数错误，文案生成要求和系统提示词不能同时为空！"
+                    );
+                }
             }
         }
         // AI自定义校验，文案生成要求不能为空
         else {
             // 文案生成要求变量
-            Object requirementValue = wrapper.getVariable(CreativeConstants.CUSTOM_REQUIREMENT);
-            VerificationUtils.notNullStep(verifications, requirementValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
-            if (Objects.isNull(requirementValue)) {
-                return verifications;
+            String requirementValue = wrapper.getVariableToString(CreativeConstants.CUSTOM_REQUIREMENT);
+            String prompt = wrapper.getModelVariableToString(AppConstants.PROMPT);
+            String defaultPrompt = "{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
+            if (StringUtils.isBlank(requirementValue) && (StringUtils.isBlank(prompt) || defaultPrompt.equals(prompt))) {
+                VerificationUtils.addVerificationStep(
+                        verifications, stepCode, "【" + stepName + "】步骤参数错误，文案生成要求和系统提示词不能同时为空！"
+                );
             }
-            String requirement = String.valueOf(requirementValue);
-            VerificationUtils.notBlankStep(verifications, requirement, stepCode,
-                    "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
         }
         return verifications;
     }
