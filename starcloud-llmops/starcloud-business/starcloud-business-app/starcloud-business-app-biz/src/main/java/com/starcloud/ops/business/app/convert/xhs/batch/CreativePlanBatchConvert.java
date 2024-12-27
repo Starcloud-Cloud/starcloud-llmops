@@ -2,12 +2,14 @@ package com.starcloud.ops.business.app.convert.xhs.batch;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.request.CreativePlanBatchReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -81,8 +83,15 @@ public interface CreativePlanBatchConvert {
         response.setVersion(bath.getVersion());
         response.setSource(bath.getSource());
         if (StringUtils.isNotBlank(bath.getConfiguration())) {
-            response.setConfiguration(JsonUtils.parseObject(
-                    bath.getConfiguration(), CreativePlanConfigurationDTO.class));
+            CreativePlanConfigurationDTO configuration = JsonUtils.parseObject(bath.getConfiguration(), CreativePlanConfigurationDTO.class);
+            if (null != configuration) {
+                AppMarketRespVO appInformation = configuration.getAppInformation();
+                if (null != appInformation) {
+                    appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
+                    configuration.setAppInformation(appInformation);
+                }
+            }
+            response.setConfiguration(configuration);
         }
         response.setTotalCount(bath.getTotalCount());
         response.setFailureCount(bath.getFailureCount());
