@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.app.model.content;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
@@ -10,6 +12,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.util.List;
 
 /**
  * @author nacoyer
@@ -40,7 +44,10 @@ public class CreativeContentExecuteParam implements java.io.Serializable {
     public void validate(ValidateTypeEnum validateType) {
         AppValidate.notNull(appInformation, "执行参数不能为空！");
         AppMarketEntity entity = AppMarketConvert.INSTANCE.convertEntity(appInformation);
-        entity.validate(null, validateType);
+        List<Verification> validates = entity.validate(null, validateType);
+        if (CollectionUtil.isNotEmpty(validates)) {
+            throw new IllegalArgumentException(validates.get(0).getMessage());
+        }
         appInformation = AppMarketConvert.INSTANCE.convertResponse(entity);
     }
 }
