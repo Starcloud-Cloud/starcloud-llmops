@@ -68,6 +68,7 @@ import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.mq.producer.AppDeleteProducer;
 import com.starcloud.ops.business.user.api.dept.DeptPermissionApi;
@@ -517,14 +518,28 @@ public class AppServiceImpl implements AppService {
 
         // 如果是矩阵应用，获取素材列表。将素材列表作为该步骤的临时变量。
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(app.getType())) {
-            CreativePlanGetQuery query = new CreativePlanGetQuery();
-            query.setAppUid(app.getUid());
-            query.setSource(request.getSource());
-            CreativePlanRespVO plan = creativePlanService.getOrCreate(query);
-            List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(plan);
-            if (CollectionUtil.isNotEmpty(materialList)) {
-                app.putVariable(MaterialActionHandler.class, CreativeConstants.MATERIAL_LIST,
-                        JsonUtils.toJsonString(materialList));
+            if (StringUtils.isNotBlank(request.getEst()) && "regen".equals(request.getEst())) {
+                WorkflowConfigEntity config = app.getWorkflowConfig();
+                WorkflowStepWrapper materialStepWrapper = config.getStepWrapper(MaterialActionHandler.class);
+                // 获取到素材库列表
+                String materialListString = materialStepWrapper.getVariableToString(CreativeConstants.MATERIAL_LIST);
+                if (StringUtils.isNotBlank(materialListString) && !"[]".equals(materialListString) && !"null".equalsIgnoreCase(materialListString)) {
+                    List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
+                    if (CollectionUtil.isNotEmpty(materialList)) {
+                        app.putVariable(MaterialActionHandler.class, CreativeConstants.MATERIAL_LIST,
+                                JsonUtils.toJsonString(materialList));
+                    }
+                }
+            } else {
+                CreativePlanGetQuery query = new CreativePlanGetQuery();
+                query.setAppUid(app.getUid());
+                query.setSource(request.getSource());
+                CreativePlanRespVO plan = creativePlanService.getOrCreate(query);
+                List<Map<String, Object>> materialList = creativeMaterialManager.getMaterialList(plan);
+                if (CollectionUtil.isNotEmpty(materialList)) {
+                    app.putVariable(MaterialActionHandler.class, CreativeConstants.MATERIAL_LIST,
+                            JsonUtils.toJsonString(materialList));
+                }
             }
         }
 

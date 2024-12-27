@@ -29,4 +29,6 @@ public class AppTestExecuteReqVO extends AppExecuteReqVO {
      */
     @NotBlank(message = "来源不能为空")
     private String source;
+
+    private String est;
 }
