@@ -328,7 +328,7 @@ public interface CreativeErrorCodeConstants {
     ErrorCode SYSTEM_PLUGIN = new ErrorCode(760100008, "系统插件不可删除");
 
 
-    ErrorCode COZE_SERVICE_ERROR = new ErrorCode(760100009, "调用coze执行失败，请检查coze本身流程是否可执行:{}");
+    ErrorCode COZE_SERVICE_ERROR = new ErrorCode(760100009, "调用coze执行失败，请检查coze本身流程是否可执行");
 
     ErrorCode TOKEN_ERROR = new ErrorCode(760100010, "token不存在，id = {}");
 

@@ -5,6 +5,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.apilog.core.service.ApiErrorLog;
 import cn.iocoder.yudao.framework.apilog.core.service.ApiErrorLogFrameworkService;
+import cn.iocoder.yudao.framework.common.exception.PluginServiceException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
@@ -34,13 +35,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
 
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.BAD_REQUEST;
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.FORBIDDEN;
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR;
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.METHOD_NOT_ALLOWED;
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.NOT_FOUND;
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.NOT_IMPLEMENTED;
-import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.TOO_MANY_REQUESTS;
+import static cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants.*;
 
 /**
  * 全局异常处理器，将 Exception 翻译成 CommonResult + 对应的异常编号
@@ -217,6 +212,14 @@ public class GlobalExceptionHandler {
         CommonResult<?> result = CommonResult.error(ex.getCode(), ex.getMessage());
         result.setBizUid(ex.getBizUid());
         result.setScene(ex.getScene());
+        return result;
+    }
+
+    @ExceptionHandler(value = PluginServiceException.class)
+    public CommonResult<?> pluginServiceExceptionHandler(PluginServiceException ex) {
+        log.info("[pluginServiceExceptionHandler]", ex);
+        CommonResult<?> result = CommonResult.error(ex.getCode(), ex.getMessage());
+        result.setReason(ex.getReason());
         return result;
     }
 
