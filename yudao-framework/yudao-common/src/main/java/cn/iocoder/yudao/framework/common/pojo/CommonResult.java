@@ -45,6 +45,8 @@ public class CommonResult<T> implements Serializable {
      */
     private String scene;
 
+    private String reason;
+
     /**
      * 将传入的 result 对象，转换成另外一个泛型结果的对象
      *
