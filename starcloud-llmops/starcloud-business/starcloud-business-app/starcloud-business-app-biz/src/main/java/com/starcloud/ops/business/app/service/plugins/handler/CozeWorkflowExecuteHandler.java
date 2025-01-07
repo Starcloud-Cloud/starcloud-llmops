@@ -115,6 +115,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         CozeResponse<List<WorkflowDataAsynResult>> workflowResp = cozePublicClient.runHistories(runResult.getWorkflowId(), runResult.getExecuteId(), runResult.getAccessToken());
 
         if (workflowResp.getCode() != 0) {
+            log.warn("cozePublicClient.runHistories is error: {}", JSONUtil.toJsonPrettyStr(workflowResp));
             throw exception(COZE_ERROR, workflowResp.getMsg());
         }
         if (CollectionUtil.isEmpty(workflowResp.getData())) {
@@ -127,7 +128,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             verifyResult.setStatus("in_progress");
             return verifyResult;
         } else if (Objects.equals("Fail", workflowDataAsynResult.getExecuteStatus())) {
-            log.warn("result response: {}", JSONUtil.toJsonPrettyStr(workflowResp));
+            log.warn("cozePublicClient.runHistories is fail: {}", JSONUtil.toJsonPrettyStr(workflowResp));
             throw new PluginServiceException(COZE_SERVICE_ERROR, workflowDataAsynResult.getErrorMessage());
         }
 
