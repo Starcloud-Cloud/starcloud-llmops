@@ -3,11 +3,13 @@ package com.starcloud.ops.business.app.feign.intercepter;
 import feign.InvocationContext;
 import feign.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 
 @Slf4j
+@Component
 public class ResponseInterceptor implements feign.ResponseInterceptor {
 
 
