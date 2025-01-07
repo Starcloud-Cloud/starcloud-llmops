@@ -33,6 +33,7 @@
         <module>starcloud-business-trade</module>
         <module>starcloud-business-poster</module>
         <module>starcloud-business-job</module>
+        <module>starcloud-business-extend</module>
     </modules>
 
 
