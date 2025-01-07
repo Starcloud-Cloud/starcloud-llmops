@@ -81,6 +81,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
             long end = System.currentTimeMillis();
             if (workflowResp.getCode() != 0) {
+                log.warn("cozePublicClient.runWorkflow error, {}", JSONUtil.toJsonPrettyStr(workflowResp));
                 throw exception(COZE_ERROR, workflowResp.getMsg());
             }
 
