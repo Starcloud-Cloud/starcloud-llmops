@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.feign;
 
 import com.starcloud.ops.business.app.feign.cozev2.WorkflowDataAsynResult;
 import com.starcloud.ops.business.app.feign.dto.coze.*;
+import com.starcloud.ops.business.app.feign.intercepter.ResponseInterceptor;
 import com.starcloud.ops.business.app.feign.request.coze.CozeChatRequest;
 import com.starcloud.ops.business.app.feign.request.coze.CozeWorkflowRequest;
 import com.starcloud.ops.business.app.feign.response.CozeResponse;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @FeignClient(name = "${feign.remote.coze.name:coze-public}",
-        url = "${feign.remote.coze.url:https://api.coze.cn}")
+        url = "${feign.remote.coze.url:https://api.coze.cn}", configuration = {ResponseInterceptor.class})
 public interface CozePublicClient {
 
     /**
