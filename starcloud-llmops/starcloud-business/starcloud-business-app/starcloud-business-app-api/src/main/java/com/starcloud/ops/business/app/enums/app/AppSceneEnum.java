@@ -117,6 +117,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
      */
     MP(20, "微信公共号", "WeChat Public Account"),
 
+
+    APP_TEST(21, "应用测试", "App Test")
     ;
 
     /**
@@ -155,7 +157,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             WECOM_GROUP,
             OPTIMIZE_PROMPT,
             LISTING_GENERATE,
-            XHS_WRITING
+            XHS_WRITING,
+            APP_TEST
 
     );
 
@@ -174,7 +177,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             IMAGE_REMOVE_TEXT,
             IMAGE_SKETCH,
             IMAGE_VARIANTS,
-            XHS_WRITING
+            XHS_WRITING,
+            APP_TEST
     );
 
     /**
@@ -187,7 +191,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             SHARE_IFRAME,
             SHARE_JS,
             SHARE_API,
-            XHS_WRITING
+            XHS_WRITING,
+            APP_TEST
     );
 
     /**
@@ -245,7 +250,8 @@ public enum AppSceneEnum implements IEnumable<Integer> {
             OPTIMIZE_PROMPT,
             LISTING_GENERATE,
             XHS_WRITING,
-            CHAT_MARKET
+            CHAT_MARKET,
+            APP_TEST
     );
 
     /**

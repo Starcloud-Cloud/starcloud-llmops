@@ -51,6 +51,7 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     SHARE_API_SCENE(31, "API调用", "API调用，扣除 {}，{} ", false, false, 0, 0,0),
     WECOM_GROUP_SCENE(32, "企业微信群", "企业微信群，扣除 {}，{} ", false, false, 0, 0,0),
     MP_SCENE(33, "微信公共号", "微信公共号，扣除 {}，{} ", false, false, 0, 0,0),
+    APP_TEST_SCENE(34, "应用测试", "应用测试，扣除 {}，{} ", false, false, 0, 0,0),
 
     //================仅限变动记录使用======Type 值上面的+50=========================================
     ADMIN_MINUS_RECORD(50, "管理员增加", "管理员修改权益，扣除 {},{} ", false, false, 0, 0,0),
@@ -88,6 +89,7 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     SHARE_API_SCENE_RECORD(81, "API调用", "API调用，扣除 {}，{} ", false, false, 0, 0,0),
     WECOM_GROUP_SCENE_RECORD(82, "企业微信群", "企业微信群，扣除 {}，{} ", false, false, 0, 0,0),
     MP_SCENE_RECORD(83, "微信公共号", "微信公共号，扣除 {}，{} ", false, false, 0, 0,0),
+    APP_TEST_SCENE_RECORD(84, "应用测试", "应用测试，扣除 {}，{} ", false, false, 0, 0,0),
     ;
 
     /**

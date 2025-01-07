@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONUtil;
+import cn.iocoder.yudao.framework.common.exception.PluginServiceException;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -32,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.COZE_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.COZE_SERVICE_ERROR;
 
 @Slf4j
 @Service
@@ -62,8 +65,8 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
     public String verify(PluginTestReqVO reqVO) {
         String accessToken = pluginsDefinitionService.bearer(reqVO.getAccessTokenId());
         String content = reqVO.getContent();
-        if (StringUtils.isNotBlank(content) && !JSONUtil.isTypeJSON(content)) {
-            throw exception(COZE_ERROR, "参数必须是json格式");
+        if (StringUtils.isBlank(content) || !JSONUtil.isTypeJSONObject(content)) {
+            throw exception(COZE_ERROR, "参数必须是json对象格式");
         }
         CozeWorkflowRequest request = new CozeWorkflowRequest();
         request.setWorkflowId(reqVO.getEntityUid());
@@ -82,7 +85,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             long end = System.currentTimeMillis();
             if (workflowResp.getCode() != 0) {
                 log.warn("cozePublicClient.runWorkflow error, {}", JSONUtil.toJsonPrettyStr(workflowResp));
-                throw exception(COZE_ERROR, workflowResp.getMsg());
+                throw new PluginServiceException(COZE_SERVICE_ERROR, workflowResp.getMsg());
             }
 
             workflowRunResult.setExecuteId(workflowResp.getExecuteId());
@@ -90,6 +93,9 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             redisTemplate.boundValueOps(VERIFY_PARAMS + code).set(content, 30, TimeUnit.MINUTES);
             redisTemplate.boundValueOps(PREFIX_START + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
             log.info("verify success, {} ms, {}", end - start, JSONUtil.toJsonPrettyStr(workflowRunResult));
+        } catch (PluginServiceException e) {
+            log.warn("verify error, {}", JSONUtil.toJsonPrettyStr(workflowRunResult), e);
+            throw e;
         } catch (Exception e) {
             log.warn("verify error, {}", JSONUtil.toJsonPrettyStr(workflowRunResult), e);
             throw exception(COZE_ERROR, e.getMessage());
@@ -122,7 +128,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             return verifyResult;
         } else if (Objects.equals("Fail", workflowDataAsynResult.getExecuteStatus())) {
             log.warn("result response: {}", JSONUtil.toJsonPrettyStr(workflowResp));
-            throw exception(COZE_ERROR, workflowDataAsynResult.getErrorMessage());
+            throw new PluginServiceException(COZE_SERVICE_ERROR, workflowDataAsynResult.getErrorMessage());
         }
 
         String params = redisTemplate.boundValueOps(VERIFY_PARAMS + resultReqVO.getCode()).get();
@@ -181,13 +187,16 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             CozeResponse<String> workflowResp = cozePublicClient.runWorkflow(request, accessToken);
             long end = System.currentTimeMillis();
             if (workflowResp.getCode() != 0) {
-                throw exception(COZE_ERROR, workflowResp.getMsg());
+                throw new PluginServiceException(COZE_SERVICE_ERROR, workflowResp.getMsg());
             }
 
             workflowRunResult.setExecuteId(workflowResp.getExecuteId());
             redisTemplate.boundValueOps(PREFIX_EXECTUE + code).set(JSONUtil.toJsonStr(workflowRunResult), 30, TimeUnit.MINUTES);
             redisTemplate.boundValueOps(PREFIX_START + code).set(String.valueOf(start), 30, TimeUnit.MINUTES);
             log.info("execute success, {} ms, {}", end - start, JSONUtil.toJsonPrettyStr(workflowRunResult));
+        } catch (PluginServiceException e) {
+            log.warn("execute error, {}", JSONUtil.toJsonPrettyStr(workflowRunResult), e);
+            throw e;
         } catch (Exception e) {
             log.warn("execute error, {}", JSONUtil.toJsonPrettyStr(workflowRunResult), e);
             throw exception(COZE_ERROR, e.getMessage());
@@ -208,7 +217,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
         CozeResponse<List<WorkflowDataAsynResult>> workflowResp = cozePublicClient.runHistories(runResult.getWorkflowId(), runResult.getExecuteId(), runResult.getAccessToken());
 
         if (workflowResp.getCode() != 0) {
-            throw exception(COZE_ERROR, workflowResp.getMsg());
+            throw new PluginServiceException(COZE_SERVICE_ERROR, workflowResp.getMsg());
         }
         if (CollectionUtil.isEmpty(workflowResp.getData())) {
             executeRespVO.setStatus("in_progress");
@@ -221,7 +230,7 @@ public class CozeWorkflowExecuteHandler extends PluginExecuteHandler {
             return executeRespVO;
         } else if (Objects.equals("Fail", workflowDataAsynResult.getExecuteStatus())) {
             log.warn("result response: {}", JSONUtil.toJsonPrettyStr(workflowResp));
-            throw exception(COZE_ERROR, workflowDataAsynResult.getErrorMessage());
+            throw new PluginServiceException(COZE_SERVICE_ERROR, workflowDataAsynResult.getErrorMessage());
         }
 
         String content = parseContent(workflowResp);

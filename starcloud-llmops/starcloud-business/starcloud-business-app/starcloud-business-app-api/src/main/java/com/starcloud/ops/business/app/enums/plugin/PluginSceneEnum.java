@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.enums.plugin;
 
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
+import lombok.Data;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -10,8 +11,7 @@ import java.util.stream.Collectors;
 
 public enum PluginSceneEnum implements IEnumable<String> {
 
-    DATA_ADDED("DATA_ADDED", "数据新增", "通过AI技术生成新的素材")
-    ;
+    DATA_ADDED("DATA_ADDED", "数据新增", "通过AI技术生成新的素材");
 
 //    DATA_COMPLETION("DATA_COMPLETION", "数据补齐", "通过AI技术生成素材中的部分字段内容"),
 //
@@ -35,6 +35,10 @@ public enum PluginSceneEnum implements IEnumable<String> {
         this.name = name;
 
         this.description = description;
+    }
+
+    public static String getName(String code) {
+        return PluginSceneEnum.valueOf(code).getLabel();
     }
 
     @Override

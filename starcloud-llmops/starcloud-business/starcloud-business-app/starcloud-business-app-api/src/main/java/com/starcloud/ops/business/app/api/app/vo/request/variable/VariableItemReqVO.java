@@ -96,6 +96,12 @@ public class VariableItemReqVO implements Serializable {
     private Boolean isPoint;
 
     /**
+     * 是否升级<br>
+     * 如果该值为 true, 则保留用户配置的值，否则则使用系统默认值。
+     */
+    private Boolean isKeepUserValue;
+
+    /**
      * 应用描述
      */
     @Schema(description = "应用描述")

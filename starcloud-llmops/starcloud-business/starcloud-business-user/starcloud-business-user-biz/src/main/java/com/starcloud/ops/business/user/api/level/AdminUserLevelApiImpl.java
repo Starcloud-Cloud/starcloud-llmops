@@ -1,8 +1,11 @@
 package com.starcloud.ops.business.user.api.level;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.system.enums.common.TimeRangeTypeEnum;
 import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
 import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelCreateReqVO;
+import com.starcloud.ops.business.user.controller.admin.level.vo.level.AdminUserLevelDetailRespVO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +41,8 @@ public class AdminUserLevelApiImpl implements AdminUserLevelApi {
      */
     @Override
     public List<AdminUserLevelRespDTO> getAdminUserLevelList(Long userId) {
-        return null;
+        List<AdminUserLevelDetailRespVO> levelList = adminUserLevelService.getLevelList(userId);
+        return BeanUtils.toBean(levelList,AdminUserLevelRespDTO.class);
     }
 
     /**
