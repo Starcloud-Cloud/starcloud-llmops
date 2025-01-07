@@ -112,6 +112,15 @@ public class PosterTemplateDTO implements java.io.Serializable {
     @Schema(description = "是否复制")
     private Boolean isCopy;
 
+    @Schema(description = "开启视频模式")
+    private Boolean openVideoMode;
+
+    @Schema(description = "视频模式配置")
+    private String videoConfig;
+
+    @Schema(description = "快捷配置")
+    private String quickConfiguration;
+
     /**
      * 是否执行
      */
