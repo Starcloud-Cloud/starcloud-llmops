@@ -753,15 +753,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     // 只做透穿
     @Override
     public String generateVideo(VideoConfigReqVO reqVO) {
-        JSONObject quickConfiguration = JSONObject.parseObject(reqVO.getQuickConfiguration());
         VideoGeneratorConfig videoConfig = JSONUtil.toBean(reqVO.getVideoConfig(), VideoGeneratorConfig.class);
-        for (Map.Entry<String, Object> entry : quickConfiguration.entrySet()) {
-            if (Objects.isNull(entry.getValue())) {
-                continue;
+        if (JSONUtil.isTypeJSONObject(reqVO.getQuickConfiguration())) {
+            JSONObject quickConfiguration = JSONObject.parseObject(reqVO.getQuickConfiguration());
+            for (Map.Entry<String, Object> entry : quickConfiguration.entrySet()) {
+                if (Objects.isNull(entry.getValue())) {
+                    continue;
+                }
+                BeanPath beanPath = new BeanPath("globalSettings." + entry.getKey());
+                beanPath.set(videoConfig, entry.getValue());
             }
-            BeanPath beanPath = new BeanPath("globalSettings." + entry.getKey());
-            beanPath.set(videoConfig, entry.getValue());
         }
+
         videoConfig.setId(null);
         VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGenerator(videoConfig);
         if (generatorResponse.getCode() != 0) {
