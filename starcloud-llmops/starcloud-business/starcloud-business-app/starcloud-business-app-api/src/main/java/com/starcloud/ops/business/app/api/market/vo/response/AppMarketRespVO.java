@@ -216,6 +216,9 @@ public class AppMarketRespVO implements Serializable {
     @Schema(description = "插件列表")
     private List<String> pluginList;
 
+    @Schema(description = "开启视频模式")
+    private Boolean openVideoMode;
+
     /**
      * 创建时间
      * 单元测试的时候没有初始化，所以这里加了jackson的注解
