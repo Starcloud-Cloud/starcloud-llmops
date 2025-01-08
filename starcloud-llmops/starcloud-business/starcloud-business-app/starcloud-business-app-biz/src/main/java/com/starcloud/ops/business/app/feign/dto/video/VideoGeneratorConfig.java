@@ -37,6 +37,7 @@ public class VideoGeneratorConfig {
         private String format;
         private String quality;
         private Background background;
+        private Boolean repeatEnable;
     }
 
     @Data
