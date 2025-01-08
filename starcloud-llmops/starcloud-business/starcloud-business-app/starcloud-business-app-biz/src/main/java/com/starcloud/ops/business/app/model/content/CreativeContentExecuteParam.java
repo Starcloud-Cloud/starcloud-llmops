@@ -41,6 +41,9 @@ public class CreativeContentExecuteParam implements java.io.Serializable {
     @Schema(description = "执行扩展参数")
     private CreativeContentExecuteExtend extend;
 
+    @Schema(description = "视频快捷配置")
+    private String quickConfiguration;
+
     public void validate(ValidateTypeEnum validateType) {
         AppValidate.notNull(appInformation, "执行参数不能为空！");
         AppMarketEntity entity = AppMarketConvert.INSTANCE.convertEntity(appInformation);

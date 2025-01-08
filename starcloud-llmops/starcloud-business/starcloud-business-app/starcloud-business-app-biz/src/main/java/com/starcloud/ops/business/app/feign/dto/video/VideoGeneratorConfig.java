@@ -31,6 +31,7 @@ public class VideoGeneratorConfig {
         private int elementInterval;
         private int unitInterval;
         private String voiceRole;
+        private String repeatRole;
         private String soundEffect;
         private Resolution resolution;
         private int fps;
