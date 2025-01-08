@@ -38,6 +38,7 @@ import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.utils.MaterialDefineUtil;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -105,6 +106,29 @@ public class CreativeUtils {
     public static WorkflowStepWrapperRespVO getVariableStepWrapperList(AppMarketRespVO app) {
         return Optional.ofNullable(app.getStepByHandler(VariableActionHandler.class.getSimpleName()))
                 .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"));
+    }
+
+    public static boolean checkOpenVideoMode(AppMarketRespVO app) {
+        try {
+            WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(app);
+            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                return false;
+            }
+            for (PosterStyleDTO posterStyleDTO : systemPosterStyleList) {
+                List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+                if (CollectionUtil.isEmpty(templateList)) {
+                    continue;
+                }
+                boolean openVideo = templateList.stream().anyMatch(template -> BooleanUtils.isTrue(template.getOpenVideoMode()));
+                if (openVideo) {
+                    return openVideo;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
     /**
@@ -698,6 +722,16 @@ public class CreativeUtils {
         }
 
         return posterStyle;
+    }
+
+    /**
+     * 获取风格配置
+     * @param appInformation
+     * @return
+     */
+    public static PosterStyleDTO getPosterStyle(AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
+        return getPosterStyleByStepWrapper(posterStepWrapper);
     }
 
     /**

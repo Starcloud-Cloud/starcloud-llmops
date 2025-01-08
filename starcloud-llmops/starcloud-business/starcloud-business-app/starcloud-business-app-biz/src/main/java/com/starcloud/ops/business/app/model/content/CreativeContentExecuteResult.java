@@ -34,4 +34,7 @@ public class CreativeContentExecuteResult implements java.io.Serializable {
     @Schema(description = "图片")
     private List<ImageContent> imageList;
 
+    @Schema(description = "视频")
+    private List<VideoContent> videoList;
+
 }
