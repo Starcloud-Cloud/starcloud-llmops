@@ -826,6 +826,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setProgress(data.getProgress());
             content.setStage(data.getStage());
             content.setStatus(data.getStatus());
+            content.setError(data.getError());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
