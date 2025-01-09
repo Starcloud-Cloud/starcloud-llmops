@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.model.content.VideoContent;
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,7 +75,7 @@ public interface CreativeContentService {
     /**
      * 开始生成单条视频
      */
-    String generateVideo(VideoConfigReqVO reqVO);
+    VideoGeneratorConfig generateVideo(VideoConfigReqVO reqVO);
 
     /**
      * 视频生成结果

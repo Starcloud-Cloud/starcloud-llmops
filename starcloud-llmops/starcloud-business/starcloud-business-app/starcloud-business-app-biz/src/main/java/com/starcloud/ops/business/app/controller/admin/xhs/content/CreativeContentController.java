@@ -13,6 +13,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.Cre
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.model.content.VideoContent;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -240,7 +241,7 @@ public class CreativeContentController {
 
     @PostMapping("/video/generate")
     @Operation(summary = "生成视频", description = "生成视频")
-    public CommonResult<String> generateVideo(@Valid @RequestBody VideoConfigReqVO reqVO) {
+    public CommonResult<VideoGeneratorConfig> generateVideo(@Valid @RequestBody VideoConfigReqVO reqVO) {
         return CommonResult.success(creativeContentService.generateVideo(reqVO));
     }
 

@@ -754,7 +754,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     // 只做透穿
     @Override
     @DataPermission(enable = false)
-    public String generateVideo(VideoConfigReqVO reqVO) {
+    public VideoGeneratorConfig generateVideo(VideoConfigReqVO reqVO) {
         VideoGeneratorConfig videoConfig = JSONUtil.toBean(reqVO.getVideoConfig(), VideoGeneratorConfig.class);
         if (Objects.isNull(videoConfig.getGlobalSettings())) {
             videoConfig.setGlobalSettings(new VideoGeneratorConfig.GlobalSettings());
@@ -767,7 +767,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                     continue;
                 }
                 BeanPath beanPath = new BeanPath("globalSettings." + entry.getKey());
-                beanPath.set(videoConfig, entry.getValue());
+                try {
+                    beanPath.set(videoConfig, entry.getValue());
+                } catch (Exception ignored) {
+                    log.warn("字段不存在 {}", entry.getKey());
+                }
             }
         }
 
@@ -800,7 +804,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             if (generatorResponse.getCode() != 0) {
                 throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
             }
-            return generatorResponse.getData().getTaskId();
+            videoConfig.setId(generatorResponse.getData().getTaskId());
+            return videoConfig;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
         }
