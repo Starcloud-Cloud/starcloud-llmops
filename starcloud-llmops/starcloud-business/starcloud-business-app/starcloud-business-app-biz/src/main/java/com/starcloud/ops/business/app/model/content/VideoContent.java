@@ -5,15 +5,9 @@ import lombok.Data;
 
 @Data
 public class VideoContent {
-//
-//    @Schema(description = "图片模板code 等于ImageContent.code")
-//    private String code;
-//
-//    @Schema(description = "图片模板名称 等于ImageContent.name")
-//    private String name;
-//
-//    @Schema(description = "图片序号 等于ImageContent.index")
-//    private Integer index;
+
+    @Schema(description = "图片模板code 等于ImageContent.code")
+    private String code;
 
     @Schema(description = "视频uid")
     private String videoUid;
@@ -29,9 +23,5 @@ public class VideoContent {
 
     @Schema(description = "阶段")
     private String stage;
-
-//    @Schema(description = "异常信息")
-//    private String msg;
-
 
 }

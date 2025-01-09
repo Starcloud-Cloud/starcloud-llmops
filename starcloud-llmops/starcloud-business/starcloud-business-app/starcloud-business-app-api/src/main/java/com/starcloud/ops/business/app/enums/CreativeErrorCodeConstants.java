@@ -349,5 +349,7 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode VIDEO_ERROR = new ErrorCode(760200001, "生成视频失败，{}");
 
+    ErrorCode PARAM_ERROR = new ErrorCode(760200002, "生成视频拼装参数错误，{}");
+
 
 }

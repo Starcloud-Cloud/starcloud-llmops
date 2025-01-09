@@ -96,6 +96,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PARAM_ERROR;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_ERROR;
 
 /**
@@ -752,8 +753,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     // 只做透穿
     @Override
+    @DataPermission(enable = false)
     public String generateVideo(VideoConfigReqVO reqVO) {
         VideoGeneratorConfig videoConfig = JSONUtil.toBean(reqVO.getVideoConfig(), VideoGeneratorConfig.class);
+        if (Objects.isNull(videoConfig.getGlobalSettings())) {
+            videoConfig.setGlobalSettings(new VideoGeneratorConfig.GlobalSettings());
+        }
+
         if (JSONUtil.isTypeJSONObject(reqVO.getQuickConfiguration())) {
             JSONObject quickConfiguration = JSONObject.parseObject(reqVO.getQuickConfiguration());
             for (Map.Entry<String, Object> entry : quickConfiguration.entrySet()) {
@@ -765,36 +771,67 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             }
         }
 
-        videoConfig.setId(null);
-        VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGenerator(videoConfig);
-        if (generatorResponse.getCode() != 0) {
-            throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
+        String imageCode = reqVO.getImageCode();
+        CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
+        if (Objects.isNull(creativeContent)) {
+            throw exception(PARAM_ERROR, "创作内容不存在");
         }
-        return generatorResponse.getData().getTaskId();
+        CreativeContentRespVO contentRespVO = CreativeContentConvert.INSTANCE.convert(creativeContent);
+        Map<String, String> resources = buildResources(contentRespVO, imageCode);
+
+        List<ImageContent> imageContents = Optional.ofNullable(contentRespVO.getExecuteResult())
+                .map(CreativeContentExecuteResult::getImageList).orElseThrow(() -> exception(PARAM_ERROR, "没有图片生成结果"));
+        if (CollectionUtil.isEmpty(imageContents)) {
+            throw exception(PARAM_ERROR, "没有图片生成结果");
+        }
+
+        for (ImageContent imageContent : imageContents) {
+            if (Objects.equals(imageContent.getCode(), imageCode)) {
+                if (Objects.isNull(videoConfig.getGlobalSettings().getBackground())) {
+                    videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
+                }
+                videoConfig.getGlobalSettings().getBackground().setSource(imageContent.getUrl());
+            }
+        }
+        videoConfig.setResources(resources);
+        videoConfig.setId(null);
+        try {
+            VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGenerator(videoConfig);
+            if (generatorResponse.getCode() != 0) {
+                throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
+            }
+            return generatorResponse.getData().getTaskId();
+        } catch (Exception e) {
+            throw new ServiceException(500, e.getMessage());
+        }
     }
 
     //只做透传
     @Override
     public VideoContent videoResult(VideoResultReqVO resultReqVO) {
-        VideoGeneratorResponse<VideoRecordResult> generatorResult = videoGeneratorClient.getGeneratorResult(resultReqVO.getVideoUid());
-        if (generatorResult.getCode() != 0) {
-            throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResult.getMsg());
+        try {
+            VideoGeneratorResponse<VideoRecordResult> generatorResult = videoGeneratorClient.getGeneratorResult(resultReqVO.getVideoUid());
+            if (generatorResult.getCode() != 0) {
+                throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResult.getMsg());
+            }
+            VideoRecordResult data = generatorResult.getData();
+            VideoContent content = new VideoContent();
+            content.setVideoUid(resultReqVO.getVideoUid());
+            content.setVideoUrl(data.getUrl());
+            content.setProgress(data.getProgress());
+            content.setStage(data.getStage());
+            content.setStatus(data.getStatus());
+            return content;
+        } catch (Exception e) {
+            throw new ServiceException(500, e.getMessage());
         }
-        VideoRecordResult data = generatorResult.getData();
-        VideoContent content = new VideoContent();
-        content.setVideoUid(resultReqVO.getVideoUid());
-        content.setVideoUrl(data.getUrl());
-        content.setProgress(data.getProgress());
-        content.setStage(data.getStage());
-        content.setStatus(data.getStatus());
-        return content;
     }
 
 
     /**
      * 视频生成并发更新加锁
      */
-    public void syncUpdate(String uid, String quickConfiguration, VideoContent updateVideoContent) {
+    public void lockUpdate(String uid, String quickConfiguration, VideoContent updateVideoContent) {
         RLock lock = redissonClient.getLock("video_update_" + uid);
         try {
             if (!lock.tryLock(1, 3, TimeUnit.SECONDS)) {
@@ -820,8 +857,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             creativeContentMapper.updateById(updateContent);
 
         } catch (Exception e) {
-
-
+            log.warn("");
         } finally {
             if (lock.isHeldByCurrentThread() && lock.isLocked()) {
                 lock.unlock();
@@ -842,7 +878,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         PosterStyleDTO posterStyle = CreativeUtils.getPosterStyle(response.getExecuteParam().getAppInformation());
         List<PosterTemplateDTO> templateList = posterStyle.getTemplateList();
 
-        Map<String, String> resources = buildResources(response);
+        Map<String, String> resources = buildResources(response, reqVO.getImageCode());
         log.info(JSONUtil.toJsonPrettyStr(resources));
         if (true) {
             return;
@@ -920,14 +956,14 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
 
-    private Map<String, String> buildResources(CreativeContentRespVO contentRespVO) {
+    private Map<String, String> buildResources(CreativeContentRespVO contentRespVO, String imageCode) {
         String conversationUid = contentRespVO.getConversationUid();
         LogAppMessageListReqVO query = new LogAppMessageListReqVO();
         query.setAppConversationUid(conversationUid);
         query.setStatus("SUCCESS");
         List<LogAppMessageDO> appMessageList = logAppMessageService.listAppLogMessage(query);
         if (CollectionUtil.isEmpty(appMessageList)) {
-
+            throw exception(PARAM_ERROR, "生成视频素材不存在");
         }
 
         // id 倒序第一条为图片步骤
@@ -940,13 +976,15 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 .map(WorkflowStepRespVO::getResponse)
                 .map(ActionResponseRespVO::getStepConfig)
                 .map(String::valueOf)
-                .orElseThrow(() -> new ServiceException(111, ""));
+                .orElseThrow(() -> exception(PARAM_ERROR, "步骤参数不存在"));
 
         PosterStyleDTO posterStyleDTO = JsonUtils.parseObject(stepConfig, PosterStyleDTO.class);
-
         Map<String, String> resources = new HashMap<>();
 
         for (PosterTemplateDTO posterTemplate : posterStyleDTO.getTemplateList()) {
+            if (!Objects.equals(posterTemplate.getCode(), imageCode)) {
+                continue;
+            }
             for (PosterVariableDTO posterVariableDTO : posterTemplate.getVariableList()) {
                 if (Objects.nonNull(posterVariableDTO.getValue())) {
                     resources.put(posterVariableDTO.getUuid(), String.valueOf(posterVariableDTO.getValue()));
