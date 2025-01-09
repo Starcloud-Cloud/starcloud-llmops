@@ -795,7 +795,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                     videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
                 }
                 videoConfig.getGlobalSettings().getBackground().setSource(imageContent.getUrl());
-                videoConfig.getGlobalSettings().getBackground().setType("img");
             }
         }
         videoConfig.setResources(resources);
@@ -993,7 +992,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             }
             for (PosterVariableDTO posterVariableDTO : posterTemplate.getVariableList()) {
                 if (Objects.nonNull(posterVariableDTO.getValue())) {
-                    resources.put(posterVariableDTO.getUuid(), String.valueOf(posterVariableDTO.getValue()));
+                    resources.put(posterVariableDTO.getField(), String.valueOf(posterVariableDTO.getValue()));
                 }
             }
         }
