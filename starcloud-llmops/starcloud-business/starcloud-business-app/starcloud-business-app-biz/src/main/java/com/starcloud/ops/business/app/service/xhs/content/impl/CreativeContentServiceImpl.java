@@ -795,6 +795,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                     videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
                 }
                 videoConfig.getGlobalSettings().getBackground().setSource(imageContent.getUrl());
+                videoConfig.getGlobalSettings().getBackground().setType("img");
             }
         }
         videoConfig.setResources(resources);
