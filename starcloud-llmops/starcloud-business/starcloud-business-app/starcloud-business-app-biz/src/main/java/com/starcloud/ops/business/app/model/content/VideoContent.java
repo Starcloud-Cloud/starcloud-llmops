@@ -24,4 +24,7 @@ public class VideoContent {
     @Schema(description = "阶段")
     private String stage;
 
+    @Schema(description = "错误信息")
+    private String error;
+
 }
