@@ -43,4 +43,11 @@ public class VideoRecordResult implements java.io.Serializable {
     @Schema(description = "阶段")
     private String stage;
 
+    /**
+     * 错误信息
+     */
+    @Schema(description = "错误信息")
+    private String error;
+
+
 }
