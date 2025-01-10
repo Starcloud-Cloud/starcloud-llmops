@@ -631,13 +631,27 @@ public class MaterialLibraryServiceImpl implements MaterialLibraryService {
         List<MaterialLibrarySliceDO> sliceDOList = materialLibrarySliceService.getMaterialLibrarySlice(reqVO.getId(), reqVO.getSliceIds());
         List<List<Object>> data = sliceDOList.stream()
                 .map(sliceDO -> {
-                    // 创建一个新的列表来存储每个 sliceDO 的内容
-                    List<Object> sliceData = new ArrayList<>();
+                    try {
+                        // 创建一个新的列表来存储每个 sliceDO 的内容
+                        List<Object> sliceData = new ArrayList<>();
 
-                    // 遍历 sliceDO 的内容并添加到 sliceData 列表中
-                    sliceDO.getContent().forEach(content -> sliceData.add(content.getValue()));
+                        // 遍历 sliceDO 的内容并添加到 sliceData 列表中
+                        sliceDO.getContent().forEach(content -> {
+                            if (Objects.isNull(content)) {
+                                sliceData.add(null);
+                            } else {
+                                sliceData.add(content.getValue());
+                            }
+                        });
 
-                    return sliceData;
+
+                        return sliceData;
+
+                    } catch (Exception e) {
+                        log.error("导出数据失败，素材库编号为:({})", sliceDO.getId(), e);
+                        return new ArrayList<Object>();
+                    }
+
                 })
                 .collect(Collectors.toList());
 
