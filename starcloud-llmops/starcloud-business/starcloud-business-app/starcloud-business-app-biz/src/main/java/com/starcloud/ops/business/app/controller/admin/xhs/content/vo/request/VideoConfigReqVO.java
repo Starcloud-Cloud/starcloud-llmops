@@ -1,9 +1,11 @@
 package com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request;
 
+import com.starcloud.ops.business.app.model.content.VideoContent;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 @Data
 @Schema(description = "图片视频生成配置")
@@ -22,6 +24,8 @@ public class VideoConfigReqVO {
     private String videoConfig;
 
     @Schema(description = "图片模板code")
-    @NotBlank(message = "图片模板code必填")
     private String imageCode;
+
+    @Schema(description = "视频结果")
+    private List<VideoContent> videoContents;
 }
