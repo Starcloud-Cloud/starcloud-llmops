@@ -91,7 +91,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
 
         // 构造查询条件
         LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
-//        wrapper.select(CreativeContentDO.class, item -> !"execute_param".equalsIgnoreCase(item.getColumn()));
+        wrapper.select(CreativeContentDO.class, item -> !"execute_param".equalsIgnoreCase(item.getColumn()));
         wrapper.eq(StringUtils.isNotBlank(query.getBatchUid()), CreativeContentDO::getBatchUid, query.getBatchUid());
         wrapper.eq(StringUtils.isNotBlank(query.getPlanUid()), CreativeContentDO::getPlanUid, query.getPlanUid());
         wrapper.eq(StringUtils.isNotBlank(query.getStatus()), CreativeContentDO::getStatus, query.getStatus());

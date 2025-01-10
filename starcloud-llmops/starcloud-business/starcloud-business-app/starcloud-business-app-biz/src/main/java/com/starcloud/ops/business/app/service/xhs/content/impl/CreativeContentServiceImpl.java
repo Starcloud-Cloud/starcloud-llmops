@@ -1027,10 +1027,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     private CreativeContentRespVO convertWithProgress(CreativeContentDO creativeContent) {
         CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(creativeContent);
         // 计算是否包含视频生成配置
-        response.getExecuteParam().getAppInformation()
-                .setOpenVideoMode(
-                        CreativeUtils.checkOpenVideoMode(response.getExecuteParam().getAppInformation())
-                );
+//        response.getExecuteParam().getAppInformation()
+//                .setOpenVideoMode(
+//                        CreativeUtils.checkOpenVideoMode(response.getExecuteParam().getAppInformation())
+//                );
 
         if (!CreativeContentStatusEnum.SUCCESS.name().equals(response.getStatus())) {
             // 获取执行进度

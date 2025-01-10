@@ -290,8 +290,8 @@ public class AppMarketServiceImpl implements AppMarketService {
                                 if (CollectionUtil.isNotEmpty(favoriteMap)) {
                                     item.setIsFavorite(favoriteMap.containsKey(item.getUid()));
                                 }
-                                item.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(item));
-                                item.setWorkflowConfig(null);
+//                                item.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(item));
+//                                item.setWorkflowConfig(null);
                             })
                             .collect(Collectors.toList());
                     AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
@@ -353,8 +353,8 @@ public class AppMarketServiceImpl implements AppMarketService {
                     )
                     .peek(item -> {
                         item.setId(null);
-                        item.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(item));
-                        item.setWorkflowConfig(null);
+//                        item.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(item));
+//                        item.setWorkflowConfig(null);
                     })
                     .collect(Collectors.toList());
 
