@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -72,20 +73,30 @@ public class WorkflowStepWrapperRespVO implements Serializable {
 
     /**
      * 补充步骤默认变量
+     *
+     * @param supplementStepWrapperMap 补充步骤包装 map
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void supplementStepVariable(Map<String, VariableRespVO> variableRespMap) {
-        if (Objects.isNull(flowStep) || Objects.isNull(variable) || CollectionUtil.isEmpty(variableRespMap)) {
+    public void supplementStepVariable(Map<String, WorkflowStepWrapperRespVO> supplementStepWrapperMap) {
+
+        if (Objects.isNull(flowStep) || Objects.isNull(variable) || CollectionUtil.isEmpty(supplementStepWrapperMap)) {
             return;
         }
 
         String handler = flowStep.getHandler();
-        VariableRespVO defaultVariables = variableRespMap.get(handler);
-        if (Objects.isNull(defaultVariables)) {
+        // 获取补充的步骤
+        WorkflowStepWrapperRespVO handlerStepWrapper = supplementStepWrapperMap.get(handler);
+        if (Objects.isNull(handlerStepWrapper)) {
             return;
         }
-        variable.supplementStepVariable(defaultVariables.getVariables());
+        // 复制 handlerStepWrapper
+        WorkflowStepWrapperRespVO clone = SerializationUtils.clone(handlerStepWrapper);
+        if (!"CustomActionHandler".equals(handler)) {
+            this.description = clone.getDescription();
+        }
+        flowStep.supplementFlowStep(clone.getFlowStep());
+        variable.supplementStepVariable(clone.getVariable());
     }
 
     /**
@@ -237,7 +248,11 @@ public class WorkflowStepWrapperRespVO implements Serializable {
     @JSONField(serialize = false)
     public void merge(WorkflowStepWrapperRespVO stepWrapper) {
         // 只进行变量合并，不进行其他属性合并，
-        // step 中的内容保持为最新的。直接抛弃旧的内容。
-        this.variable.merge(stepWrapper.getVariable());
+        if (Objects.nonNull(flowStep)) {
+            this.flowStep.merge(stepWrapper.getFlowStep());
+        }
+        if (Objects.nonNull(variable)) {
+            this.variable.merge(stepWrapper.getVariable());
+        }
     }
 }

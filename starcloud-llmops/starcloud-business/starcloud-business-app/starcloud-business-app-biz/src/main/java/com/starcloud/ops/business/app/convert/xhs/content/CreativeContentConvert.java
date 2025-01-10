@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
+import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
@@ -11,6 +12,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
+import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -45,8 +47,14 @@ public interface CreativeContentConvert {
         response.setSource(creativeContent.getSource());
         // 执行请求
         if (StringUtils.isNoneBlank(creativeContent.getExecuteParam())) {
-            CreativeContentExecuteParam executeParam = JsonUtils.parseObject(
-                    creativeContent.getExecuteParam(), CreativeContentExecuteParam.class);
+            CreativeContentExecuteParam executeParam = JsonUtils.parseObject(creativeContent.getExecuteParam(), CreativeContentExecuteParam.class);
+            if (null != executeParam) {
+                AppMarketRespVO appInformation = executeParam.getAppInformation();
+                if (appInformation != null) {
+                    appInformation.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
+                    executeParam.setAppInformation(appInformation);
+                }
+            }
             response.setExecuteParam(executeParam);
         }
         // 执行结果

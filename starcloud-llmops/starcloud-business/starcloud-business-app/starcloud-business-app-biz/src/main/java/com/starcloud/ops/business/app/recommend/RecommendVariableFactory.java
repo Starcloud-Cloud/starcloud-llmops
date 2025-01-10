@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.recommend;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableRespVO;
 import com.starcloud.ops.business.app.domain.entity.chat.ModelProviderEnum;
+import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,20 +77,23 @@ public class RecommendVariableFactory {
         modelVariable.setIsShow(Boolean.FALSE);
         modelVariable.setDefaultValue(ModelProviderEnum.QWEN.name());
         modelVariable.setValue(ModelProviderEnum.QWEN.name());
+        modelVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
         maxTokenVariable.setIsShow(Boolean.FALSE);
         maxTokenVariable.setValue(4000);
         maxTokenVariable.setDefaultValue(4000);
+        maxTokenVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
         temperatureVariable.setOrder(3);
         temperatureVariable.setIsShow(Boolean.FALSE);
+        temperatureVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
         promptVariable.setOrder(4);
-
+        promptVariable.setIsKeepUserValue(Boolean.TRUE);
 
         variable.setVariables(Arrays.asList(
                 modelVariable,
@@ -204,50 +208,68 @@ public class RecommendVariableFactory {
         VariableItemRespVO generateVariable = RecommendVariableItemFactory.defMediaMatrixGenerateVariable();
         generateVariable.setOrder(1);
         generateVariable.setIsShow(Boolean.TRUE);
+        generateVariable.setIsKeepUserValue(Boolean.TRUE);
 
         // 素材类型
         VariableItemRespVO materialType = RecommendVariableItemFactory.defMediaMatrixMaterialType();
         materialType.setOrder(2);
         materialType.setIsShow(Boolean.TRUE);
+        materialType.setIsKeepUserValue(Boolean.TRUE);
 
         // 素材参考数量
         VariableItemRespVO refersCount = RecommendVariableItemFactory.defMediaMatrixRefersCount();
         refersCount.setOrder(3);
         refersCount.setIsShow(Boolean.FALSE);
+        refersCount.setIsKeepUserValue(Boolean.FALSE);
 
         // 参考素材
         VariableItemRespVO refers = RecommendVariableItemFactory.defMediaMatrixRefers();
         refers.setOrder(4);
         refers.setIsShow(Boolean.TRUE);
+        refers.setIsKeepUserValue(Boolean.TRUE);
 
         // AI自定义生成要求
         VariableItemRespVO customRequirement = RecommendVariableItemFactory.defCustomRequirement();
         customRequirement.setOrder(5);
-        customRequirement.setIsShow(Boolean.TRUE);
+        if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateVariable.getValue())) {
+            customRequirement.setIsShow(Boolean.TRUE);
+        } else {
+            customRequirement.setIsShow(Boolean.FALSE);
+        }
+        customRequirement.setIsKeepUserValue(Boolean.TRUE);
 
         // AI仿写生成要求
         VariableItemRespVO parodyRequirement = RecommendVariableItemFactory.defParodyRequirement();
         parodyRequirement.setOrder(6);
-        parodyRequirement.setIsShow(Boolean.TRUE);
+        if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateVariable.getValue())) {
+            parodyRequirement.setIsShow(Boolean.TRUE);
+        } else {
+            parodyRequirement.setIsShow(Boolean.FALSE);
+        }
+        parodyRequirement.setIsKeepUserValue(Boolean.TRUE);
 
         // JSON Schema
         VariableItemRespVO jsonSchema = RecommendVariableItemFactory.defMediaMatrixMaterialJsonSchema();
         jsonSchema.setOrder(7);
         jsonSchema.setIsShow(Boolean.FALSE);
+        jsonSchema.setIsKeepUserValue(Boolean.FALSE);
 
         // 响应JSON Schema
         VariableItemRespVO respJsonSchema = RecommendVariableItemFactory.defMediaMatrixStepRespJsonSchema();
         respJsonSchema.setOrder(8);
         respJsonSchema.setIsShow(Boolean.FALSE);
+        respJsonSchema.setIsKeepUserValue(Boolean.FALSE);
 
         // 系统提示
         VariableItemRespVO defaultContentStepPromp = RecommendVariableItemFactory.defDefaultContentStepPromptVariable();
         defaultContentStepPromp.setOrder(9);
         defaultContentStepPromp.setIsShow(Boolean.FALSE);
+        defaultContentStepPromp.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO defaultResponseJsonParserPrompt = RecommendVariableItemFactory.defDefaultResponseJsonParserPromptVariable();
         defaultResponseJsonParserPrompt.setOrder(10);
         defaultResponseJsonParserPrompt.setIsShow(Boolean.FALSE);
+        defaultResponseJsonParserPrompt.setIsKeepUserValue(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 generateVariable,
@@ -364,14 +386,17 @@ public class RecommendVariableFactory {
         VariableItemRespVO assembleTitle = RecommendVariableItemFactory.defAssembleTitle();
         assembleTitle.setOrder(1);
         assembleTitle.setIsShow(Boolean.TRUE);
+        assembleTitle.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO assembleContent = RecommendVariableItemFactory.defAssembleContent();
         assembleContent.setOrder(2);
         assembleContent.setIsShow(Boolean.TRUE);
+        assembleContent.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO assembleTagList = RecommendVariableItemFactory.defAssembleTagList();
         assembleTagList.setOrder(3);
         assembleTagList.setIsShow(Boolean.TRUE);
+        assembleTagList.setIsKeepUserValue(Boolean.TRUE);
 
         variable.setVariables(Arrays.asList(
                 assembleTitle,
@@ -392,18 +417,22 @@ public class RecommendVariableFactory {
         VariableItemRespVO posterStyleVariable = RecommendVariableItemFactory.defPosterStyleVariable();
         posterStyleVariable.setOrder(1);
         posterStyleVariable.setIsShow(Boolean.FALSE);
+        posterStyleVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO requirement = RecommendVariableItemFactory.defPosterRequirement();
         requirement.setOrder(2);
         requirement.setIsShow(Boolean.FALSE);
+        requirement.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO styleConfigVariable = RecommendVariableItemFactory.defPosterStyleConfigVariable();
         styleConfigVariable.setOrder(3);
         styleConfigVariable.setIsShow(Boolean.TRUE);
+        styleConfigVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO customStyleConfigVariable = RecommendVariableItemFactory.defCustomPosterStyleConfigVariable();
         customStyleConfigVariable.setOrder(4);
         customStyleConfigVariable.setIsShow(Boolean.TRUE);
+        customStyleConfigVariable.setIsKeepUserValue(Boolean.TRUE);
 
         variable.setVariables(Arrays.asList(
                 posterStyleVariable,
@@ -426,21 +455,26 @@ public class RecommendVariableFactory {
         VariableItemRespVO modelVariable = RecommendVariableItemFactory.defModelVariable();
         modelVariable.setOrder(1);
         modelVariable.setIsShow(Boolean.FALSE);
+        modelVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO maxTokenVariable = RecommendVariableItemFactory.defMaxTokenVariable();
         maxTokenVariable.setOrder(2);
         maxTokenVariable.setIsShow(Boolean.FALSE);
+        maxTokenVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO temperatureVariable = RecommendVariableItemFactory.defTemperatureVariable();
         temperatureVariable.setOrder(3);
         temperatureVariable.setIsShow(Boolean.FALSE);
+        temperatureVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO promptVariable = RecommendVariableItemFactory.defPromptVariable(defaultPrompt, isShow);
         promptVariable.setOrder(4);
+        promptVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO styleConfigVariable = RecommendVariableItemFactory.defSystemPosterStyleConfigVariable();
         styleConfigVariable.setOrder(5);
         styleConfigVariable.setIsShow(Boolean.FALSE);
+        styleConfigVariable.setIsKeepUserValue(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 modelVariable,
@@ -463,34 +497,42 @@ public class RecommendVariableFactory {
         VariableItemRespVO materialTypeVariable = RecommendVariableItemFactory.defMaterialTypeVariable();
         materialTypeVariable.setOrder(1);
         materialTypeVariable.setIsShow(Boolean.FALSE);
+        materialTypeVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO materialDefineVariable = RecommendVariableItemFactory.defMaterialDefineVariable();
         materialDefineVariable.setOrder(2);
         materialDefineVariable.setIsShow(Boolean.FALSE);
+        materialDefineVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO materialListVariable = RecommendVariableItemFactory.defMaterialListVariable();
         materialListVariable.setOrder(3);
         materialListVariable.setIsShow(Boolean.FALSE);
+        materialListVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO materialLibraryVariable = RecommendVariableItemFactory.defMaterialLibraryVariable();
         materialLibraryVariable.setOrder(4);
         materialLibraryVariable.setIsShow(true);
+        materialLibraryVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO materialGenerateConfigVariable = RecommendVariableItemFactory.defMaterialGenerateConfigVariable();
         materialGenerateConfigVariable.setOrder(5);
         materialGenerateConfigVariable.setIsShow(Boolean.TRUE);
+        materialLibraryVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO customMaterialGenerateConfigVariable = RecommendVariableItemFactory.defCustomMaterialGenerateConfigVariable();
         customMaterialGenerateConfigVariable.setOrder(6);
         customMaterialGenerateConfigVariable.setIsShow(Boolean.TRUE);
+        customMaterialGenerateConfigVariable.setIsKeepUserValue(Boolean.TRUE);
 
         VariableItemRespVO searchHabitsVariable = RecommendVariableItemFactory.defSearchHabitsVariable();
         searchHabitsVariable.setOrder(7);
         searchHabitsVariable.setIsShow(Boolean.FALSE);
+        searchHabitsVariable.setIsKeepUserValue(Boolean.FALSE);
 
         VariableItemRespVO materialUsageModel = RecommendVariableItemFactory.defMaterialUsageModelVariable();
         materialUsageModel.setOrder(8);
         materialUsageModel.setIsShow(Boolean.FALSE);
+        materialUsageModel.setIsKeepUserValue(Boolean.FALSE);
 
         variable.setVariables(Arrays.asList(
                 materialTypeVariable,

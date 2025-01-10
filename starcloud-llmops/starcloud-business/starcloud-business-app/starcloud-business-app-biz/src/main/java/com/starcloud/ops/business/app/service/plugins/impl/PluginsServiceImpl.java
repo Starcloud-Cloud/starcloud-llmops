@@ -1,13 +1,19 @@
 package com.starcloud.ops.business.app.service.plugins.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.system.api.sms.SmsSendApi;
 import cn.iocoder.yudao.module.system.api.sms.dto.send.SmsSendSingleToUserReqDTO;
+import cn.iocoder.yudao.module.system.api.user.AdminUserApi;
+import cn.iocoder.yudao.module.system.api.user.dto.AdminUserRespDTO;
+import cn.iocoder.yudao.module.system.dal.dataobject.social.SocialUserDO;
+import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
@@ -22,6 +28,7 @@ import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.xhs.material.XhsNoteDTO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.plugins.vo.response.*;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
@@ -31,6 +38,8 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.ImageOcrActi
 import com.starcloud.ops.business.app.domain.entity.workflow.action.SensitiveWordActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.XhsParseActionHandler;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
+import com.starcloud.ops.business.app.enums.plugin.PlatformEnum;
+import com.starcloud.ops.business.app.enums.plugin.PluginSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.XhsDetailConstants;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
@@ -44,16 +53,23 @@ import com.starcloud.ops.business.app.service.plugins.PluginsService;
 import com.starcloud.ops.business.app.service.plugins.handler.PluginExecuteFactory;
 import com.starcloud.ops.business.app.util.ImageUploadUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
+import com.starcloud.ops.business.app.util.UserUtils;
+import com.starcloud.ops.business.user.api.level.AdminUserLevelApi;
+import com.starcloud.ops.business.user.api.level.dto.AdminUserLevelRespDTO;
+import com.starcloud.ops.framework.common.api.util.ExceptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
@@ -86,18 +102,35 @@ public class PluginsServiceImpl implements PluginsService {
     @Resource
     private SmsSendApi smsSendApi;
 
+    @Resource
+    private SocialUserService socialUserService;
+
+    @Resource
+    private AdminUserLevelApi adminUserLevelApi;
+
+    @Resource
+    private AdminUserApi adminUserApi;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    static final String EXECUTE_REQ = "coze_execute_req_";
+
 
     @Override
     @DataPermission(enable = false)
     public String executePlugin(PluginExecuteReqVO reqVO) {
         try {
-            return pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+            String code = pluginExecuteFactory.getHandlerByUid(reqVO.getUuid()).executePlugin(reqVO);
+            redisTemplate.boundValueOps(EXECUTE_REQ + code).set(JSONUtil.toJsonStr(reqVO), 30, TimeUnit.MINUTES);
+            return code;
         } catch (Exception e) {
-            log.error("execute plugin error", e);
-            sendMsg(e);
+            log.error("execute plugin error, executeReqStr={}", JSONUtil.toJsonStr(reqVO), e);
+            sendMsg(reqVO, e);
             throw e;
         }
     }
+
 
     /**
      * 获取执行返回结果
@@ -108,8 +141,12 @@ public class PluginsServiceImpl implements PluginsService {
         try {
             return pluginExecuteFactory.getHandlerByUid(pluginResultReqVO.getUuid()).getPluginResult(pluginResultReqVO);
         } catch (Exception e) {
-            log.error("get execute plugin result error", e);
-            sendMsg(e);
+            String executeReqStr = redisTemplate.boundValueOps(EXECUTE_REQ + pluginResultReqVO.getCode()).get();
+            log.error("get execute plugin result error, executeReqStr={}", executeReqStr, e);
+            if (StringUtils.isNoneBlank(executeReqStr)) {
+                PluginExecuteReqVO bean = JSONUtil.toBean(executeReqStr, PluginExecuteReqVO.class);
+                sendMsg(bean, e);
+            }
             throw e;
         }
     }
@@ -138,24 +175,12 @@ public class PluginsServiceImpl implements PluginsService {
 
     @Override
     public String verify(PluginTestReqVO reqVO) {
-        try {
-            return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
-        } catch (Exception e) {
-            log.error("verify plugin error", e);
-            sendMsg(e);
-            throw e;
-        }
+        return PluginExecuteFactory.getHandler(reqVO.getType()).verify(reqVO);
     }
 
     @Override
     public VerifyResult verifyResult(PluginTestResultReqVO resultReqVO) {
-        try {
-            return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
-        } catch (Exception e) {
-            log.error("verify plugin result error", e);
-            sendMsg(e);
-            throw e;
-        }
+        return PluginExecuteFactory.getHandler(resultReqVO.getType()).verifyResult(resultReqVO);
     }
 
     @Override
@@ -358,20 +383,47 @@ public class PluginsServiceImpl implements PluginsService {
     }
 
 
-    private void sendMsg(Exception e) {
+    private void sendMsg(PluginExecuteReqVO reqVO, Exception e) {
         try {
-            Map<String, Object> templateParams = new HashMap<>();
-            templateParams.put("environment", SpringUtil.getActiveProfile());
-            templateParams.put("errorMsg", e.getMessage());
-            templateParams.put("date", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            PluginRespVO pluginRespVO = pluginsDefinitionService.detail(reqVO.getUuid());
+            Long loginUserId = WebFrameworkUtils.getLoginUserId();
+            MaterialLibraryRespVO library = libraryService.getMaterialLibraryByUid(reqVO.getLibraryUid());
+            SocialUserDO socialUser = socialUserService.getNewSocialUser(Long.valueOf(pluginRespVO.getCozeTokenId()));
+            AdminUserRespDTO user = adminUserApi.getUser(loginUserId);
+
+            Map<Long, List<String>> longListMap = UserUtils.mapUserRoleName(Collections.singletonList(loginUserId));
+            List<String> roleNames = longListMap.get(loginUserId);
+
+            HashMap<String, Object> msgMap = new HashMap<>();
+            msgMap.put("environment", SpringUtil.getActiveProfile());
+            msgMap.put("libraryName", library.getName());
+            msgMap.put("libraryUid", library.getUid());
+            msgMap.put("pluginName", pluginRespVO.getPluginName());
+            msgMap.put("pluginScene", PluginSceneEnum.getName(pluginRespVO.getScene()));
+            msgMap.put("pluginType", PlatformEnum.getName(pluginRespVO.getType()));
+            msgMap.put("entityUid", pluginRespVO.getEntityUid());
+            msgMap.put("socialNickName", socialUser.getNickname());
+            msgMap.put("executeUserName", user.getNickname());
+
+            if (CollectionUtil.isNotEmpty(roleNames)) {
+                msgMap.put("executeUserLevel", String.join(",", roleNames));
+            } else {
+                msgMap.put("executeUserLevel", "-");
+            }
+
+            msgMap.put("dateTime", LocalDateTimeUtil.formatNormal(LocalDateTime.now()));
+            msgMap.put("errorMsg", e.getMessage());
+            msgMap.put("stackTrace", ExceptionUtil.stackTraceToString(e, 1000));
+            msgMap.put("inputParams", JSONUtil.toJsonStr(reqVO.getInputParams()));
             smsSendApi.sendSingleSmsToAdmin(
                     new SmsSendSingleToUserReqDTO()
                             .setUserId(1L).setMobile("17835411844")
                             .setTemplateCode("NOTICE_COZE_WARN")
-                            .setTemplateParams(templateParams));
+                            .setTemplateParams(msgMap));
         } catch (Exception ex) {
             log.error("send msg error", ex);
         }
+
     }
 
 }

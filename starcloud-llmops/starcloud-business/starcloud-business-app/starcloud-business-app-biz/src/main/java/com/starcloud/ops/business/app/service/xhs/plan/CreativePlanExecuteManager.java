@@ -416,7 +416,7 @@ public class CreativePlanExecuteManager {
         // 查询最新应用详细信息，内部有校验，进行校验应用是否存在
         AppMarketRespVO latestAppMarket = creativePlanService.getAppInformation(planResponse.getAppUid(), planResponse.getSource());
         // 合并应用市场配置，某一些配置项需要保持最新
-        AppMarketRespVO app = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket);
+        AppMarketRespVO app = CreativeUtils.mergeAppInformation(appInformation, latestAppMarket, true);
         configuration.setAppInformation(app);
         planResponse.setConfiguration(configuration);
         return app;

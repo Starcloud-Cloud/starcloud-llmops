@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.service.log.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
@@ -17,6 +18,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.channel.vo.response.AppPublishChannelRespVO;
 import com.starcloud.ops.business.app.api.image.vo.response.BaseImageResponse;
 import com.starcloud.ops.business.app.controller.admin.log.vo.request.AppLogMessageQuery;
+import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppExecutedPromptRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.log.vo.response.ImageLogMessageRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
@@ -29,6 +31,7 @@ import com.starcloud.ops.business.app.dal.mysql.app.AppMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
+import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.RecommendAppEnum;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
@@ -593,12 +596,14 @@ public class AppLogServiceImpl implements AppLogService {
             LambdaQueryWrapper<CreativeContentDO> wrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
             wrapper.eq(CreativeContentDO::getConversationUid, appLogMessageResponse.getConversationUid());
             CreativeContentDO content = creativeContentMapper.selectOne(wrapper);
-            CreativeContentRespVO contentResponse = CreativeContentConvert.INSTANCE.convert(content);
-            CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
-            appLogMessageResponse.setExecuteResult(executeResult);
-            appLogMessageResponse.setContentUid(content.getUid());
-            appLogMessageResponse.setPlanUid(content.getPlanUid());
-            appLogMessageResponse.setPlanBatchUid(content.getBatchUid());
+            if (Objects.nonNull(content)) {
+                CreativeContentRespVO contentResponse = CreativeContentConvert.INSTANCE.convert(content);
+                CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
+                appLogMessageResponse.setExecuteResult(executeResult);
+                appLogMessageResponse.setContentUid(content.getUid());
+                appLogMessageResponse.setPlanUid(content.getPlanUid());
+                appLogMessageResponse.setPlanBatchUid(content.getBatchUid());
+            }
         }
         return appLogMessageResponse;
     }
@@ -678,6 +683,30 @@ public class AppLogServiceImpl implements AppLogService {
         }
 
         return imageLogMessageResponse;
+    }
+
+    @Override
+    public AppExecutedPromptRespVO getAppExecutedPrompt(LogAppMessagePageReqVO query) {
+        // 获取会话
+        LogAppConversationDO appConversation = logAppConversationService.getAppLogConversation(query.getAppConversationUid());
+        AppValidate.notNull(appConversation, ErrorCodeConstants.APP_CONVERSATION_NOT_EXISTS_UID, query.getAppConversationUid());
+
+        // 获取消息列表
+        PageResult<LogAppMessageDO> appMessagePage = logAppMessageService.pageAppLogMessage(query);
+        List<LogAppMessageDO> appMessageList = appMessagePage.getList();
+        // 校验日志消息是否存在
+        AppValidate.notEmpty(appMessageList, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
+
+        // 取第一条数据
+        LogAppMessageDO logAppMessage = appMessageList.get(0);
+        AppValidate.notNull(logAppMessage, ErrorCodeConstants.APP_MESSAGE_NOT_EXISTS);
+        String message = logAppMessage.getMessage();
+        List<String> split = StrUtil.split(message, AppConstants.SYSTEM_USER_PROMPT_SPLIT);
+
+        AppExecutedPromptRespVO appExecutedPromptRespVO = new AppExecutedPromptRespVO();
+        appExecutedPromptRespVO.setSystemPrompt(CollectionUtil.isNotEmpty(split) ? split.get(0) : StringUtils.EMPTY);
+        appExecutedPromptRespVO.setUserPrompt(split.size() > 1 ? split.get(1) : StringUtils.EMPTY);
+        return appExecutedPromptRespVO;
     }
 
     /**

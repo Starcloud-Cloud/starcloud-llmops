@@ -55,19 +55,20 @@ public class WorkflowConfigRespVO extends BaseConfigRespVO {
 
     /**
      * 补充步骤默认变量
+     * @param supplementStepWrapperMap 补充步骤默认变量
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    public void supplementStepVariable(Map<String, VariableRespVO> variableRespVOMap) {
+    public void supplementStepVariable(Map<String, WorkflowStepWrapperRespVO> supplementStepWrapperMap) {
         try {
-            if (CollectionUtil.isEmpty(steps) || CollectionUtil.isEmpty(variableRespVOMap)) {
+            if (CollectionUtil.isEmpty(steps) || CollectionUtil.isEmpty(supplementStepWrapperMap)) {
                 return;
             }
             for (WorkflowStepWrapperRespVO step : steps) {
                 if (Objects.isNull(step)) {
                     continue;
                 }
-                step.supplementStepVariable(variableRespVOMap);
+                step.supplementStepVariable(supplementStepWrapperMap);
             }
         } catch (Exception e) {
             log.warn("supplementStepVariable error", e);

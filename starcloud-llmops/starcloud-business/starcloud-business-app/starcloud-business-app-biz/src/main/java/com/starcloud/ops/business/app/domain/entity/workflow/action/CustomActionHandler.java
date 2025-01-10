@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.api.xhs.material.dto.AbstractCreativeMaterialDTO;
+import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
@@ -118,64 +119,56 @@ public class CustomActionHandler extends BaseActionHandler {
         String stepName = wrapper.getName();
         String stepCode = wrapper.getStepCode();
         // 获取到生成模式变量
-        Object generateModel = wrapper.getVariable(CreativeConstants.GENERATE_MODE);
-        VerificationUtils.notNullStep(verifications, generateModel, stepCode,
-                "【" + stepName + "】步骤参数错误，生成模式为必选项！");
-        if (Objects.isNull(generateModel)) {
+        String generateModel = wrapper.getVariableToString(CreativeConstants.GENERATE_MODE);
+        if (StringUtils.isBlank(generateModel) || !IEnumable.contains(generateModel, CreativeContentGenerateModelEnum.class)) {
+            VerificationUtils.addVerificationStep(verifications, stepCode,
+                    "【" + stepName + "】步骤参数错误，生成模式为空或者不支持！");
             return verifications;
         }
 
-        // 生成模式校验
-        String generate = String.valueOf(generateModel);
-        if (!IEnumable.contains(generate, CreativeContentGenerateModelEnum.class)) {
-            VerificationUtils.notNullStep(verifications, generateModel, stepCode,
-                    "【" + stepName + "】步骤参数错误，生成模式不合法！");
-        }
-
         // 生成模式校验, 随机生成和AI模仿生成需要参考素材
-        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generate) ||
-                CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generate)) {
+        if (CreativeContentGenerateModelEnum.RANDOM.name().equals(generateModel) ||
+                CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateModel)) {
 
             // 参考素材类型变量
-            Object materialTypeValue = wrapper.getVariable(CreativeConstants.MATERIAL_TYPE);
-            VerificationUtils.notNullStep(verifications, materialTypeValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，参考素材类型不能为空！");
-            if (Objects.isNull(materialTypeValue)) {
+            String materialType = wrapper.getVariableToString(CreativeConstants.MATERIAL_TYPE);
+            if (StringUtils.isBlank(materialType) || (
+                    !MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) && !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType))) {
+                VerificationUtils.addVerificationStep(verifications, stepCode,
+                        "【" + stepName + "】步骤参数错误，参考素材类型为空或者不支持！");
                 return verifications;
-            }
-            // 参考素材类型校验
-            String materialType = String.valueOf(materialTypeValue);
-            if (!MaterialTypeEnum.NOTE_TITLE.getCode().equals(materialType) &&
-                    !MaterialTypeEnum.NOTE_CONTENT.getCode().equals(materialType)) {
-                VerificationUtils.notNullStep(verifications, materialTypeValue, stepCode,
-                        "【" + stepName + "】步骤参数错误，参考素材类型不合法！");
             }
 
             // 参考素材变量
-            Object refersValue = wrapper.getVariable(CreativeConstants.REFERS);
-            VerificationUtils.notNullStep(verifications, refersValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，参考素材不能为空！");
-            if (Objects.isNull(refersValue)) {
-                return verifications;
-            }
-            String refers = String.valueOf(refersValue);
+            String refers = wrapper.getVariableToString(CreativeConstants.REFERS);
             if (StringUtils.isBlank(refers) || "[]".equals(refers) || "null".equals(refers)) {
                 VerificationUtils.addVerificationStep(verifications, stepCode,
                         "【" + stepName + "】步骤参数错误，参考素材不能为空！");
+                return verifications;
+            }
+            if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateModel)) {
+                // 文案生成要求变量
+                String requirementValue = wrapper.getVariableToString(CreativeConstants.PARODY_REQUIREMENT);
+                String prompt = wrapper.getModelVariableToString(AppConstants.PROMPT);
+                String defaultPrompt = "{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
+                if (StringUtils.isBlank(requirementValue) && (StringUtils.isBlank(prompt) || defaultPrompt.equals(prompt))) {
+                    VerificationUtils.addVerificationStep(
+                            verifications, stepCode, "【" + stepName + "】步骤参数错误，文案生成要求和系统提示词不能同时为空！"
+                    );
+                }
             }
         }
         // AI自定义校验，文案生成要求不能为空
         else {
             // 文案生成要求变量
-            Object requirementValue = wrapper.getVariable(CreativeConstants.CUSTOM_REQUIREMENT);
-            VerificationUtils.notNullStep(verifications, requirementValue, stepCode,
-                    "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
-            if (Objects.isNull(requirementValue)) {
-                return verifications;
+            String requirementValue = wrapper.getVariableToString(CreativeConstants.CUSTOM_REQUIREMENT);
+            String prompt = wrapper.getModelVariableToString(AppConstants.PROMPT);
+            String defaultPrompt = "{{" + CreativeConstants.DEFAULT_CONTENT_STEP_PROMPT + "}}";
+            if (StringUtils.isBlank(requirementValue) && (StringUtils.isBlank(prompt) || defaultPrompt.equals(prompt))) {
+                VerificationUtils.addVerificationStep(
+                        verifications, stepCode, "【" + stepName + "】步骤参数错误，文案生成要求和系统提示词不能同时为空！"
+                );
             }
-            String requirement = String.valueOf(requirementValue);
-            VerificationUtils.notBlankStep(verifications, requirement, stepCode,
-                    "【" + stepName + "】步骤参数错误，文案生成要求不能为空！");
         }
         return verifications;
     }
@@ -384,6 +377,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 获取到参数列表
         Map<String, Object> params = context.getContextVariablesValues();
+        String userPrompt = "";
         /*
          * 约定：prompt 为总的 prompt，包含了 AI仿写 和 AI自定义 的 prompt. 中间用 ---------- 分割
          * AI仿写为第一个 prompt
@@ -392,14 +386,17 @@ public class CustomActionHandler extends BaseActionHandler {
         boolean isCustom;
         if (CreativeContentGenerateModelEnum.AI_PARODY.name().equals(generateMode)) {
             isCustom = false;
+            userPrompt = params.getOrDefault(CreativeConstants.PARODY_REQUIREMENT, "").toString();
         } else if (CreativeContentGenerateModelEnum.AI_CUSTOM.name().equals(generateMode)) {
             isCustom = true;
+            userPrompt = params.getOrDefault(CreativeConstants.CUSTOM_REQUIREMENT, "").toString();
         } else {
             throw ServiceExceptionUtil.invalidParamException("【{}】步骤执行失败: 不支持的生成模式！", context.getStepId());
         }
 
         // 获取到 prompt
-        String prompt = this.getPrompt(context, params, isCustom);
+        String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, StrUtil.EMPTY));
+                //this.getPrompt(context, params, isCustom);
         // 获取到大模型 model
         String model = this.getLlmModelType(context);
         // 获取到生成数量 n
@@ -418,6 +415,7 @@ public class CustomActionHandler extends BaseActionHandler {
         handlerRequest.setModel(model);
         handlerRequest.setN(n);
         handlerRequest.setPrompt(prompt);
+        handlerRequest.setUserPrompt(userPrompt);
         handlerRequest.setMaxTokens(maxTokens);
         handlerRequest.setTemperature(temperature);
         // 构建请求上下文
@@ -430,7 +428,9 @@ public class CustomActionHandler extends BaseActionHandler {
                 handlerRequest
         );
         // 构建OpenAI处理器
-        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter());
+        ChatRequestVO chatRequest = new ChatRequestVO();
+        chatRequest.setConversationUid(context.getConversationUid());
+        StreamingSseCallBackHandler callBackHandler = new MySseCallBackHandler(context.getSseEmitter(), chatRequest);
         OpenAIChatHandler handler = new OpenAIChatHandler(callBackHandler);
         // 执行OpenAI处理器
         HandlerResponse<String> handlerResponse = handler.execute(handlerContext);

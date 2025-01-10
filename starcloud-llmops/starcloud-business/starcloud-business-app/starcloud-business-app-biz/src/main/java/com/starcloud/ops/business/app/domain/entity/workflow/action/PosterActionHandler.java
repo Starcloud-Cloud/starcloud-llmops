@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
@@ -500,16 +501,22 @@ public class PosterActionHandler extends BaseActionHandler {
             materialMap.put(materialStepWrapper.getStepCode(), materialData);
 
             // 截取需要的素材
-            Map<String, Object> variableMap = getPosterVariableMap(copy, Boolean.FALSE);
+            Map<String, Object> variableMap = getDocPosterVariableMap(copy);
             Map<String, Object> replaceValueMap = context.parseMapFromVariablesValues(variableMap, materialMap);
+            Set<String> uuidList = replaceValueMap.keySet();
 
             // 循环处理变量列表，进行值填充
             for (PosterVariableDTO variable : copy.posterVariableList()) {
+                String uuid = variable.getUuid();
+                // 如果该变量不在作用域中，则跳过，交给后续处理。
+                if (!uuidList.contains(uuid)) {
+                    continue;
+                }
                 // 从作用域数据中获取变量值
                 Object value = replaceValueMap.get(variable.getUuid());
                 // 如果从作用域数据中获取的变量值为空，则为空字符串。
                 if (StringUtil.objectBlank(value)) {
-                    value = StrUtil.EMPTY;
+                    value = StringUtils.EMPTY;
                 }
                 variable.setValue(value);
             }
@@ -979,6 +986,27 @@ public class PosterActionHandler extends BaseActionHandler {
                 if (MULTIMODAL_PATTERN.matcher(variable.emptyIfNullValue()).find()) {
                     continue;
                 }
+            }
+            String value = variable.emptyIfNullValue();
+            variableMap.put(variable.getUuid(), value);
+        }
+        return variableMap;
+    }
+
+    /**
+     * 获取模板变量集合，变量 UUID 和 value 的Map集合
+     *
+     * @param posterTemplateList 模板列表
+     * @return 模板变量集合
+     */
+    @JsonIgnore
+    @JSONField(serialize = false)
+    private static Map<String, Object> getDocPosterVariableMap(PosterTemplateDTO posterTemplate) {
+        Map<String, Object> variableMap = new HashMap<>();
+        for (PosterVariableDTO variable : posterTemplate.posterVariableList()) {
+            // 只过滤出素材变量，其他变量不处理，等待后续处理
+            if (!MATERIAL_PATTERN.matcher(variable.emptyIfNullValue()).find()) {
+                continue;
             }
             String value = variable.emptyIfNullValue();
             variableMap.put(variable.getUuid(), value);
