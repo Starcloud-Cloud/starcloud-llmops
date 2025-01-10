@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper">
-    
+
     <!-- 根据条件查询应用市场详情 -->
     <select id="getOne" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT id,
@@ -64,7 +64,7 @@
         ORDER BY sort IS NULL, sort, update_time DESC
         LIMIT 1
     </select>
-    
+
     <!-- 根据条件查询应用市场列表 -->
     <select id="list" resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT id,
@@ -136,7 +136,7 @@
         </where>
         ORDER BY sort IS NULL, sort, update_time DESC
     </select>
-    
+
     <select id="listWithoutConfig"
             resultType="com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO">
         SELECT id,
@@ -195,7 +195,7 @@
         </where>
         ORDER BY sort IS NULL, sort, update_time DESC
     </select>
-    
+
     <!-- 根据应用名称查询 COMPLETION 模式的应用数量 -->
     <select id="countCompletionAppByName" resultType="java.lang.Long">
         SELECT COUNT(*)

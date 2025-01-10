@@ -13,6 +13,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.Cre
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
+import com.starcloud.ops.business.app.model.content.VideoContent;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -230,4 +232,22 @@ public class CreativeContentController {
         return CommonResult.success(metadata);
     }
 
+    @PostMapping("/video/quick")
+    @Operation(summary = "保存视频快捷配置", description = "保存视频快捷配置")
+    public CommonResult<Boolean> quickConfiguration(@Valid @RequestBody VideoConfigReqVO reqVO) {
+        creativeContentService.saveVideoConfig(reqVO);
+        return CommonResult.success(true);
+    }
+
+    @PostMapping("/video/generate")
+    @Operation(summary = "生成视频", description = "生成视频")
+    public CommonResult<VideoGeneratorConfig> generateVideo(@Valid @RequestBody VideoConfigReqVO reqVO) {
+        return CommonResult.success(creativeContentService.generateVideo(reqVO));
+    }
+
+    @PostMapping("/video/result")
+    @Operation(summary = "生成视频结果", description = "生成视频结果")
+    public CommonResult<VideoContent> generateResult(@Valid @RequestBody VideoResultReqVO resultReqVO) {
+        return CommonResult.success(creativeContentService.videoResult(resultReqVO));
+    }
 }

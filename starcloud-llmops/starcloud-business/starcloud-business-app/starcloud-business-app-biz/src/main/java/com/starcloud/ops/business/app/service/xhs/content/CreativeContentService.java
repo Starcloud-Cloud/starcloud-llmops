@@ -7,6 +7,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
+import com.starcloud.ops.business.app.model.content.VideoContent;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -62,6 +64,23 @@ public interface CreativeContentService {
      * @return 图片URL集合
      */
     List<String> listImage(List<String> uidList);
+
+    /**
+     * 保存视频配置
+     *
+     * @param reqVO
+     */
+    void saveVideoConfig(VideoConfigReqVO reqVO);
+
+    /**
+     * 开始生成单条视频
+     */
+    VideoGeneratorConfig generateVideo(VideoConfigReqVO reqVO);
+
+    /**
+     * 视频生成结果
+     */
+    VideoContent videoResult(VideoResultReqVO resultReqVO);
 
     /**
      * 查询创作内容生成的图片
