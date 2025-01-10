@@ -150,7 +150,6 @@
                category,
                scenes,
                icon,
-               config,
                images,
                plugin_list,
                description,
