@@ -764,6 +764,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Override
     @DataPermission(enable = false)
     public VideoGeneratorConfig generateVideo(VideoConfigReqVO reqVO) {
+        if (StringUtils.isBlank(reqVO.getVideoConfig())) {
+            throw exception(PARAM_ERROR, "生成视频配置必填");
+        }
         VideoGeneratorConfig videoConfig = JSONUtil.toBean(reqVO.getVideoConfig(), VideoGeneratorConfig.class);
         if (Objects.isNull(videoConfig.getGlobalSettings())) {
             videoConfig.setGlobalSettings(new VideoGeneratorConfig.GlobalSettings());
