@@ -76,6 +76,7 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
         <weixin-java.version>4.5.7.B</weixin-java.version>
         <jakarta.json-api.version>2.0.1</jakarta.json-api.version>
+        <oapi-sdk.version>2.4.6</oapi-sdk.version>
     </properties>
 
     <dependencyManagement>
@@ -672,6 +673,12 @@
                 <groupId>jakarta.json</groupId>
                 <artifactId>jakarta.json-api</artifactId>
                 <version>${jakarta.json-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.larksuite.oapi</groupId>
+                <artifactId>oapi-sdk</artifactId>
+                <version>${oapi-sdk.version}</version>
             </dependency>
 
         </dependencies>
