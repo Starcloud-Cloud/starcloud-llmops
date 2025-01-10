@@ -1031,8 +1031,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                         CreativeUtils.checkOpenVideoMode(response.getExecuteParam().getAppInformation())
                 );
 
-        CreativeUtils.checkOpenVideoMode(response.getExecuteParam().getAppInformation());
-
         if (!CreativeContentStatusEnum.SUCCESS.name().equals(response.getStatus())) {
             // 获取执行进度
             AppExecuteProgress progress = appStepStatusCache.progress(response.getConversationUid());
