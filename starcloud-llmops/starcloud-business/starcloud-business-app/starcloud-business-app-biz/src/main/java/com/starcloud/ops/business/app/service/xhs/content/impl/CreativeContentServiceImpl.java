@@ -745,9 +745,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Override
     public void saveVideoConfig(VideoConfigReqVO reqVO) {
         CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
+        if (Objects.isNull(creativeContent)) {
+            throw exception(PARAM_ERROR, "创作内容不存在");
+        }
         CreativeContentExecuteParam executeParam = JsonUtils.parseObject(creativeContent.getExecuteParam(), CreativeContentExecuteParam.class);
         executeParam.setQuickConfiguration(reqVO.getQuickConfiguration());
         creativeContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
+
+        if (CollectionUtil.isNotEmpty(reqVO.getVideoContents())) {
+            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
+                    creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
+            executeResult.setVideoList(reqVO.getVideoContents());
+        }
         creativeContentMapper.updateById(creativeContent);
     }
 
@@ -776,6 +785,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
 
         String imageCode = reqVO.getImageCode();
+        if (StringUtils.isBlank(imageCode)) {
+            throw exception(PARAM_ERROR, "图片code必填");
+        }
+
         CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
         if (Objects.isNull(creativeContent)) {
             throw exception(PARAM_ERROR, "创作内容不存在");
@@ -827,6 +840,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setStage(data.getStage());
             content.setStatus(data.getStatus());
             content.setError(data.getError());
+            content.setCode(resultReqVO.getImageCode());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
@@ -1008,6 +1022,14 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     private CreativeContentRespVO convertWithProgress(CreativeContentDO creativeContent) {
         CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(creativeContent);
+        // 计算是否包含视频生成配置
+        response.getExecuteParam().getAppInformation()
+                .setOpenVideoMode(
+                        CreativeUtils.checkOpenVideoMode(response.getExecuteParam().getAppInformation())
+                );
+
+        CreativeUtils.checkOpenVideoMode(response.getExecuteParam().getAppInformation());
+
         if (!CreativeContentStatusEnum.SUCCESS.name().equals(response.getStatus())) {
             // 获取执行进度
             AppExecuteProgress progress = appStepStatusCache.progress(response.getConversationUid());
