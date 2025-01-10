@@ -20,7 +20,6 @@ public class VideoConfigReqVO {
     private String quickConfiguration;
 
     @Schema(description = "生成视频配置")
-    @NotBlank(message = "生成视频配置必填")
     private String videoConfig;
 
     @Schema(description = "图片模板code")
