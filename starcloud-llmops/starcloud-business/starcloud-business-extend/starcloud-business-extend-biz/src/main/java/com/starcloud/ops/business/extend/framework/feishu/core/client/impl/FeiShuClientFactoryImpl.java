@@ -127,7 +127,7 @@ public class FeiShuClientFactoryImpl implements FeiShuClientFactory {
         request.header("Content-Type", "application/json; charset=utf-8");
 
         // 定义请求体
-        String requestBody = "{\"app_id\": \"cli_a7e0dc5c6b06d00e\", \"app_secret\": \"j9hc78VkA5GiRtKubkvHEbN5DD8phzKA\"}";
+        String requestBody = "{\"app_id\": \"\", \"app_secret\": \"\"}";
         // String requestBody = "{\"app_id\": \"" + feiShuProperties.getAppId() + "\", \"app_secret\": \"" + feiShuProperties.getSecret() + "\"}";
 
         // 发送请求

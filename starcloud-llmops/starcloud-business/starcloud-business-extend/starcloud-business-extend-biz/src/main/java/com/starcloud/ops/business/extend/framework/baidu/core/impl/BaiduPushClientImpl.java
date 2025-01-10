@@ -27,7 +27,7 @@ public class BaiduPushClientImpl implements BaiduPushClient {
     private static final int BATCH_SIZE = 10;
     private static final int API_TOKEN = 100;
 
-    private static final String URL = "http://data.zz.baidu.com/urls?site=https://www.mofabiji.com&token=r0KxYKm32WiaOHof";
+    private static final String URL = "";
 
 
     /**
