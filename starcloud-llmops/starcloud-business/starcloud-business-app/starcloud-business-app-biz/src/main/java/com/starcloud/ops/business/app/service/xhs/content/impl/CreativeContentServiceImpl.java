@@ -756,6 +756,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
                     creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
             executeResult.setVideoList(reqVO.getVideoContents());
+            creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
         }
         creativeContentMapper.updateById(creativeContent);
     }
