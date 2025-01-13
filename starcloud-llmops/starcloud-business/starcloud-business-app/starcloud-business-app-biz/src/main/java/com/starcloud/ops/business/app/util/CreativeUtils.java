@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.common.pojo.SortingField;
@@ -19,6 +20,8 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableS
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -30,6 +33,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.poster.PosterModeEnum;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
@@ -116,10 +120,20 @@ public class CreativeUtils {
 
     }
 
-    public static boolean checkOpenVideoMode(AppMarketRespVO app) {
+    public static boolean checkOpenVideoMode(WorkflowConfigEntity workflowConfigEntity) {
         try {
-            WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(app);
-            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+            WorkflowStepWrapper stepWrapper = workflowConfigEntity.getStepWrapper(PosterActionHandler.class);
+            String posterStyleString = stepWrapper.getVariableToString(CreativeConstants.POSTER_STYLE_CONFIG);
+            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+                return false;
+            }
+            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+            if (CollectionUtil.isEmpty(posterStyleList)) {
+                return false;
+            }
+            List<PosterStyleDTO> systemPosterStyleList = CollectionUtil.emptyIfNull(posterStyleList).stream()
+                    .filter(item -> Objects.nonNull(item.getSystem()) && item.getSystem())
+                    .collect(Collectors.toList());
             if (CollectionUtil.isEmpty(systemPosterStyleList)) {
                 return false;
             }
@@ -160,6 +174,41 @@ public class CreativeUtils {
             return false;
         }
         return false;
+    }
+
+    public static String parseQuickConfiguration(AppMarketRespVO appInformation) {
+        try {
+            WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
+            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                return StringUtils.EMPTY;
+            }
+            PosterTemplateDTO posterTemplate = null;
+            for (PosterStyleDTO posterStyleDTO : systemPosterStyleList) {
+                List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+                if (CollectionUtil.isEmpty(templateList)) {
+                    continue;
+                }
+                Optional<PosterTemplateDTO> posterTemplateDTO = templateList.stream().filter(template -> BooleanUtils.isTrue(template.getOpenVideoMode())).findFirst();
+                if (posterTemplateDTO.isPresent()) {
+                    posterTemplate = posterTemplateDTO.get();
+                    break;
+                }
+            }
+            if (Objects.isNull(posterTemplate)) {
+                return StringUtils.EMPTY;
+            }
+            VideoGeneratorConfig videoConfig = JSONUtil.toBean(posterTemplate.getVideoConfig(), VideoGeneratorConfig.class);
+            Map<String, Object> map = new HashMap<>(4);
+
+            map.put("voiceRole",videoConfig.getGlobalSettings().getVoiceRole());
+            map.put("repeatRole",videoConfig.getGlobalSettings().getRepeatRole());
+            map.put("repeatEnable",videoConfig.getGlobalSettings().getRepeatEnable());
+            map.put("soundEffect",videoConfig.getGlobalSettings().getSoundEffect());
+            return JSONUtil.toJsonStr(map);
+        } catch (Exception e) {
+            return StringUtils.EMPTY;
+        }
     }
 
     /**

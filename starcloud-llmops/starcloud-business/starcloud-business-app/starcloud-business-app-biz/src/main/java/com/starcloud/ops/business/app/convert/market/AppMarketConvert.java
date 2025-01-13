@@ -99,6 +99,7 @@ public interface AppMarketConvert {
         appMarket.setExample(appMarketEntity.getExample());
         appMarket.setDemo(appMarketEntity.getDemo());
         appMarket.setPluginList(JsonUtils.toJsonString(appMarketEntity.getPluginList()));
+        appMarket.setOpenVideoMode(appMarketEntity.getOpenVideoMode());
         appMarket.setAudit(appMarketEntity.getAudit());
         appMarket.setDeleted(Boolean.FALSE);
         // 处理配置信息
@@ -298,6 +299,7 @@ public interface AppMarketConvert {
         appMarketResponse.setExample(appMarket.getExample());
         appMarketResponse.setDemo(appMarket.getDemo());
         appMarketResponse.setPluginList(JsonUtils.parseArray(appMarket.getPluginList(), String.class));
+        appMarketResponse.setOpenVideoMode(appMarket.getOpenVideoMode());
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息
@@ -355,6 +357,7 @@ public interface AppMarketConvert {
         appMarketResponse.setExample(appMarket.getExample());
         appMarketResponse.setDemo(appMarket.getDemo());
         appMarketResponse.setPluginList(JsonUtils.parseArray(appMarket.getPluginList(), String.class));
+        appMarketResponse.setOpenVideoMode(appMarket.getOpenVideoMode());
         appMarketResponse.setCreateTime(appMarket.getCreateTime());
         appMarketResponse.setUpdateTime(appMarket.getUpdateTime());
         // 处理配置信息

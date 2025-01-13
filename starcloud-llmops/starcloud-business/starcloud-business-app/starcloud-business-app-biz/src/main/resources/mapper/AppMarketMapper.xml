@@ -152,6 +152,7 @@
                icon,
                images,
                plugin_list,
+               open_video_mode,
                description,
                creator,
                updater,
