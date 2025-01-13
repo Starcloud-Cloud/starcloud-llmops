@@ -139,6 +139,29 @@ public class CreativeUtils {
         return false;
     }
 
+    public static boolean checkOpenVideoMode(AppMarketRespVO app) {
+        try {
+            WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(app);
+            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                return false;
+            }
+            for (PosterStyleDTO posterStyleDTO : systemPosterStyleList) {
+                List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+                if (CollectionUtil.isEmpty(templateList)) {
+                    continue;
+                }
+                boolean openVideo = templateList.stream().anyMatch(template -> BooleanUtils.isTrue(template.getOpenVideoMode()));
+                if (openVideo) {
+                    return openVideo;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
     /**
      * 获取应用的内容生成步骤列表
      *
