@@ -34,6 +34,14 @@ public interface CreativeContentService {
     CreativeContentRespVO detail(String uid);
 
     /**
+     * 分页查询创作内容
+     *
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    PageResult<CreativeContentRespVO> page(CreativeContentPageReqVOV2 query);
+
+    /**
      * 查询创作内容列表
      *
      * @param query 查询条件
@@ -231,7 +239,7 @@ public interface CreativeContentService {
      * @param request 请求
      * @return 二维码列表
      */
-    List<CreativeContentQRCodeRespVO> batchQrCode(CreativeContentQRCodeReqVO request);
+    List<CreativeContentQRCodeRespVO> batchQrCode(List<CreativeContentQRCodeReqVO> request);
 
     /**
      * 敏感词检测

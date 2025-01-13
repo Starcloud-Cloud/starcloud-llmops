@@ -63,6 +63,13 @@ public class CreativeContentController {
         return CommonResult.success(result);
     }
 
+    @GetMapping("/pageSearch")
+    @Operation(summary = "分页查询")
+    public CommonResult<PageResult<CreativeContentRespVO>> page(@Valid CreativeContentPageReqVOV2 req) {
+        PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
+        return CommonResult.success(result);
+    }
+
     @PutMapping("/modify")
     @Operation(summary = "修改内容")
     public CommonResult<CreativeContentRespVO> modify(@Valid @RequestBody CreativeContentModifyReqVO request) {
@@ -172,7 +179,7 @@ public class CreativeContentController {
     @Operation(summary = "批量生成二维码")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody @Validated CreativeContentQRCodeReqVO request) {
+    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody @Validated List<CreativeContentQRCodeReqVO> request) {
         List<CreativeContentQRCodeRespVO> response = creativeContentService.batchQrCode(request);
         return CommonResult.success(response);
     }

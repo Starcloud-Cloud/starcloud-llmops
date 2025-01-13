@@ -478,6 +478,8 @@ public class CreativeExecuteManager {
         CreativeContentDO updateContent = new CreativeContentDO();
         updateContent.setId(latestContent.getId());
         updateContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        updateContent.setExecuteTitle(executeResult.getCopyWriting().getTitle());
+        updateContent.setExecuteTags(StringUtil.toString(executeResult.getCopyWriting().getTagList()));
         updateContent.setStartTime(start);
         updateContent.setEndTime(end);
         updateContent.setElapsed(elapsed);

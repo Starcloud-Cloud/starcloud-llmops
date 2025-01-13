@@ -36,12 +36,16 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomAction
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.VariableActionHandler;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.scheme.CreativeContentGenerateModelEnum;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.recommend.RecommendVariableFactory;
 import com.starcloud.ops.business.app.recommend.RecommendVariableItemFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import com.starcloud.ops.llm.langchain.core.schema.ModelTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -194,6 +198,50 @@ public class UpgradeDataService {
             // 更新
             content.setExecuteParam(JsonUtils.toJsonString(executeParam));
             //creativeContentMapper.updateById(content);
+        }
+        creativeContentMapper.updateBatch(creativePlanList);
+        log.info("upgradeDataCreativeContent index: {}, size: {} \n\n\n\n\n\n", index, creativePlanList.size());
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public void upgradeDataContent(Integer index, Integer size) {
+        LambdaQueryWrapper<CreativeContentDO> queryWrapper = Wrappers.lambdaQuery(CreativeContentDO.class);
+        queryWrapper.select(CreativeContentDO::getId, CreativeContentDO::getStatus, CreativeContentDO::getExecuteResult);
+
+        Page<CreativeContentDO> page = new Page<>(index, size);
+        Page<CreativeContentDO> page1 = creativeContentMapper.selectPage(page, queryWrapper);
+        List<CreativeContentDO> creativePlanList = CollectionUtil.emptyIfNull(page1.getRecords());
+
+        if (CollectionUtil.isEmpty(creativePlanList)) {
+            return;
+        }
+
+        for (CreativeContentDO content : creativePlanList) {
+            // 创作内容状态不是成功的，不处理
+            if (!CreativeContentStatusEnum.SUCCESS.name().equals(content.getStatus())) {
+                continue;
+            }
+            CreativeContentRespVO response = CreativeContentConvert.INSTANCE.convert(content);
+            CreativeContentExecuteResult executeResult = response.getExecuteResult();
+            if (executeResult == null) {
+                continue;
+            }
+            CopyWritingContent copyWriting = executeResult.getCopyWriting();
+            if (copyWriting == null) {
+                continue;
+            }
+            String title = copyWriting.getTitle();
+            List<String> tagList = copyWriting.getTagList();
+            if (StringUtils.isNotEmpty(title)) {
+                if (title.length() > 512) {
+                    title = "";
+                }
+            }
+            content.setExecuteTitle(StringUtils.defaultIfEmpty(title, StringUtils.EMPTY));
+            if (CollectionUtil.isNotEmpty(tagList)) {
+                content.setExecuteTags(StringUtil.toString(tagList));
+            }
         }
         creativeContentMapper.updateBatch(creativePlanList);
         log.info("upgradeDataCreativeContent index: {}, size: {} \n\n\n\n\n\n", index, creativePlanList.size());
