@@ -73,6 +73,11 @@ public class AppMarketEntity extends AppEntity {
     private Integer installCount;
 
     /**
+     * 开启视频生成
+     */
+    private Boolean openVideoMode;
+
+    /**
      * 应用市场数据库操作类
      */
     @JsonIgnore
