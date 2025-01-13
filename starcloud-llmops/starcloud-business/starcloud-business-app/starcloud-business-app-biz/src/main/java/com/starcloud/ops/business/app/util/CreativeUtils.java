@@ -121,7 +121,7 @@ public class CreativeUtils {
     public static boolean checkOpenVideoMode(WorkflowConfigEntity workflowConfigEntity) {
         try {
             WorkflowStepWrapper stepWrapper = workflowConfigEntity.getStepWrapper(PosterActionHandler.class);
-            String posterStyleString = stepWrapper.getVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+            String posterStyleString = stepWrapper.getVariableToString(CreativeConstants.POSTER_STYLE_CONFIG);
             if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
                 return false;
             }
