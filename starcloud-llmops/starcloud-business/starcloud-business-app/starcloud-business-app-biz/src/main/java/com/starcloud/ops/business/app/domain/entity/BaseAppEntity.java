@@ -189,11 +189,6 @@ public abstract class BaseAppEntity<Q extends AppContextReqVO, R> {
     private List<String> pluginList;
 
     /**
-     * 开启视频生成
-     */
-    private Boolean openVideoMode;
-
-    /**
      * 应用发布成功后，应用市场 uid-version
      */
     private String publishUid;
