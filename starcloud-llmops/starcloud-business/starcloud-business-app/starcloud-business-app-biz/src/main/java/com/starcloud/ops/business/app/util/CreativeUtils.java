@@ -20,6 +20,8 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableS
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
+import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.CustomActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
@@ -108,6 +110,39 @@ public class CreativeUtils {
     public static WorkflowStepWrapperRespVO getVariableStepWrapperList(AppMarketRespVO app) {
         return Optional.ofNullable(app.getStepByHandler(VariableActionHandler.class.getSimpleName()))
                 .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】必须有一个【全局变量】步骤！且有且只能有一个！"));
+    }
+
+    public static boolean checkOpenVideoMode(WorkflowConfigEntity workflowConfigEntity) {
+        try {
+            WorkflowStepWrapper stepWrapper = workflowConfigEntity.getStepWrapper(PosterActionHandler.class);
+            String posterStyleString = stepWrapper.getVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
+                return false;
+            }
+            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
+            if (CollectionUtil.isEmpty(posterStyleList)) {
+                return false;
+            }
+            List<PosterStyleDTO> systemPosterStyleList = CollectionUtil.emptyIfNull(posterStyleList).stream()
+                    .filter(item -> Objects.nonNull(item.getSystem()) && item.getSystem())
+                    .collect(Collectors.toList());
+            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+                return false;
+            }
+            for (PosterStyleDTO posterStyleDTO : systemPosterStyleList) {
+                List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+                if (CollectionUtil.isEmpty(templateList)) {
+                    continue;
+                }
+                boolean openVideo = templateList.stream().anyMatch(template -> BooleanUtils.isTrue(template.getOpenVideoMode()));
+                if (openVideo) {
+                    return openVideo;
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 
     public static boolean checkOpenVideoMode(AppMarketRespVO app) {
