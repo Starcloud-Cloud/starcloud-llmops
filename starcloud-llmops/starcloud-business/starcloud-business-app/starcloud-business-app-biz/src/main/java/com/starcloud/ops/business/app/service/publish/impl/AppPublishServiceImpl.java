@@ -40,6 +40,7 @@ import com.starcloud.ops.business.app.service.publish.AppPublishService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -450,6 +451,7 @@ public class AppPublishServiceImpl implements AppPublishService {
         if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appPublish.getType())) {
             List<PluginRespVO> list = pluginsDefinitionService.list(appPublish.getAppUid());
             appMarketEntity.setPluginList(CollectionUtil.emptyIfNull(list).stream().map(PluginRespVO::getUid).collect(Collectors.toList()));
+            appMarketEntity.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(appMarketEntity.getWorkflowConfig()));
         }
 
         AppDO app = JsonUtils.parseObject(appPublish.getAppInfo(), AppDO.class);
