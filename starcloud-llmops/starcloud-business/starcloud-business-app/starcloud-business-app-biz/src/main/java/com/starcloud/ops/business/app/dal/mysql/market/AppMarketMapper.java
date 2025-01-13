@@ -214,6 +214,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getExample,
                 AppMarketDO::getDemo,
                 AppMarketDO::getPluginList,
+                AppMarketDO::getOpenVideoMode,
                 AppMarketDO::getCreator,
                 AppMarketDO::getUpdater,
                 AppMarketDO::getCreateTime,
