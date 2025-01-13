@@ -25,12 +25,22 @@ import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
@@ -78,6 +88,7 @@ import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -86,11 +97,16 @@ import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -176,6 +192,27 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         AppMarketRespVO appInformation = contentRespVO.getExecuteParam().getAppInformation();
         contentRespVO.getExecuteParam().setQuickConfiguration(CreativeUtils.parseQuickConfiguration(appInformation));
         return contentRespVO;
+    }
+
+    /**
+     * 分页查询创作内容
+     *
+     * @param query 查询条件
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<CreativeContentRespVO> page(CreativeContentPageReqVOV2 query) {
+        IPage<CreativeContentDO> page = creativeContentMapper.page(query);
+        if (Objects.isNull(page) || CollectionUtil.isEmpty(page.getRecords())) {
+            return PageResult.empty();
+        }
+        // 处理查询结果
+        List<CreativeContentRespVO> collect = page.getRecords()
+                .stream()
+                .map(this::convertWithProgress)
+                .collect(Collectors.toList());
+        // 返回创作内容分页列表
+        return PageResult.of(collect, page.getTotal());
     }
 
     /**
@@ -684,43 +721,50 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     /**
      * 批量生成二维码
      *
-     * @param request 请求
+     * @param requestList 请求
      * @return 二维码列表
      */
     @Override
-    public List<CreativeContentQRCodeRespVO> batchQrCode(CreativeContentQRCodeReqVO request) {
-        String domain = request.getDomain();
-        List<String> uidList = request.getUidList();
-        if (CollectionUtils.isEmpty(uidList)) {
+    public List<CreativeContentQRCodeRespVO> batchQrCode(List<CreativeContentQRCodeReqVO> requestList) {
+        if (CollectionUtils.isEmpty(requestList)) {
             return Collections.emptyList();
         }
-
-        // 查询创作内容列表
-        CreativeContentListReqVO query = new CreativeContentListReqVO();
-        query.setUidList(uidList);
-        List<CreativeContentDO> list = creativeContentMapper.list(query);
-        if (CollectionUtils.isEmpty(list)) {
-            return Collections.emptyList();
-        }
-
-
         List<CreativeContentQRCodeRespVO> responseList = new ArrayList<>();
-        for (CreativeContentDO creativeContent : list) {
-            QrConfig config = new QrConfig();
-            config.setCharset(StandardCharsets.UTF_8);
-
-            domain = StrUtil.endWith(domain, "/") ? domain : domain + "/";
-            String content = StrUtil.format("{}share?uid={}", domain, creativeContent.getUid());
-            String base64 = QrCodeUtil.generateAsBase64(content, config, ImgUtil.IMAGE_TYPE_PNG);
-
-            CreativeContentQRCodeRespVO response = new CreativeContentQRCodeRespVO();
-            response.setUid(creativeContent.getUid());
-            response.setBatchId(creativeContent.getBatchUid());
-            response.setPlanUid(creativeContent.getPlanUid());
-            response.setQrCode(base64);
-            responseList.add(response);
+        for (CreativeContentQRCodeReqVO request : requestList) {
+            responseList.add(qrCode(request));
         }
         return responseList;
+    }
+
+    /**
+     * 生成二维码
+     *
+     * @param request 请求
+     * @return 二维码
+     */
+    private CreativeContentQRCodeRespVO qrCode(CreativeContentQRCodeReqVO request) {
+        String domain = request.getDomain();
+        String uid = request.getUid();
+        String type = request.getType();
+        CreativeContentDO creativeContent = creativeContentMapper.get(uid);
+        AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
+
+        QrConfig config = new QrConfig();
+        config.setCharset(StandardCharsets.UTF_8);
+        domain = StrUtil.endWith(domain, "/") ? domain : domain + "/";
+        String content;
+        if ("video".equals(type)) {
+            content = StrUtil.format("{}shareVideo?uid={}&type={}", domain, creativeContent.getUid(), type);
+        } else {
+            content = StrUtil.format("{}share?uid={}&type={}", domain, creativeContent.getUid(), type);
+        }
+        String base64 = QrCodeUtil.generateAsBase64(content, config, ImgUtil.IMAGE_TYPE_PNG);
+        CreativeContentQRCodeRespVO response = new CreativeContentQRCodeRespVO();
+        response.setUid(creativeContent.getUid());
+        response.setBatchId(creativeContent.getBatchUid());
+        response.setPlanUid(creativeContent.getPlanUid());
+        response.setQrCode(base64);
+        return response;
     }
 
     @Override

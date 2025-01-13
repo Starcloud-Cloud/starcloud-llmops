@@ -2,6 +2,7 @@ package com.starcloud.ops.business.app.dal.mysql.xhs.content;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
+import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,6 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.util.PageUtil;
@@ -78,6 +80,28 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
      * @return 创作内容任务列表
      */
     List<CreativeContentDO> listTask(@Param("query") CreativeContentTaskReqVO query);
+
+    /**
+     * 分页查询创作内容列表
+     *
+     * @param query 查询条件
+     * @return 创作内容列表
+     */
+    default IPage<CreativeContentDO> page(@Param("query") CreativeContentPageReqVOV2 query) {
+        // 构造分页条件
+        Page<CreativeContentDO> page = PageUtil.page(query);
+        // 构造查询条件
+        LambdaQueryWrapperX<CreativeContentDO> wrapper = new LambdaQueryWrapperX<>();
+        wrapper.select(CreativeContentDO.class, item -> !"execute_param".equalsIgnoreCase(item.getColumn()));
+        wrapper.likeRight(StringUtils.isNotBlank(query.getTitle()), CreativeContentDO::getExecuteTitle, query.getTitle());
+        wrapper.betweenIfPresent(CreativeContentDO::getCreateTime, query.getCreateTime());
+        if (StringUtils.isNotBlank(query.getTag())) {
+            wrapper.apply("FIND_IN_SET({0}, execute_tags)", query.getTag());
+        }
+        wrapper.orderByDesc(CreativeContentDO::getId);
+        // 执行查询
+        return selectPage(page, wrapper);
+    }
 
     /**
      * 分页查询创作内容列表
