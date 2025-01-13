@@ -184,7 +184,14 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     public CreativeContentRespVO detail(String uid) {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
         AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
-        return this.convertWithProgress(creativeContent);
+        CreativeContentRespVO contentRespVO = this.convertWithProgress(creativeContent);
+            String quickConfiguration = contentRespVO.getExecuteParam().getQuickConfiguration();
+        if (StringUtils.isNoneBlank(quickConfiguration)) {
+            return contentRespVO;
+        }
+        AppMarketRespVO appInformation = contentRespVO.getExecuteParam().getAppInformation();
+        contentRespVO.getExecuteParam().setQuickConfiguration(CreativeUtils.parseQuickConfiguration(appInformation));
+        return contentRespVO;
     }
 
     /**
