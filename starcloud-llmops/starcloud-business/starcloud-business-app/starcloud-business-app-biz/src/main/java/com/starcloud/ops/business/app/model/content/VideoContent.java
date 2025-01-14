@@ -3,8 +3,12 @@ package com.starcloud.ops.business.app.model.content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class VideoContent {
+public class VideoContent implements Serializable {
+
+    private static final long serialVersionUID = 3222185824454704834L;
 
     @Schema(description = "图片模板code 等于ImageContent.code")
     private String code;
