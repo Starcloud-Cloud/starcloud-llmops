@@ -13,6 +13,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.Cre
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
+import com.starcloud.ops.business.app.model.content.VideoContent;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
@@ -57,6 +59,13 @@ public class CreativeContentController {
     @GetMapping("/page")
     @Operation(summary = "分页查询")
     public CommonResult<PageResult<CreativeContentRespVO>> page(@Valid CreativeContentPageReqVO req) {
+        PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
+        return CommonResult.success(result);
+    }
+
+    @GetMapping("/pageSearch")
+    @Operation(summary = "分页查询")
+    public CommonResult<PageResult<CreativeContentRespVO>> page(@Valid CreativeContentPageReqVOV2 req) {
         PageResult<CreativeContentRespVO> result = creativeContentService.page(req);
         return CommonResult.success(result);
     }
@@ -170,7 +179,7 @@ public class CreativeContentController {
     @Operation(summary = "批量生成二维码")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody @Validated CreativeContentQRCodeReqVO request) {
+    public CommonResult<List<CreativeContentQRCodeRespVO>> batchQrCode(@RequestBody @Validated List<CreativeContentQRCodeReqVO> request) {
         List<CreativeContentQRCodeRespVO> response = creativeContentService.batchQrCode(request);
         return CommonResult.success(response);
     }
@@ -230,4 +239,22 @@ public class CreativeContentController {
         return CommonResult.success(metadata);
     }
 
+    @PostMapping("/video/quick")
+    @Operation(summary = "保存视频快捷配置", description = "保存视频快捷配置")
+    public CommonResult<Boolean> quickConfiguration(@Valid @RequestBody VideoConfigReqVO reqVO) {
+        creativeContentService.saveVideoConfig(reqVO);
+        return CommonResult.success(true);
+    }
+
+    @PostMapping("/video/generate")
+    @Operation(summary = "生成视频", description = "生成视频")
+    public CommonResult<VideoGeneratorConfig> generateVideo(@Valid @RequestBody VideoConfigReqVO reqVO) {
+        return CommonResult.success(creativeContentService.generateVideo(reqVO));
+    }
+
+    @PostMapping("/video/result")
+    @Operation(summary = "生成视频结果", description = "生成视频结果")
+    public CommonResult<VideoContent> generateResult(@Valid @RequestBody VideoResultReqVO resultReqVO) {
+        return CommonResult.success(creativeContentService.videoResult(resultReqVO));
+    }
 }

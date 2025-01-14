@@ -177,6 +177,11 @@ public class AppMarketDO extends TenantBaseDO {
     private String pluginList;
 
     /**
+     * 开启视频生成
+     */
+    private Boolean openVideoMode;
+
+    /**
      * 应用审核
      */
     @TableField("audit")

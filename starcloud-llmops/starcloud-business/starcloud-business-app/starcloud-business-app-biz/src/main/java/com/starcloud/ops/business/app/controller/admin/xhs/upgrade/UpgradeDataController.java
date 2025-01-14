@@ -58,5 +58,12 @@ public class UpgradeDataController {
         return CommonResult.success("成功");
     }
 
+    @PostMapping("/v2/content")
+    @DataPermission(enable = false)
+    public CommonResult<String> upgradeDataCreativeContent2(@RequestParam("index") Integer index, @RequestParam("size") Integer size) {
+        upgradeDataService.upgradeDataContent(index, size);
+        return CommonResult.success("成功");
+    }
+
 
 }

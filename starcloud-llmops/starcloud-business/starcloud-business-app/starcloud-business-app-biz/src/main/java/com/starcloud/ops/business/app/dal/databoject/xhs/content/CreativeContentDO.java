@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.xhs.content;
 
 import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
-import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.KeySequence;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -81,6 +80,18 @@ public class CreativeContentDO extends DeptBaseDO {
      */
     @TableField("execute_result")
     private String executeResult;
+
+    /**
+     * 执行标题
+     */
+    @TableField("execute_title")
+    private String executeTitle;
+
+    /**
+     * 执行描述
+     */
+    @TableField("execute_tags")
+    private String executeTags;
 
     /**
      * 开始时间

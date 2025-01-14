@@ -51,6 +51,7 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -289,6 +290,8 @@ public class AppMarketServiceImpl implements AppMarketService {
                                 if (CollectionUtil.isNotEmpty(favoriteMap)) {
                                     item.setIsFavorite(favoriteMap.containsKey(item.getUid()));
                                 }
+//                                item.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(item));
+//                                item.setWorkflowConfig(null);
                             })
                             .collect(Collectors.toList());
                     AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
@@ -348,7 +351,11 @@ public class AppMarketServiceImpl implements AppMarketService {
                     .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
                             .thenComparingLong(AppMarketRespVO::getId)
                     )
-                    .peek(item -> item.setId(null))
+                    .peek(item -> {
+                        item.setId(null);
+//                        item.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(item));
+//                        item.setWorkflowConfig(null);
+                    })
                     .collect(Collectors.toList());
 
             // 转换数据
@@ -361,6 +368,7 @@ public class AppMarketServiceImpl implements AppMarketService {
             categoryResponse.setAppList(marketList);
             result.add(categoryResponse);
         }
+
 
         return result;
     }

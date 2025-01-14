@@ -121,4 +121,10 @@ public class ActionResponseRespVO implements Serializable {
      */
     @Schema(description = "总价格")
     private BigDecimal totalPrice;
+
+    /**
+     * step 执行的参数
+     */
+    @Schema(description = "step 执行的参数")
+    private Object stepConfig;
 }
