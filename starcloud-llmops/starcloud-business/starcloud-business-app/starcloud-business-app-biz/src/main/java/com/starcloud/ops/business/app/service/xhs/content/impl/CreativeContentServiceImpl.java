@@ -25,10 +25,6 @@ import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
 import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
@@ -45,7 +41,6 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
@@ -91,10 +86,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
-import com.starcloud.ops.business.log.service.message.LogAppMessageService;
-import javax.annotation.Resource;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
@@ -835,6 +826,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 resultVideo.setCompleteVideo(completeVideo);
             }
             executeResult.setVideo(resultVideo);
+
+            // 如果视频列表和完整视频都为空，则设置为null
+            if (CollectionUtils.isEmpty(videoList) && Objects.isNull(completeVideo)) {
+                executeResult.setVideo(null);
+            }
+
             creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
         }
         creativeContentMapper.updateById(creativeContent);
