@@ -120,7 +120,6 @@ public class CreativeUtils {
 
     }
 
-
     public static boolean checkOpenVideoMode(WorkflowConfigEntity workflowConfigEntity) {
         try {
             WorkflowStepWrapper stepWrapper = workflowConfigEntity.getStepWrapper(PosterActionHandler.class);
