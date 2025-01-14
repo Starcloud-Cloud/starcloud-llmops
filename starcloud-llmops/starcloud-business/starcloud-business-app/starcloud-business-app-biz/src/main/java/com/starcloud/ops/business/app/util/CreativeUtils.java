@@ -120,38 +120,6 @@ public class CreativeUtils {
 
     }
 
-    public static boolean checkOpenVideoMode(WorkflowConfigEntity workflowConfigEntity) {
-        try {
-            WorkflowStepWrapper stepWrapper = workflowConfigEntity.getStepWrapper(PosterActionHandler.class);
-            String posterStyleString = stepWrapper.getVariableToString(CreativeConstants.POSTER_STYLE_CONFIG);
-            if (StringUtils.isBlank(posterStyleString) || "[]".equals(posterStyleString) || "null".equalsIgnoreCase(posterStyleString)) {
-                return false;
-            }
-            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(posterStyleString, PosterStyleDTO.class);
-            if (CollectionUtil.isEmpty(posterStyleList)) {
-                return false;
-            }
-            List<PosterStyleDTO> systemPosterStyleList = CollectionUtil.emptyIfNull(posterStyleList).stream()
-                    .filter(item -> Objects.nonNull(item.getSystem()) && item.getSystem())
-                    .collect(Collectors.toList());
-            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
-                return false;
-            }
-            for (PosterStyleDTO posterStyleDTO : systemPosterStyleList) {
-                List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
-                if (CollectionUtil.isEmpty(templateList)) {
-                    continue;
-                }
-                boolean openVideo = templateList.stream().anyMatch(template -> BooleanUtils.isTrue(template.getOpenVideoMode()));
-                if (openVideo) {
-                    return openVideo;
-                }
-            }
-        } catch (Exception e) {
-            return false;
-        }
-        return false;
-    }
 
     public static boolean checkOpenVideoMode(WorkflowConfigEntity workflowConfigEntity) {
         try {
