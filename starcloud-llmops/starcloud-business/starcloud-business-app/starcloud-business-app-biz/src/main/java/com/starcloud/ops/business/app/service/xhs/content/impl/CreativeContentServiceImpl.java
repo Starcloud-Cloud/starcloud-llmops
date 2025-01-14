@@ -73,6 +73,7 @@ import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.model.content.VideoContent;
+import com.starcloud.ops.business.app.model.content.VideoContentInfo;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
@@ -88,7 +89,6 @@ import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
-import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -97,6 +97,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -795,18 +796,36 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Override
     public void saveVideoConfig(VideoConfigReqVO reqVO) {
+
+        // 校验创作内容是否存在
         CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
         if (Objects.isNull(creativeContent)) {
-            throw exception(PARAM_ERROR, "创作内容不存在");
+            throw ServiceExceptionUtil.invalidParamException("创作内容不存在");
         }
-        CreativeContentExecuteParam executeParam = JsonUtils.parseObject(creativeContent.getExecuteParam(), CreativeContentExecuteParam.class);
+
+        // 保存视频配置参数
+        CreativeContentExecuteParam executeParam = getExecuteParam(creativeContent);
         executeParam.setQuickConfiguration(reqVO.getQuickConfiguration());
         creativeContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
 
-        if (CollectionUtil.isNotEmpty(reqVO.getVideoContents())) {
-            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                    creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
-            executeResult.setVideoList(reqVO.getVideoContents());
+        // 保存视频内容结果
+        if (Objects.nonNull(reqVO.getVideo())) {
+            CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+            VideoContentInfo video = reqVO.getVideo();
+            VideoContentInfo resultVideo = Optional.ofNullable(executeResult.getVideo()).orElse(new VideoContentInfo());
+
+            // 视频列表
+            List<VideoContent> videoList = video.getVideoList();
+            if (CollectionUtils.isNotEmpty(videoList)) {
+                resultVideo.setVideoList(videoList);
+            }
+
+            // 完整视频
+            VideoContent completeVideo = video.getCompleteVideo();
+            if (Objects.nonNull(completeVideo)) {
+                resultVideo.setCompleteVideo(completeVideo);
+            }
+            executeResult.setVideo(resultVideo);
             creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
         }
         creativeContentMapper.updateById(creativeContent);
@@ -913,13 +932,16 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 return;
             }
             CreativeContentDO oldContent = creativeContentMapper.get(uid);
-            CreativeContentExecuteParam executeParam = JsonUtils.parseObject(oldContent.getExecuteParam(), CreativeContentExecuteParam.class);
+            CreativeContentExecuteParam executeParam = getExecuteParam(oldContent);
             executeParam.setQuickConfiguration(quickConfiguration);
 
-            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                    oldContent.getExecuteResult(), CreativeContentExecuteResult.class);
+            CreativeContentExecuteResult executeResult = getExecuteResult(oldContent);
+            List<VideoContent> videoContentList = Optional.ofNullable(executeResult)
+                    .map(CreativeContentExecuteResult::getVideo)
+                    .map(VideoContentInfo::getVideoList)
+                    .orElse(Collections.emptyList());
 
-            for (VideoContent videoContent : executeResult.getVideoList()) {
+            for (VideoContent videoContent : videoContentList) {
                 // update status
                 if (Objects.equals(updateVideoContent.getVideoUid(), videoContent.getVideoUid())) {
 
@@ -982,8 +1004,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
 
         // 更新结果
-        response.getExecuteResult().setVideoList(videoContentList);
-        creativeContent.setExecuteResult(JsonUtils.toJsonString(response.getExecuteResult()));
+        CreativeContentExecuteResult executeResult = response.getExecuteResult();
+        VideoContentInfo video = Optional.ofNullable(executeResult.getVideo()).orElse(new VideoContentInfo());
+        video.setVideoList(videoContentList);
+        executeResult.setVideo(video);
+
+        creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
         creativeContentMapper.updateById(creativeContent);
 
         // 异步轮询结果
@@ -994,10 +1020,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Deprecated
     public List<VideoContent> videoResult(String uid) {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
-        CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
-
-        return executeResult.getVideoList();
+        CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+        return Optional.ofNullable(executeResult)
+                .map(CreativeContentExecuteResult::getVideo)
+                .map(VideoContentInfo::getVideoList)
+                .orElse(Collections.emptyList());
     }
 
     @Deprecated
@@ -1007,10 +1034,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             while (a > 0) {
                 TimeUnit.MILLISECONDS.sleep(1);
                 CreativeContentDO creativeContent = creativeContentMapper.get(uid);
-                CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                        creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
+                CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+                List<VideoContent> videoContentList = Optional.ofNullable(executeResult)
+                        .map(CreativeContentExecuteResult::getVideo)
+                        .map(VideoContentInfo::getVideoList)
+                        .orElse(Collections.emptyList());
 
-                for (VideoContent videoContent : executeResult.getVideoList()) {
+                for (VideoContent videoContent : videoContentList) {
                     // update status
                 }
                 creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
@@ -1020,9 +1050,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         } catch (Exception e) {
             log.error("update video generate result error", e);
             CreativeContentDO creativeContent = creativeContentMapper.get(uid);
-            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                    creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
-            for (VideoContent videoContent : executeResult.getVideoList()) {
+            CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+            List<VideoContent> videoContentList = Optional.ofNullable(executeResult)
+                    .map(CreativeContentExecuteResult::getVideo)
+                    .map(VideoContentInfo::getVideoList)
+                    .orElse(Collections.emptyList());
+            for (VideoContent videoContent : videoContentList) {
 //                videoContent.setMsg(e.getMessage());
             }
             creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
@@ -1215,4 +1248,27 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 处理一下海报风格
         return CreativeUtils.handlerPosterStyle(posterStyle);
     }
+
+    private static CreativeContentExecuteParam getExecuteParam(CreativeContentDO content) {
+        try {
+            CreativeContentExecuteParam param = JsonUtils.parseObject(content.getExecuteParam(), CreativeContentExecuteParam.class);
+            AppValidate.notNull(param, "获取创作内容执行参数失败");
+            return param;
+        } catch (Exception e) {
+            log.error("获取创作内容执行参数失败", e);
+            throw ServiceExceptionUtil.invalidParamException("获取创作内容执行参数失败");
+        }
+    }
+
+    private static CreativeContentExecuteResult getExecuteResult(CreativeContentDO content) {
+        try {
+            CreativeContentExecuteResult result = JsonUtils.parseObject(content.getExecuteResult(), CreativeContentExecuteResult.class);
+            AppValidate.notNull(result, "获取创作内容执行结果失败");
+            return result;
+        } catch (Exception e) {
+            log.error("获取创作内容执行结果失败", e);
+            throw ServiceExceptionUtil.invalidParamException("获取创作内容执行结果失败");
+        }
+    }
+
 }
