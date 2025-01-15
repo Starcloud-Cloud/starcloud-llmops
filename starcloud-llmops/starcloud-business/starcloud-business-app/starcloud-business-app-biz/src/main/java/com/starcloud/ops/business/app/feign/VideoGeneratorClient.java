@@ -1,8 +1,6 @@
 package com.starcloud.ops.business.app.feign;
 
-import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
-import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
-import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
+import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +30,15 @@ public interface VideoGeneratorClient {
      */
     @GetMapping(value = "/v1/videos/{video_id}")
     VideoGeneratorResponse<VideoRecordResult> getGeneratorResult(@PathVariable("video_id") String video_id);
+
+
+    /**
+     * 获取生成结果
+     *
+     * @return 模板列表
+     */
+    @PostMapping(value = "/v1/videos/merge")
+    VideoGeneratorResponse<VideoMergeResult> mergeVideos(VideoMergeConfig config);
 
 
     /**

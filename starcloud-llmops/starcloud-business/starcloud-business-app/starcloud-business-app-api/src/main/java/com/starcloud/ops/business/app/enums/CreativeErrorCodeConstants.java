@@ -351,5 +351,8 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode PARAM_ERROR = new ErrorCode(760200002, "生成视频拼装参数错误，{}");
 
+    ErrorCode VIDEO_MERGE_ERROR = new ErrorCode(760200003, "视频合并失败，{}");
+
+
 
 }

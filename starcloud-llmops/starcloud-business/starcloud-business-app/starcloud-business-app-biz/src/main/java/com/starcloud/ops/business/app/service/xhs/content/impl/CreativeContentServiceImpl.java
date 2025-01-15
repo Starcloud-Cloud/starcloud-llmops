@@ -69,6 +69,7 @@ import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
+import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
@@ -114,8 +115,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PARAM_ERROR;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 /**
  * @author nacoyer
