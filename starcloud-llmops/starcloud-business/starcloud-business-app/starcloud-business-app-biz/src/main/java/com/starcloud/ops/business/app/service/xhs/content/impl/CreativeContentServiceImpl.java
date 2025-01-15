@@ -925,7 +925,19 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
     }
 
-
+    //只做透传
+    @Override
+    public VideoMergeResult videoMerge(VideoMergeConfig config) {
+        try {
+            VideoGeneratorResponse<VideoMergeResult> generatorResult = videoGeneratorClient.mergeVideos(config);
+            if (generatorResult.getCode() != 0) {
+                throw ServiceExceptionUtil.exception(VIDEO_MERGE_ERROR, generatorResult.getMsg());
+            }
+            return generatorResult.getData();
+        } catch (Exception e) {
+            throw new ServiceException(500, e.getMessage());
+        }
+    }
     /**
      * 视频生成并发更新加锁
      */
