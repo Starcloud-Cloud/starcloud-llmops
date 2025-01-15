@@ -13,6 +13,9 @@ public class VideoContent implements Serializable {
     @Schema(description = "图片模板code 等于ImageContent.code")
     private String code;
 
+    @Schema(description = "图片地址")
+    private String imageUrl;
+
     @Schema(description = "视频uid")
     private String videoUid;
 
