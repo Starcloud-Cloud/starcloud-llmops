@@ -65,6 +65,7 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
+import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
@@ -186,7 +187,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
         AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
         CreativeContentRespVO contentRespVO = this.convertWithProgress(creativeContent);
-            String quickConfiguration = contentRespVO.getExecuteParam().getQuickConfiguration();
+        String quickConfiguration = contentRespVO.getExecuteParam().getQuickConfiguration();
         if (StringUtils.isNoneBlank(quickConfiguration)) {
             return contentRespVO;
         }
@@ -874,7 +875,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(PARAM_ERROR, "创作内容不存在");
         }
         CreativeContentRespVO contentRespVO = CreativeContentConvert.INSTANCE.convert(creativeContent);
-        Map<String, String> resources = buildResources(contentRespVO, imageCode);
+        Map<String, String> resources = buildResources(contentRespVO, reqVO.getImageUrl());
 
         List<ImageContent> imageContents = Optional.ofNullable(contentRespVO.getExecuteResult())
                 .map(CreativeContentExecuteResult::getImageList).orElseThrow(() -> exception(PARAM_ERROR, "没有图片生成结果"));
@@ -882,14 +883,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(PARAM_ERROR, "没有图片生成结果");
         }
 
-        for (ImageContent imageContent : imageContents) {
-            if (Objects.equals(imageContent.getCode(), imageCode)) {
-                if (Objects.isNull(videoConfig.getGlobalSettings().getBackground())) {
-                    videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
-                }
-                videoConfig.getGlobalSettings().getBackground().setSource(imageContent.getUrl());
-            }
+        if (Objects.isNull(videoConfig.getGlobalSettings().getBackground())) {
+            videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
         }
+        videoConfig.getGlobalSettings().getBackground().setSource(reqVO.getImageUrl());
         videoConfig.setResources(resources);
         videoConfig.setId(null);
         try {
@@ -921,6 +918,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setStatus(data.getStatus());
             content.setError(data.getError());
             content.setCode(resultReqVO.getImageCode());
+            content.setImageUrl(resultReqVO.getImageUrl());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
@@ -1070,38 +1068,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
 
-    private Map<String, String> buildResources(CreativeContentRespVO contentRespVO, String imageCode) {
-        String conversationUid = contentRespVO.getConversationUid();
-        LogAppMessageListReqVO query = new LogAppMessageListReqVO();
-        query.setAppConversationUid(conversationUid);
-        query.setStatus("SUCCESS");
-        List<LogAppMessageDO> appMessageList = logAppMessageService.listAppLogMessage(query);
-        if (CollectionUtil.isEmpty(appMessageList)) {
-            throw exception(PARAM_ERROR, "生成视频素材不存在");
-        }
-
-        // id 倒序第一条为图片步骤
-        LogAppMessageDO logAppMessage = appMessageList.get(0);
-        AppRespVO appRespVO = JSONUtil.toBean(logAppMessage.getAppConfig(), AppRespVO.class);
-
-        String stepConfig = Optional.ofNullable(appRespVO).map(AppRespVO::getWorkflowConfig)
-                .map(item -> item.getStepByHandler("PosterActionHandler"))
-                .map(WorkflowStepWrapperRespVO::getFlowStep)
-                .map(WorkflowStepRespVO::getResponse)
-                .map(ActionResponseRespVO::getStepConfig)
-                .map(String::valueOf)
-                .orElseThrow(() -> exception(PARAM_ERROR, "步骤参数不存在"));
-
-        PosterStyleDTO posterStyleDTO = JsonUtils.parseObject(stepConfig, PosterStyleDTO.class);
+    private Map<String, String> buildResources(CreativeContentRespVO contentRespVO, String imageUrl) {
         Map<String, String> resources = new HashMap<>();
-
-        for (PosterTemplateDTO posterTemplate : posterStyleDTO.getTemplateList()) {
-            if (!Objects.equals(posterTemplate.getCode(), imageCode)) {
-                continue;
-            }
-            for (PosterVariableDTO posterVariableDTO : posterTemplate.getVariableList()) {
-                if (Objects.nonNull(posterVariableDTO.getValue())) {
-                    resources.put(posterVariableDTO.getField(), String.valueOf(posterVariableDTO.getValue()));
+        for (ImageContent imageContent : contentRespVO.getExecuteResult().getImageList()) {
+            if (Objects.equals(imageContent.getUrl(), imageUrl)) {
+                Map<String, PosterImageParam> finalParams = imageContent.getFinalParams();
+                if (CollectionUtil.isEmpty(finalParams)) {
+                    throw exception(PARAM_ERROR, "没有图片生成参数");
+                }
+                for (Map.Entry<String, PosterImageParam> entry : finalParams.entrySet()) {
+                    if (Objects.nonNull(entry.getValue()) && StringUtils.isNoneBlank(entry.getValue().getText())) {
+                        resources.put(entry.getKey(), entry.getValue().getText());
+                    }
                 }
             }
         }
