@@ -825,12 +825,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             if (Objects.nonNull(completeVideo)) {
                 resultVideo.setCompleteVideo(completeVideo);
             }
-
-            // 如果视频列表和完整视频都为空，则设置为null
-            if (CollectionUtils.isEmpty(videoList) && Objects.isNull(completeVideo)) {
-                executeResult.setVideo(null);
-            }
-
             executeResult.setVideo(resultVideo);
 
             // 如果视频列表和完整视频都为空，则设置为null
