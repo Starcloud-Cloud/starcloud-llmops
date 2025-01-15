@@ -604,6 +604,7 @@ public class CreativeExecuteManager {
                 imageContent.setName(response.getName());
                 imageContent.setIsMain(response.getIsMain());
                 imageContent.setUrl(posterImage.getUrl());
+                imageContent.setFinalParams(posterImage.getFinalParams());
                 imageList.add(imageContent);
             }
         }
