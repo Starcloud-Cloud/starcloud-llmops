@@ -8,6 +8,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
+import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
+import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
 import com.starcloud.ops.business.app.model.content.VideoContent;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,6 +91,9 @@ public interface CreativeContentService {
      * 视频生成结果
      */
     VideoContent videoResult(VideoResultReqVO resultReqVO);
+
+
+    VideoMergeResult videoMerge(VideoMergeConfig config);
 
     /**
      * 查询创作内容生成的图片
@@ -245,4 +250,5 @@ public interface CreativeContentService {
      * 敏感词检测
      */
     CreativeContentRiskRespVO risk(CreativeContentRiskReqVO reqVO);
+
 }

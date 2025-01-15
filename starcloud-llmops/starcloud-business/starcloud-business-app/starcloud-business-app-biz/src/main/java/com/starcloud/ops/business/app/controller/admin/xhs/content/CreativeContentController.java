@@ -14,6 +14,8 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
+import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
+import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
 import com.starcloud.ops.business.app.model.content.VideoContent;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
@@ -256,5 +258,11 @@ public class CreativeContentController {
     @Operation(summary = "生成视频结果", description = "生成视频结果")
     public CommonResult<VideoContent> generateResult(@Valid @RequestBody VideoResultReqVO resultReqVO) {
         return CommonResult.success(creativeContentService.videoResult(resultReqVO));
+    }
+
+    @PostMapping("/video/merge")
+    @Operation(summary = "视频合并", description = "视频合并")
+    public CommonResult<VideoMergeResult> generateResult(@Valid @RequestBody VideoMergeConfig videoMergeConfig) {
+        return CommonResult.success(creativeContentService.videoMerge(videoMergeConfig));
     }
 }
