@@ -201,10 +201,11 @@ public class CreativeUtils {
             VideoGeneratorConfig videoConfig = JSONUtil.toBean(posterTemplate.getVideoConfig(), VideoGeneratorConfig.class);
             Map<String, Object> map = new HashMap<>(4);
 
-            map.put("voiceRole",videoConfig.getGlobalSettings().getVoiceRole());
-            map.put("repeatRole",videoConfig.getGlobalSettings().getRepeatRole());
-            map.put("repeatEnable",videoConfig.getGlobalSettings().getRepeatEnable());
-            map.put("soundEffect",videoConfig.getGlobalSettings().getSoundEffect());
+            map.put("voiceRole", videoConfig.getGlobalSettings().getVoiceRole());
+            map.put("repeatRole", videoConfig.getGlobalSettings().getRepeatRole());
+            map.put("repeatEnable", videoConfig.getGlobalSettings().getRepeatEnable());
+            map.put("soundEffect", videoConfig.getGlobalSettings().getSoundEffect());
+            map.put("animationEnable", videoConfig.getGlobalSettings().getAnimationEnable());
             return JSONUtil.toJsonStr(map);
         } catch (Exception e) {
             return StringUtils.EMPTY;
