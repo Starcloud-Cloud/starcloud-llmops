@@ -171,25 +171,17 @@ public class CreativeUtils {
     public static String parseQuickConfiguration(AppMarketRespVO appInformation) {
         try {
             WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
-            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
-            if (CollectionUtil.isEmpty(systemPosterStyleList)) {
+            PosterStyleDTO posterStyleDTO = getPosterStyleByStepWrapper(posterStepWrapper);
+
+            List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+            if (CollectionUtil.isEmpty(templateList)) {
                 return StringUtils.EMPTY;
             }
-            PosterTemplateDTO posterTemplate = null;
-            for (PosterStyleDTO posterStyleDTO : systemPosterStyleList) {
-                List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
-                if (CollectionUtil.isEmpty(templateList)) {
-                    continue;
-                }
-                Optional<PosterTemplateDTO> posterTemplateDTO = templateList.stream().filter(template -> BooleanUtils.isTrue(template.getOpenVideoMode())).findFirst();
-                if (posterTemplateDTO.isPresent()) {
-                    posterTemplate = posterTemplateDTO.get();
-                    break;
-                }
-            }
-            if (Objects.isNull(posterTemplate)) {
+            Optional<PosterTemplateDTO> posterTemplateDTO = templateList.stream().filter(template -> BooleanUtils.isTrue(template.getOpenVideoMode())).findFirst();
+            if (!posterTemplateDTO.isPresent()) {
                 return StringUtils.EMPTY;
             }
+            PosterTemplateDTO posterTemplate = posterTemplateDTO.get();
             VideoGeneratorConfig videoConfig = JSONUtil.toBean(posterTemplate.getVideoConfig(), VideoGeneratorConfig.class);
             Map<String, Object> map = new HashMap<>(4);
 
