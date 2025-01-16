@@ -1,11 +1,13 @@
 package com.starcloud.ops.business.app.model.content;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VideoContent implements Serializable {
 
     private static final long serialVersionUID = 3222185824454704834L;

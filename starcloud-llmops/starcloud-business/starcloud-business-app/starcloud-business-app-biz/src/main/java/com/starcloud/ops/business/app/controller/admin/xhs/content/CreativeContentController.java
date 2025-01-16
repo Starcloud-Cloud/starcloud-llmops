@@ -257,4 +257,10 @@ public class CreativeContentController {
     public CommonResult<VideoContent> generateResult(@Valid @RequestBody VideoResultReqVO resultReqVO) {
         return CommonResult.success(creativeContentService.videoResult(resultReqVO));
     }
+
+    @GetMapping("/resource/{uid}")
+    @Operation(summary = "获取创作内容资源配置")
+    public CommonResult<CreativeContentResourceRespVO> getResource(@PathVariable("uid") String uid) {
+        return CommonResult.success(creativeContentService.getResource(uid));
+    }
 }
