@@ -172,6 +172,9 @@ public class CreativeUtils {
         try {
             WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
             PosterStyleDTO posterStyleDTO = getPosterStyleByStepWrapper(posterStepWrapper);
+            if (Objects.isNull(posterStyleDTO)) {
+                return StringUtils.EMPTY;
+            }
 
             List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
             if (CollectionUtil.isEmpty(templateList)) {
