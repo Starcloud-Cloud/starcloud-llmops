@@ -179,7 +179,7 @@ public class CreativeUtils {
     public static String parseQuickConfiguration(AppMarketRespVO appInformation) {
         try {
             WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
-            List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+            List<PosterStyleDTO> systemPosterStyleList = getPosterStyleListByStepWrapper(posterStepWrapper);
             if (CollectionUtil.isEmpty(systemPosterStyleList)) {
                 return StringUtils.EMPTY;
             }
