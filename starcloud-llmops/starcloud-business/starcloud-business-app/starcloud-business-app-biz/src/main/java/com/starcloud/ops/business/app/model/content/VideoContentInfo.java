@@ -24,5 +24,11 @@ public class VideoContentInfo implements Serializable {
      * 完整的视频
      */
     @Schema(description = "完整的视频")
-    private VideoContent completeVideo;
+    private String completeVideoUrl;
+
+    /**
+     * 完整的音频
+     */
+    @Schema(description = "完整的音频")
+    private String completeAudioUrl;
 }

@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.model.content;
 
+import com.starcloud.ops.business.app.model.content.resource.ResourceContentInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,5 +40,11 @@ public class CreativeContentExecuteResult implements java.io.Serializable {
      */
     @Schema(description = "视频")
     private VideoContentInfo video;
+
+    /**
+     * 资源
+     */
+    @Schema(description = "资源")
+    private ResourceContentInfo resource;
 
 }

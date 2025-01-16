@@ -40,6 +40,7 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnu
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.service.log.AppLogService;
+import com.starcloud.ops.business.app.service.xhs.content.impl.CreativeContentServiceImpl;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.util.MarkdownUtils;
 import com.starcloud.ops.business.app.util.UserRightSceneUtils;
@@ -474,6 +475,10 @@ public class CreativeExecuteManager {
     private void updateContentSuccess(CreativeContentDO latestContent, CreativeContentExecuteResult executeResult, LocalDateTime start) {
         LocalDateTime end = LocalDateTime.now();
         long elapsed = Duration.between(start, end).toMillis();
+        CreativeContentExecuteResult result = CreativeContentServiceImpl.getExecuteResult(latestContent);
+        executeResult.setVideo(result.getVideo());
+        executeResult.setResource(result.getResource());
+
         // 更新执行结果
         CreativeContentDO updateContent = new CreativeContentDO();
         updateContent.setId(latestContent.getId());
