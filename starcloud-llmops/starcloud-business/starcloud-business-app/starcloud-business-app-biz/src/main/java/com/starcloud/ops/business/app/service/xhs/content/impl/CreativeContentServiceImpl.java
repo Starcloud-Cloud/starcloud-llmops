@@ -991,6 +991,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
 
         WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
+        wordbookPdfRequest.setWordbookImageUrlList(wordbookUrlList);
         VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
         if (response.getCode() != 0) {
             throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
