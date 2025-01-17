@@ -22,4 +22,7 @@ public class VideoResultReqVO {
     @NotBlank(message = "图片模板code必填")
     private String imageCode;
 
+    @Schema(description = "图片地址")
+    @NotBlank(message = "图片地址必填")
+    private String imageUrl;
 }
