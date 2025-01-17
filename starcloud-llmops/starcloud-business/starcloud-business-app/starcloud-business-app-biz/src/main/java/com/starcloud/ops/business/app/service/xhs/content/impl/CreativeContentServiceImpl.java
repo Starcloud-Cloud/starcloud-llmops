@@ -22,9 +22,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
@@ -70,10 +67,11 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
-import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
+import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
+import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
@@ -101,8 +99,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -130,7 +126,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PARAM_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_MERGE_ERROR;
 
 /**
  * @author nacoyer
