@@ -37,12 +37,14 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
@@ -66,11 +68,20 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
 import com.starcloud.ops.business.app.feign.dto.video.*;
+import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
+import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
+import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.model.content.VideoContent;
+import com.starcloud.ops.business.app.model.content.VideoContentInfo;
+import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceConfiguration;
+import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceImage2PdfConfiguration;
+import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceWordbook2PdfConfiguration;
+import com.starcloud.ops.business.app.model.content.resource.ResourceContentInfo;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
@@ -86,7 +97,6 @@ import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
-import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -95,6 +105,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -182,7 +193,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
         AppValidate.notNull(creativeContent, "创作内容不存在({})", uid);
         CreativeContentRespVO contentRespVO = this.convertWithProgress(creativeContent);
-            String quickConfiguration = contentRespVO.getExecuteParam().getQuickConfiguration();
+        String quickConfiguration = contentRespVO.getExecuteParam().getQuickConfiguration();
         if (StringUtils.isNoneBlank(quickConfiguration)) {
             return contentRespVO;
         }
@@ -790,20 +801,220 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         return respVO;
     }
 
+    /**
+     * 获取资源信息
+     *
+     * @param uid 创作内容UID
+     * @return 资源信息
+     */
+    @Override
+    public CreativeContentResourceRespVO getResource(String uid) {
+        CreativeContentDO content = creativeContentMapper.get(uid);
+        AppValidate.notNull(content, "创作内容不存在({})", uid);
+
+        // 获取执行参数
+        CreativeContentExecuteParam executeParam = getExecuteParam(content);
+        AppValidate.notNull(executeParam, "创作内容执行参数不存在({})", uid);
+        CreativeContentResourceConfiguration resourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration()).orElse(new CreativeContentResourceConfiguration());
+
+        // 获取执行结果
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        AppValidate.notNull(executeResult, "创作内容执行结果不存在({})", uid);
+        ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
+        // 如果完整视频和完整音频为空，则从视频信息中获取
+        if (StringUtils.isBlank(resource.getCompleteVideoUrl()) || StringUtils.isBlank(resource.getCompleteAudioUrl())) {
+            VideoContentInfo video = executeResult.getVideo();
+            AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
+            // 如果完整视频为空，则从视频信息中获取
+            if (StringUtils.isBlank(resource.getCompleteVideoUrl())) {
+                String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
+                AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+                resource.setCompleteVideoUrl(completeVideoUrl);
+            }
+            // 如果完整音频为空，则从视频信息中获取
+            if (StringUtils.isBlank(resource.getCompleteAudioUrl())) {
+                String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
+                AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+                resource.setCompleteAudioUrl(completeAudioUrl);
+            }
+        }
+
+        // 生成分享二维码
+        QrConfig config = new QrConfig();
+        config.setCharset(StandardCharsets.UTF_8);
+        String qrContent = "share?sss";
+        String shareQrCode = QrCodeUtil.generateAsBase64(qrContent, config, ImgUtil.IMAGE_TYPE_PNG);
+
+        CreativeContentResourceRespVO response = new CreativeContentResourceRespVO();
+        response.setUid(uid);
+        response.setResourceConfiguration(resourceConfiguration);
+        response.setResource(resource);
+        response.setShareQrCode(shareQrCode);
+
+        return response;
+    }
+
+    /**
+     * 保存资源配置
+     *
+     * @param request 请求
+     */
+    @Override
+    public void saveResourceConfig(CreativeContentResourceConfigurationReqVO request) {
+        CreativeContentDO content = creativeContentMapper.get(request.getUid());
+        AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
+
+        // 参数封装
+        CreativeContentExecuteParam executeParam = getExecuteParam(content);
+        executeParam.setResourceConfiguration(request.getResourceConfiguration());
+        content.setExecuteParam(JsonUtils.toJsonString(executeParam));
+
+        // 结果封装
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        executeResult.setResource(request.getResource());
+        content.setExecuteResult(JsonUtils.toJsonString(executeResult));
+
+        creativeContentMapper.updateById(content);
+    }
+
+    /**
+     * 生成图片PDF
+     *
+     * @param request 请求
+     * @return PDF URL
+     */
+    @Override
+    public String generateImagePdf(CreativeContentResourceConfigurationReqVO request) {
+        CreativeContentDO content = creativeContentMapper.get(request.getUid());
+        AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
+
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        List<ImageContent> imageList = executeResult.getImageList();
+        if (CollectionUtils.isEmpty(imageList)) {
+            throw ServiceExceptionUtil.invalidParamException("图片生成列表不能为空");
+        }
+
+        ResourceContentInfo resource = executeResult.getResource();
+        String videoUrl = resource.getCompleteVideoUrl();
+        String audioUrl = resource.getCompleteAudioUrl();
+
+        CreativeContentResourceConfiguration configuration = request.getResourceConfiguration();
+        CreativeContentResourceImage2PdfConfiguration imagePdfConfiguration = configuration.getImagePdfConfiguration();
+        if (Objects.isNull(imagePdfConfiguration)) {
+            throw ServiceExceptionUtil.invalidParamException("图片PDF配置不能为空");
+        }
+        Boolean isAddAudioQrCode = imagePdfConfiguration.getIsAddAudioQrCode();
+        Boolean isAddVideoQrCode = imagePdfConfiguration.getIsAddVideoQrCode();
+        String qrCodeLocation = imagePdfConfiguration.getQrCodeLocation();
+
+
+        return "";
+    }
+
+    /**
+     * 生成视频PDF
+     *
+     * @param request 请求
+     * @return PDF URL
+     */
+    @Override
+    public String generateWordBookPdf(CreativeContentResourceConfigurationReqVO request) {
+        CreativeContentDO content = creativeContentMapper.get(request.getUid());
+        AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
+
+        // 获取执行使用的素材列表
+        CreativeContentExecuteParam executeParam = getExecuteParam(content);
+        AppMarketRespVO appInformation = executeParam.getAppInformation();
+        // 素材步骤
+        WorkflowStepWrapperRespVO materialWrapper = this.materialStepWrapper(appInformation);
+        String materialStepId = materialWrapper.getStepCode();
+
+        // 素材库列表
+        List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
+        AppValidate.notEmpty(materialList, "素材库列表不能为空，请联系管理员！");
+
+        CreativeContentResourceConfiguration resourceConfiguration = request.getResourceConfiguration();
+        CreativeContentResourceWordbook2PdfConfiguration wordbookPdfConfiguration = resourceConfiguration.getWordbookPdfConfiguration();
+
+        // 单词字段
+        String wordField = wordbookPdfConfiguration.getWordField();
+        String paraphraseField = wordbookPdfConfiguration.getParaphraseField();
+
+        PosterTemplateDTO posterTemplate = wordbookPdfConfiguration.getPosterTemplate();
+        PosterTemplateDTO template = CreativeUtils.handlerPosterTemplate(posterTemplate, 0);
+
+        List<PosterVariableDTO> variableList = template.getVariableList();
+        List<String> variableFieldNameList = CollectionUtil.emptyIfNull(variableList)
+                .stream()
+                .map(PosterVariableDTO::getField)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+        // 获取单词字段的最大值
+        int wordFiledCount = CreativeUtils.getWordFieldCount(variableFieldNameList);
+        // 获取单词释义字段的最大值
+        int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableFieldNameList);
+        // 确定每张图需要多少素材
+        int count = Math.max(wordFiledCount, paraphraseFieldCount);
+
+        if (count <= 0) {
+            throw ServiceExceptionUtil.invalidParamException("单词卡模板配置异常！请联系管理员！");
+        }
+
+        // 此时说明，素材只够生成一张图
+        if (materialList.size() <= count) {
+
+
+
+        }
+
+        return "";
+    }
+
     @Override
     public void saveVideoConfig(VideoConfigReqVO reqVO) {
+
+        // 校验创作内容是否存在
         CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
         if (Objects.isNull(creativeContent)) {
-            throw exception(PARAM_ERROR, "创作内容不存在");
+            throw ServiceExceptionUtil.invalidParamException("创作内容不存在");
         }
-        CreativeContentExecuteParam executeParam = JsonUtils.parseObject(creativeContent.getExecuteParam(), CreativeContentExecuteParam.class);
+
+        // 保存视频配置参数
+        CreativeContentExecuteParam executeParam = getExecuteParam(creativeContent);
         executeParam.setQuickConfiguration(reqVO.getQuickConfiguration());
         creativeContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
 
-        if (CollectionUtil.isNotEmpty(reqVO.getVideoContents())) {
-            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                    creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
-            executeResult.setVideoList(reqVO.getVideoContents());
+        // 保存视频内容结果
+        if (Objects.nonNull(reqVO.getVideo())) {
+            CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+            VideoContentInfo video = reqVO.getVideo();
+            VideoContentInfo resultVideo = Optional.ofNullable(executeResult.getVideo()).orElse(new VideoContentInfo());
+
+            // 视频列表
+            List<VideoContent> videoList = video.getVideoList();
+            if (CollectionUtils.isNotEmpty(videoList)) {
+                resultVideo.setVideoList(videoList);
+            }
+
+            // 完整视频
+            String completeVideo = video.getCompleteVideoUrl();
+            if (StringUtils.isNotBlank(completeVideo)) {
+                resultVideo.setCompleteVideoUrl(completeVideo);
+            }
+
+            // 完整的音频
+            String completeAudio = video.getCompleteAudioUrl();
+            if (StringUtils.isNotBlank(completeAudio)) {
+                resultVideo.setCompleteAudioUrl(completeAudio);
+            }
+
+            // 如果视频列表和完整视频都为空，则设置为null
+            if (CollectionUtils.isEmpty(videoList) && StringUtils.isBlank(completeVideo) && StringUtils.isBlank(completeAudio)) {
+                executeResult.setVideo(null);
+            }
+
+            executeResult.setVideo(resultVideo);
             creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
         }
         creativeContentMapper.updateById(creativeContent);
@@ -846,7 +1057,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(PARAM_ERROR, "创作内容不存在");
         }
         CreativeContentRespVO contentRespVO = CreativeContentConvert.INSTANCE.convert(creativeContent);
-        Map<String, String> resources = buildResources(contentRespVO, imageCode);
+        Map<String, String> resources = buildResources(contentRespVO, reqVO.getImageUrl());
 
         List<ImageContent> imageContents = Optional.ofNullable(contentRespVO.getExecuteResult())
                 .map(CreativeContentExecuteResult::getImageList).orElseThrow(() -> exception(PARAM_ERROR, "没有图片生成结果"));
@@ -854,14 +1065,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw exception(PARAM_ERROR, "没有图片生成结果");
         }
 
-        for (ImageContent imageContent : imageContents) {
-            if (Objects.equals(imageContent.getCode(), imageCode)) {
-                if (Objects.isNull(videoConfig.getGlobalSettings().getBackground())) {
-                    videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
-                }
-                videoConfig.getGlobalSettings().getBackground().setSource(imageContent.getUrl());
-            }
+        if (Objects.isNull(videoConfig.getGlobalSettings().getBackground())) {
+            videoConfig.getGlobalSettings().setBackground(new VideoGeneratorConfig.Background());
         }
+        videoConfig.getGlobalSettings().getBackground().setSource(reqVO.getImageUrl());
         videoConfig.setResources(resources);
         videoConfig.setId(null);
         try {
@@ -893,12 +1100,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setStatus(data.getStatus());
             content.setError(data.getError());
             content.setCode(resultReqVO.getImageCode());
+            content.setImageUrl(resultReqVO.getImageUrl());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
         }
     }
-
 
     /**
      * 视频生成并发更新加锁
@@ -910,13 +1117,16 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 return;
             }
             CreativeContentDO oldContent = creativeContentMapper.get(uid);
-            CreativeContentExecuteParam executeParam = JsonUtils.parseObject(oldContent.getExecuteParam(), CreativeContentExecuteParam.class);
+            CreativeContentExecuteParam executeParam = getExecuteParam(oldContent);
             executeParam.setQuickConfiguration(quickConfiguration);
 
-            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                    oldContent.getExecuteResult(), CreativeContentExecuteResult.class);
+            CreativeContentExecuteResult executeResult = getExecuteResult(oldContent);
+            List<VideoContent> videoContentList = Optional.ofNullable(executeResult)
+                    .map(CreativeContentExecuteResult::getVideo)
+                    .map(VideoContentInfo::getVideoList)
+                    .orElse(Collections.emptyList());
 
-            for (VideoContent videoContent : executeResult.getVideoList()) {
+            for (VideoContent videoContent : videoContentList) {
                 // update status
                 if (Objects.equals(updateVideoContent.getVideoUid(), videoContent.getVideoUid())) {
 
@@ -979,8 +1189,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
 
         // 更新结果
-        response.getExecuteResult().setVideoList(videoContentList);
-        creativeContent.setExecuteResult(JsonUtils.toJsonString(response.getExecuteResult()));
+        CreativeContentExecuteResult executeResult = response.getExecuteResult();
+        VideoContentInfo video = Optional.ofNullable(executeResult.getVideo()).orElse(new VideoContentInfo());
+        video.setVideoList(videoContentList);
+        executeResult.setVideo(video);
+
+        creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
         creativeContentMapper.updateById(creativeContent);
 
         // 异步轮询结果
@@ -991,10 +1205,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     @Deprecated
     public List<VideoContent> videoResult(String uid) {
         CreativeContentDO creativeContent = creativeContentMapper.get(uid);
-        CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
-
-        return executeResult.getVideoList();
+        CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+        return Optional.ofNullable(executeResult)
+                .map(CreativeContentExecuteResult::getVideo)
+                .map(VideoContentInfo::getVideoList)
+                .orElse(Collections.emptyList());
     }
 
     @Deprecated
@@ -1004,10 +1219,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             while (a > 0) {
                 TimeUnit.MILLISECONDS.sleep(1);
                 CreativeContentDO creativeContent = creativeContentMapper.get(uid);
-                CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                        creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
+                CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+                List<VideoContent> videoContentList = Optional.ofNullable(executeResult)
+                        .map(CreativeContentExecuteResult::getVideo)
+                        .map(VideoContentInfo::getVideoList)
+                        .orElse(Collections.emptyList());
 
-                for (VideoContent videoContent : executeResult.getVideoList()) {
+                for (VideoContent videoContent : videoContentList) {
                     // update status
                 }
                 creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
@@ -1017,9 +1235,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         } catch (Exception e) {
             log.error("update video generate result error", e);
             CreativeContentDO creativeContent = creativeContentMapper.get(uid);
-            CreativeContentExecuteResult executeResult = JsonUtils.parseObject(
-                    creativeContent.getExecuteResult(), CreativeContentExecuteResult.class);
-            for (VideoContent videoContent : executeResult.getVideoList()) {
+            CreativeContentExecuteResult executeResult = getExecuteResult(creativeContent);
+            List<VideoContent> videoContentList = Optional.ofNullable(executeResult)
+                    .map(CreativeContentExecuteResult::getVideo)
+                    .map(VideoContentInfo::getVideoList)
+                    .orElse(Collections.emptyList());
+            for (VideoContent videoContent : videoContentList) {
 //                videoContent.setMsg(e.getMessage());
             }
             creativeContent.setExecuteResult(JsonUtils.toJsonString(executeResult));
@@ -1028,55 +1249,18 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
 
-
-
-    //只做透传
-    @Override
-    public VideoMergeResult videoMerge(VideoMergeConfig config) {
-        try {
-            VideoGeneratorResponse<VideoMergeResult> generatorResult = videoGeneratorClient.mergeVideos(config);
-            if (generatorResult.getCode() != 0) {
-                throw ServiceExceptionUtil.exception(VIDEO_MERGE_ERROR, generatorResult.getMsg());
-            }
-            return generatorResult.getData();
-        } catch (Exception e) {
-            throw new ServiceException(500, e.getMessage());
-        }
-    }
-
-
-    private Map<String, String> buildResources(CreativeContentRespVO contentRespVO, String imageCode) {
-        String conversationUid = contentRespVO.getConversationUid();
-        LogAppMessageListReqVO query = new LogAppMessageListReqVO();
-        query.setAppConversationUid(conversationUid);
-        query.setStatus("SUCCESS");
-        List<LogAppMessageDO> appMessageList = logAppMessageService.listAppLogMessage(query);
-        if (CollectionUtil.isEmpty(appMessageList)) {
-            throw exception(PARAM_ERROR, "生成视频素材不存在");
-        }
-
-        // id 倒序第一条为图片步骤
-        LogAppMessageDO logAppMessage = appMessageList.get(0);
-        AppRespVO appRespVO = JSONUtil.toBean(logAppMessage.getAppConfig(), AppRespVO.class);
-
-        String stepConfig = Optional.ofNullable(appRespVO).map(AppRespVO::getWorkflowConfig)
-                .map(item -> item.getStepByHandler("PosterActionHandler"))
-                .map(WorkflowStepWrapperRespVO::getFlowStep)
-                .map(WorkflowStepRespVO::getResponse)
-                .map(ActionResponseRespVO::getStepConfig)
-                .map(String::valueOf)
-                .orElseThrow(() -> exception(PARAM_ERROR, "步骤参数不存在"));
-
-        PosterStyleDTO posterStyleDTO = JsonUtils.parseObject(stepConfig, PosterStyleDTO.class);
+    private Map<String, String> buildResources(CreativeContentRespVO contentRespVO, String imageUrl) {
         Map<String, String> resources = new HashMap<>();
-
-        for (PosterTemplateDTO posterTemplate : posterStyleDTO.getTemplateList()) {
-            if (!Objects.equals(posterTemplate.getCode(), imageCode)) {
-                continue;
-            }
-            for (PosterVariableDTO posterVariableDTO : posterTemplate.getVariableList()) {
-                if (Objects.nonNull(posterVariableDTO.getValue())) {
-                    resources.put(posterVariableDTO.getField(), String.valueOf(posterVariableDTO.getValue()));
+        for (ImageContent imageContent : contentRespVO.getExecuteResult().getImageList()) {
+            if (Objects.equals(imageContent.getUrl(), imageUrl)) {
+                Map<String, PosterImageParam> finalParams = imageContent.getFinalParams();
+                if (CollectionUtil.isEmpty(finalParams)) {
+                    throw exception(PARAM_ERROR, "没有图片生成参数");
+                }
+                for (Map.Entry<String, PosterImageParam> entry : finalParams.entrySet()) {
+                    if (Objects.nonNull(entry.getValue()) && StringUtils.isNoneBlank(entry.getValue().getText())) {
+                        resources.put(entry.getKey(), entry.getValue().getText());
+                    }
                 }
             }
         }
@@ -1229,4 +1413,27 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 处理一下海报风格
         return CreativeUtils.handlerPosterStyle(posterStyle);
     }
+
+    public static CreativeContentExecuteParam getExecuteParam(CreativeContentDO content) {
+        try {
+            CreativeContentExecuteParam param = JsonUtils.parseObject(content.getExecuteParam(), CreativeContentExecuteParam.class);
+            AppValidate.notNull(param, "获取创作内容执行参数失败");
+            return param;
+        } catch (Exception e) {
+            log.error("获取创作内容执行参数失败", e);
+            throw ServiceExceptionUtil.invalidParamException("获取创作内容执行参数失败");
+        }
+    }
+
+    public static CreativeContentExecuteResult getExecuteResult(CreativeContentDO content) {
+        try {
+            CreativeContentExecuteResult result = JsonUtils.parseObject(content.getExecuteResult(), CreativeContentExecuteResult.class);
+            AppValidate.notNull(result, "获取创作内容执行结果失败");
+            return result;
+        } catch (Exception e) {
+            log.error("获取创作内容执行结果失败", e);
+            throw ServiceExceptionUtil.invalidParamException("获取创作内容执行结果失败");
+        }
+    }
+
 }

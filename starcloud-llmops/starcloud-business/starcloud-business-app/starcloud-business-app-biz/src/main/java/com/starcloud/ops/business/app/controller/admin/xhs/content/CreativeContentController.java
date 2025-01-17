@@ -260,6 +260,12 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.videoResult(resultReqVO));
     }
 
+    @GetMapping("/resource/{uid}")
+    @Operation(summary = "获取创作内容资源配置")
+    public CommonResult<CreativeContentResourceRespVO> getResource(@PathVariable("uid") String uid) {
+        return CommonResult.success(creativeContentService.getResource(uid));
+    }
+
     @PostMapping("/video/merge")
     @Operation(summary = "视频合并", description = "视频合并")
     public CommonResult<VideoMergeResult> generateResult(@Valid @RequestBody VideoMergeConfig videoMergeConfig) {

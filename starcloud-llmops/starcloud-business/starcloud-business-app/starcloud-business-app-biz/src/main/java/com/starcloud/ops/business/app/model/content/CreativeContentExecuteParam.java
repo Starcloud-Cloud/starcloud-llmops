@@ -7,6 +7,7 @@ import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
+import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceConfiguration;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,8 +42,17 @@ public class CreativeContentExecuteParam implements java.io.Serializable {
     @Schema(description = "执行扩展参数")
     private CreativeContentExecuteExtend extend;
 
+    /**
+     * 视频快捷配置
+     */
     @Schema(description = "视频快捷配置")
     private String quickConfiguration;
+
+    /**
+     * 资源配置
+     */
+    @Schema(description = "资源配置")
+    private CreativeContentResourceConfiguration resourceConfiguration;
 
     public void validate(ValidateTypeEnum validateType) {
         AppValidate.notNull(appInformation, "执行参数不能为空！");

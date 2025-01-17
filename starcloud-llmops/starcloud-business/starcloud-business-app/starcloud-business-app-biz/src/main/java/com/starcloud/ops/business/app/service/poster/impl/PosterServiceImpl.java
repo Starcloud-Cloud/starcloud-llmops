@@ -1,14 +1,13 @@
 package com.starcloud.ops.business.app.service.poster.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import com.starcloud.ops.business.app.api.AppValidate;
-import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.feign.PosterImageClient;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
+import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplate;
 import com.starcloud.ops.business.app.feign.dto.PosterTemplateType;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
@@ -21,7 +20,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -101,6 +102,22 @@ public class PosterServiceImpl implements PosterService {
             for (PosterImage posterImage : posterList) {
                 if (StringUtils.isBlank(posterImage.getUrl())) {
                     throw ServiceExceptionUtil.exception0(ErrorCodeConstants.EXECUTE_POSTER_FAILURE.getCode(), "海报图片生成失败: 生成结果地址为空！");
+                }
+                Map<String, PosterImageParam> finalParams = posterImage.getFinalParams();
+                Map<String, PosterImageParam> newFinalParams = new HashMap<>();
+                if (CollectionUtil.isNotEmpty(finalParams)) {
+                    for (Map.Entry<String, PosterImageParam> entry : finalParams.entrySet()) {
+                        String key = entry.getKey();
+                        PosterImageParam param = entry.getValue();
+                        if (Objects.isNull(param)) {
+                            continue;
+                        }
+                        if (StringUtils.isBlank(param.getId())) {
+                            continue;
+                        }
+                        newFinalParams.put(key, param);
+                    }
+                    posterImage.setFinalParams(newFinalParams);
                 }
             }
             return posterList;

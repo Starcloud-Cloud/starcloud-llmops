@@ -2,9 +2,22 @@ package com.starcloud.ops.business.app.service.xhs.content;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
@@ -250,5 +263,36 @@ public interface CreativeContentService {
      * 敏感词检测
      */
     CreativeContentRiskRespVO risk(CreativeContentRiskReqVO reqVO);
+
+    /**
+     * 获取资源信息
+     *
+     * @param uid 创作内容UID
+     * @return 资源信息
+     */
+    CreativeContentResourceRespVO getResource(String uid);
+
+    /**
+     * 保存资源配置
+     *
+     * @param request 请求
+     */
+    void saveResourceConfig(CreativeContentResourceConfigurationReqVO request);
+
+    /**
+     * 生成图片PDF
+     *
+     * @param request 请求
+     * @return PDF URL
+     */
+    String generateImagePdf(CreativeContentResourceConfigurationReqVO request);
+
+    /**
+     * 生成视频PDF
+     *
+     * @param request 请求
+     * @return PDF URL
+     */
+    String generateWordBookPdf(CreativeContentResourceConfigurationReqVO request);
 
 }
