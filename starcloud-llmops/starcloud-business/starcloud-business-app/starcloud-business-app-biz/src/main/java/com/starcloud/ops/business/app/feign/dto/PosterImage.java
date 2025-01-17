@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Map;
+
 /**
  * @author nacoyer
  * @version 1.0.0
@@ -25,5 +27,11 @@ public class PosterImage implements java.io.Serializable {
      */
     @Schema(description = "海报地址")
     private String url;
+
+    /**
+     * 海报参数
+     */
+    @Schema(description = "海报参数")
+    private Map<String, PosterImageParam> finalParams;
 
 }

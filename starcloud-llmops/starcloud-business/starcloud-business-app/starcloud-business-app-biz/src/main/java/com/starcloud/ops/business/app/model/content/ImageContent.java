@@ -1,11 +1,14 @@
 package com.starcloud.ops.business.app.model.content;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+
+import java.util.Map;
 
 /**
  * @author nacoyer
@@ -55,4 +58,11 @@ public class ImageContent implements java.io.Serializable {
     @Schema(description = "海报图片地址")
     @JsonPropertyDescription("图片地址")
     private String url;
+
+    /**
+     * 海报参数
+     */
+    @Schema(description = "海报参数")
+    @JsonPropertyDescription("图片参数")
+    private Map<String, PosterImageParam> finalParams;
 }
