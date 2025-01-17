@@ -838,13 +838,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             // 如果完整视频为空，则从视频信息中获取
             if (StringUtils.isBlank(resource.getCompleteVideoUrl())) {
                 String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
-                AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+                //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
                 resource.setCompleteVideoUrl(completeVideoUrl);
             }
             // 如果完整音频为空，则从视频信息中获取
             if (StringUtils.isBlank(resource.getCompleteAudioUrl())) {
                 String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
-                AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+                // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
                 resource.setCompleteAudioUrl(completeAudioUrl);
             }
         }
@@ -990,16 +990,25 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
         }
 
+        // 生成 PDF
         WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
         wordbookPdfRequest.setWordbookImageUrlList(wordbookUrlList);
         VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
         if (response.getCode() != 0) {
             throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
         }
-
         PdfGeneratorResponse data = response.getData();
-        return Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+        String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
+                .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+
+        // 保存PDF URL
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        ResourceContentInfo resource = executeResult.getResource();
+        resource.setWordbookPdfUrl(pdfUrl);
+        executeResult.setResource(resource);
+        content.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        creativeContentMapper.updateById(content);
+        return pdfUrl;
     }
 
     @Override
