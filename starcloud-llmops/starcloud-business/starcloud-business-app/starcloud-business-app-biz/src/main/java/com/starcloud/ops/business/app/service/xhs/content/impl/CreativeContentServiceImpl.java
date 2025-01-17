@@ -37,9 +37,9 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.Cr
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
@@ -67,7 +67,6 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
-import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
@@ -77,8 +76,9 @@ import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult
 import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.model.content.VideoContent;
 import com.starcloud.ops.business.app.model.content.VideoContentInfo;
-import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceImage2PdfConfiguration;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceConfiguration;
+import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceImage2PdfConfiguration;
+import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceWordbook2PdfConfiguration;
 import com.starcloud.ops.business.app.model.content.resource.ResourceContentInfo;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
@@ -918,6 +918,55 @@ public class CreativeContentServiceImpl implements CreativeContentService {
      */
     @Override
     public String generateWordBookPdf(CreativeContentResourceConfigurationReqVO request) {
+        CreativeContentDO content = creativeContentMapper.get(request.getUid());
+        AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
+
+        // 获取执行使用的素材列表
+        CreativeContentExecuteParam executeParam = getExecuteParam(content);
+        AppMarketRespVO appInformation = executeParam.getAppInformation();
+        // 素材步骤
+        WorkflowStepWrapperRespVO materialWrapper = this.materialStepWrapper(appInformation);
+        String materialStepId = materialWrapper.getStepCode();
+
+        // 素材库列表
+        List<Map<String, Object>> materialList = CreativeUtils.getMaterialListByStepWrapper(materialWrapper);
+        AppValidate.notEmpty(materialList, "素材库列表不能为空，请联系管理员！");
+
+        CreativeContentResourceConfiguration resourceConfiguration = request.getResourceConfiguration();
+        CreativeContentResourceWordbook2PdfConfiguration wordbookPdfConfiguration = resourceConfiguration.getWordbookPdfConfiguration();
+
+        // 单词字段
+        String wordField = wordbookPdfConfiguration.getWordField();
+        String paraphraseField = wordbookPdfConfiguration.getParaphraseField();
+
+        PosterTemplateDTO posterTemplate = wordbookPdfConfiguration.getPosterTemplate();
+        PosterTemplateDTO template = CreativeUtils.handlerPosterTemplate(posterTemplate, 0);
+
+        List<PosterVariableDTO> variableList = template.getVariableList();
+        List<String> variableFieldNameList = CollectionUtil.emptyIfNull(variableList)
+                .stream()
+                .map(PosterVariableDTO::getField)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+        // 获取单词字段的最大值
+        int wordFiledCount = CreativeUtils.getWordFieldCount(variableFieldNameList);
+        // 获取单词释义字段的最大值
+        int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableFieldNameList);
+        // 确定每张图需要多少素材
+        int count = Math.max(wordFiledCount, paraphraseFieldCount);
+
+        if (count <= 0) {
+            throw ServiceExceptionUtil.invalidParamException("单词卡模板配置异常！请联系管理员！");
+        }
+
+        // 此时说明，素材只够生成一张图
+        if (materialList.size() <= count) {
+
+
+
+        }
+
         return "";
     }
 
@@ -1059,7 +1108,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw new ServiceException(500, e.getMessage());
         }
     }
-
 
     /**
      * 视频生成并发更新加锁
