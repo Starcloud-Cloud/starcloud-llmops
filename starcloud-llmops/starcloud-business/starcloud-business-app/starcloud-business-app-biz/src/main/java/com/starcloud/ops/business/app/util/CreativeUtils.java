@@ -194,10 +194,6 @@ public class CreativeUtils {
             map.put("repeatRole", videoConfig.getGlobalSettings().getRepeatRole());
             map.put("repeatEnable", videoConfig.getGlobalSettings().getRepeatEnable());
             map.put("soundEffect", videoConfig.getGlobalSettings().getSoundEffect());
-            map.put("voiceRole", videoConfig.getGlobalSettings().getVoiceRole());
-            map.put("repeatRole", videoConfig.getGlobalSettings().getRepeatRole());
-            map.put("repeatEnable", videoConfig.getGlobalSettings().getRepeatEnable());
-            map.put("soundEffect", videoConfig.getGlobalSettings().getSoundEffect());
             map.put("animationEnable", videoConfig.getGlobalSettings().getAnimationEnable());
             return JSONUtil.toJsonStr(map);
         } catch (Exception e) {
