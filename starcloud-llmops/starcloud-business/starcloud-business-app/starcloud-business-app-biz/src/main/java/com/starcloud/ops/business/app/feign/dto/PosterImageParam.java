@@ -23,12 +23,6 @@ public class PosterImageParam implements java.io.Serializable {
     private static final long serialVersionUID = 2908405389322954426L;
 
     /**
-     * 参数ID
-     */
-    @Schema(description = "参数ID")
-    private String id;
-
-    /**
      * 参数类型
      */
     @Schema(description = "参数类型")
