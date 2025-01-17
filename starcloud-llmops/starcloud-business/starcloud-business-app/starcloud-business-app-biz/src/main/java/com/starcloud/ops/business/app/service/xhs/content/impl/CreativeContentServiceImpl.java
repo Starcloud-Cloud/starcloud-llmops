@@ -67,6 +67,7 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
+import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
@@ -120,8 +121,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PARAM_ERROR;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
 
 /**
  * @author nacoyer
@@ -1106,6 +1106,22 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw new ServiceException(500, e.getMessage());
         }
     }
+
+
+    //只做透传
+    @Override
+    public VideoMergeResult videoMerge(VideoMergeConfig config) {
+        try {
+            VideoGeneratorResponse<VideoMergeResult> generatorResult = videoGeneratorClient.mergeVideos(config);
+            if (generatorResult.getCode() != 0) {
+                throw ServiceExceptionUtil.exception(VIDEO_MERGE_ERROR, generatorResult.getMsg());
+            }
+            return generatorResult.getData();
+        } catch (Exception e) {
+            throw new ServiceException(500, e.getMessage());
+        }
+    }
+
 
     /**
      * 视频生成并发更新加锁
