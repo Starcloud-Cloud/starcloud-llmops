@@ -260,15 +260,21 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.videoResult(resultReqVO));
     }
 
+    @PostMapping("/video/merge")
+    @Operation(summary = "视频合并", description = "视频合并")
+    public CommonResult<VideoMergeResult> generateResult(@Valid @RequestBody VideoMergeConfig videoMergeConfig) {
+        return CommonResult.success(creativeContentService.videoMerge(videoMergeConfig));
+    }
+
     @GetMapping("/resource/{uid}")
     @Operation(summary = "获取创作内容资源配置")
     public CommonResult<CreativeContentResourceRespVO> getResource(@PathVariable("uid") String uid) {
         return CommonResult.success(creativeContentService.getResource(uid));
     }
 
-    @PostMapping("/video/merge")
-    @Operation(summary = "视频合并", description = "视频合并")
-    public CommonResult<VideoMergeResult> generateResult(@Valid @RequestBody VideoMergeConfig videoMergeConfig) {
-        return CommonResult.success(creativeContentService.videoMerge(videoMergeConfig));
+    @PostMapping("/resource/wordbook")
+    @Operation(summary = "生成单词本PDF")
+    public CommonResult<String> wordbook(@RequestBody @Validated CreativeContentResourceConfigurationReqVO request) {
+        return CommonResult.success(creativeContentService.generateWordBookPdf(request));
     }
 }
