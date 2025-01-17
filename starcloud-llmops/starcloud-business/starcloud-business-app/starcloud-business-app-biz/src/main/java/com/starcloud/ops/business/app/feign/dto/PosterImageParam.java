@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.feign.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,16 +16,11 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "PosterImageParam", description = "海报请求参数")
 public class PosterImageParam implements java.io.Serializable {
 
     private static final long serialVersionUID = 2908405389322954426L;
-
-    /**
-     * 参数ID
-     */
-    @Schema(description = "参数ID")
-    private String id;
 
     /**
      * 参数类型

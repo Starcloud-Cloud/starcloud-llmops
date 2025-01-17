@@ -54,6 +54,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -180,6 +182,9 @@ public class CreativeUtils {
         try {
             WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
             PosterStyleDTO posterStyleDTO = getPosterStyleByStepWrapper(posterStepWrapper);
+            if (Objects.isNull(posterStyleDTO)) {
+                return StringUtils.EMPTY;
+            }
 
             List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
             if (CollectionUtil.isEmpty(templateList)) {
@@ -322,38 +327,8 @@ public class CreativeUtils {
         List<PosterTemplateDTO> templateList = new ArrayList<>();
         for (int i = 0; i < posterTemplateList.size(); i++) {
             PosterTemplateDTO template = SerializationUtils.clone(posterTemplateList.get(i));
-
-            // 如果海报模板没有UUID，添加一个
-            if (StringUtils.isBlank(template.getUuid())) {
-                template.setUuid(IdUtil.fastSimpleUUID());
-            }
-
-            // 获取到模板变量列表，并且填充uuid。直接生成新的uuid，防止前端复制发生问题
-            List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList())
-                    .stream()
-                    .peek(item -> item.setUuid(IdUtil.fastSimpleUUID()))
-                    .collect(Collectors.toList());
-
-            // 获取模板变量重图片类型变量的数量
-            Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
-            // 获取模板模式，如果为空则默认为顺序模式
-            String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
-            // 获取模板标题生成模式，如果为空则默认为false
-            boolean isMultimodalTitle = Objects.isNull(template.getIsMultimodalTitle()) ? Boolean.FALSE : template.getIsMultimodalTitle();
-            boolean isCopy = Objects.isNull(template.getIsCopy()) ? Boolean.FALSE : template.getIsCopy();
-
-            // 模板信息补充
-            template.setIndex(i);
-            template.setIsMain(i == 0);
-            template.setTotalImageCount(totalImageCount);
-            template.setMode(mode);
-            template.setIsMultimodalTitle(isMultimodalTitle);
-            template.setVariableList(variableList);
-            template.setIsExecute(Boolean.TRUE);
-            template.setIsCopy(isCopy);
-
             // 添加到列表
-            templateList.add(template);
+            templateList.add(handlerPosterTemplate(template, i));
         }
         // 变量都为空是否执行
         posterStyle.setNoExecuteIfEmpty(Boolean.TRUE);
@@ -362,6 +337,45 @@ public class CreativeUtils {
         posterStyle.setTotalImageCount(imageCount);
         posterStyle.setTemplateList(templateList);
         return posterStyle;
+    }
+
+    /**
+     * 处理海报模板
+     *
+     * @param template 海报模板
+     * @param i        序号
+     * @return 处理后的海报模板
+     */
+    public static PosterTemplateDTO handlerPosterTemplate(PosterTemplateDTO template, int i) {
+        // 如果海报模板没有UUID，添加一个
+        if (StringUtils.isBlank(template.getUuid())) {
+            template.setUuid(IdUtil.fastSimpleUUID());
+        }
+
+        // 获取到模板变量列表，并且填充uuid。直接生成新的uuid，防止前端复制发生问题
+        List<PosterVariableDTO> variableList = CollectionUtil.emptyIfNull(template.getVariableList())
+                .stream()
+                .peek(item -> item.setUuid(IdUtil.fastSimpleUUID()))
+                .collect(Collectors.toList());
+
+        // 获取模板变量重图片类型变量的数量
+        Integer totalImageCount = (int) variableList.stream().filter(item -> isImageVariable(item)).count();
+        // 获取模板模式，如果为空则默认为顺序模式
+        String mode = StringUtils.isBlank(template.getMode()) ? PosterModeEnum.SEQUENCE.name() : template.getMode();
+        // 获取模板标题生成模式，如果为空则默认为false
+        boolean isMultimodalTitle = Objects.isNull(template.getIsMultimodalTitle()) ? Boolean.FALSE : template.getIsMultimodalTitle();
+        boolean isCopy = Objects.isNull(template.getIsCopy()) ? Boolean.FALSE : template.getIsCopy();
+
+        // 模板信息补充
+        template.setIndex(i);
+        template.setIsMain(i == 0);
+        template.setTotalImageCount(totalImageCount);
+        template.setMode(mode);
+        template.setIsMultimodalTitle(isMultimodalTitle);
+        template.setVariableList(variableList);
+        template.setIsExecute(Boolean.TRUE);
+        template.setIsCopy(isCopy);
+        return template;
     }
 
     /**
@@ -886,6 +900,77 @@ public class CreativeUtils {
         return CollectionUtil.emptyIfNull(posterStyleList).stream()
                 .filter(item -> Objects.nonNull(item.getSystem()) && item.getSystem())
                 .collect(Collectors.toList());
+    }
+
+    private static final Pattern WORD_PATTERN = Pattern.compile("单词(\\d+)");
+    private static final Pattern PARAPHRASE_PATTERN = Pattern.compile("释义(\\d+)");
+
+    public static boolean isWordField(String field) {
+        return WORD_PATTERN.matcher(field).matches();
+    }
+
+    public static Integer getWordFieldIndex(String field) {
+        Matcher matcher = WORD_PATTERN.matcher(field);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return -1;
+    }
+
+    public static Integer getWordFieldCount(List<String> varliableFiledList) {
+        return CollectionUtil.emptyIfNull(varliableFiledList)
+                .stream()
+                .map(item -> {
+                    Matcher matcher = WORD_PATTERN.matcher(item);
+                    // 如果匹配到，则返回最大的数字。
+                    int max = -1;
+                    try {
+                        while (matcher.find()) {
+                            int number = Integer.parseInt(matcher.group(1));
+                            if (number > max) {
+                                max = number;
+                            }
+                        }
+                    } catch (Exception exception) {
+                        return -1;
+                    }
+                    return max;
+                })
+                .max(Integer::compareTo).orElse(-1);
+    }
+
+    public static boolean isParaphraseField(String field) {
+        return PARAPHRASE_PATTERN.matcher(field).matches();
+    }
+
+    public static Integer getParaphraseFieldIndex(String field) {
+        Matcher matcher = PARAPHRASE_PATTERN.matcher(field);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return -1;
+    }
+
+    public static Integer getParaphraseFieldCount(List<String> varliableFiledList) {
+        return CollectionUtil.emptyIfNull(varliableFiledList)
+                .stream()
+                .map(item -> {
+                    Matcher matcher = PARAPHRASE_PATTERN.matcher(item);
+                    // 如果匹配到，则返回最大的数字。
+                    int max = -1;
+                    try {
+                        while (matcher.find()) {
+                            int number = Integer.parseInt(matcher.group(1));
+                            if (number > max) {
+                                max = number;
+                            }
+                        }
+                    } catch (Exception exception) {
+                        return -1;
+                    }
+                    return max;
+                })
+                .max(Integer::compareTo).orElse(-1);
     }
 
 }

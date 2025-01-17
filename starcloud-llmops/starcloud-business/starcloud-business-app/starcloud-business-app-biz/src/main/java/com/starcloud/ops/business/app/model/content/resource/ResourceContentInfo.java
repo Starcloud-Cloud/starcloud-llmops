@@ -38,5 +38,5 @@ public class ResourceContentInfo implements Serializable {
      * 单词pdf链接
      */
     @Schema(description = "单词pdf链接")
-    private String wordPdfUrl;
+    private String wordbookPdfUrl;
 }

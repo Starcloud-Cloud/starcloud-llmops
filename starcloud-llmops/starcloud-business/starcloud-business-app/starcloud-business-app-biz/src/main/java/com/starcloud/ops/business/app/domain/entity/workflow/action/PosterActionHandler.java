@@ -1001,7 +1001,7 @@ public class PosterActionHandler extends BaseActionHandler {
      */
     @JsonIgnore
     @JSONField(serialize = false)
-    private static Map<String, Object> getDocPosterVariableMap(PosterTemplateDTO posterTemplate) {
+    public static Map<String, Object> getDocPosterVariableMap(PosterTemplateDTO posterTemplate) {
         Map<String, Object> variableMap = new HashMap<>();
         for (PosterVariableDTO variable : posterTemplate.posterVariableList()) {
             // 只过滤出素材变量，其他变量不处理，等待后续处理

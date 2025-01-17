@@ -271,4 +271,16 @@ public class CreativeContentController {
     public CommonResult<CreativeContentResourceRespVO> getResource(@PathVariable("uid") String uid) {
         return CommonResult.success(creativeContentService.getResource(uid));
     }
+
+    @PostMapping("/resource/imagePdf")
+    @Operation(summary = "生成图片PDF")
+    public CommonResult<String> imagePdf(@RequestBody @Validated CreativeContentResourceConfigurationReqVO request) {
+        return CommonResult.success(creativeContentService.generateImagePdf(request));
+    }
+
+    @PostMapping("/resource/wordbook")
+    @Operation(summary = "生成单词本PDF")
+    public CommonResult<String> wordbook(@RequestBody @Validated CreativeContentResourceConfigurationReqVO request) {
+        return CommonResult.success(creativeContentService.generateWordBookPdf(request));
+    }
 }
