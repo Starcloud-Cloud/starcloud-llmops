@@ -893,8 +893,20 @@ public class CreativeUtils {
                 .collect(Collectors.toList());
     }
 
-    private static final Pattern WORD_PATTERN = Pattern.compile("word(\\d+)");
-    private static final Pattern PARAPHRASE_PATTERN = Pattern.compile("paraphrase(\\d+)");
+    private static final Pattern WORD_PATTERN = Pattern.compile("单词(\\d+)");
+    private static final Pattern PARAPHRASE_PATTERN = Pattern.compile("释义(\\d+)");
+
+    public static boolean isWordField(String field) {
+        return WORD_PATTERN.matcher(field).matches();
+    }
+
+    public static Integer getWordFieldIndex(String field) {
+        Matcher matcher = WORD_PATTERN.matcher(field);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return -1;
+    }
 
     public static Integer getWordFieldCount(List<String> varliableFiledList) {
         return CollectionUtil.emptyIfNull(varliableFiledList)
@@ -916,6 +928,18 @@ public class CreativeUtils {
                     return max;
                 })
                 .max(Integer::compareTo).orElse(-1);
+    }
+
+    public static boolean isParaphraseField(String field) {
+        return PARAPHRASE_PATTERN.matcher(field).matches();
+    }
+
+    public static Integer getParaphraseFieldIndex(String field) {
+        Matcher matcher = PARAPHRASE_PATTERN.matcher(field);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return -1;
     }
 
     public static Integer getParaphraseFieldCount(List<String> varliableFiledList) {

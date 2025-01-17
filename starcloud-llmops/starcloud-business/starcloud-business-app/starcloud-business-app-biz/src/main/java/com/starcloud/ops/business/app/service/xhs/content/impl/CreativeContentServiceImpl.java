@@ -56,8 +56,10 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.batch.CreativePlanBatchMappe
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
@@ -67,9 +69,13 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
+import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
+import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
+import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
@@ -84,6 +90,7 @@ import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.plugins.WuyouClient;
+import com.starcloud.ops.business.app.service.poster.PosterService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
@@ -95,8 +102,10 @@ import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
 import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -167,6 +176,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Resource
     private VideoGeneratorClient videoGeneratorClient;
+
+    @Resource
+    private PosterService posterService;
 
     /**
      * 获取创作内容详情
@@ -943,31 +955,51 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         PosterTemplateDTO template = CreativeUtils.handlerPosterTemplate(posterTemplate, 0);
 
         List<PosterVariableDTO> variableList = template.getVariableList();
-        List<String> variableFieldNameList = CollectionUtil.emptyIfNull(variableList)
+        List<String> variableNameList = CollectionUtil.emptyIfNull(variableList)
                 .stream()
-                .map(PosterVariableDTO::getField)
+                .map(PosterVariableDTO::getLabel)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .collect(Collectors.toList());
         // 获取单词字段的最大值
-        int wordFiledCount = CreativeUtils.getWordFieldCount(variableFieldNameList);
+        int wordFiledCount = CreativeUtils.getWordFieldCount(variableNameList);
         // 获取单词释义字段的最大值
-        int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableFieldNameList);
+        int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableNameList);
         // 确定每张图需要多少素材
         int count = Math.max(wordFiledCount, paraphraseFieldCount);
 
         if (count <= 0) {
             throw ServiceExceptionUtil.invalidParamException("单词卡模板配置异常！请联系管理员！");
         }
-
+        List<String> wordbookUrlList = new ArrayList<>();
         // 此时说明，素材只够生成一张图
         if (materialList.size() <= count) {
-
-
-
+            List<String> urlList = poster(template, materialStepId, materialList, wordField, paraphraseField);
+            wordbookUrlList.addAll(urlList);
+        } else {
+            // 计算一共需要多少张图，如果有余数，则需要多一张
+            int size = materialList.size() / count;
+            int remainder = materialList.size() % count;
+            size = remainder > 0 ? size + 1 : size;
+            for (int i = 0; i < size; i++) {
+                List<Map<String, Object>> subList = materialList.subList(i * count, Math.min((i + 1) * count, materialList.size()));
+                List<String> urlList = poster(template, materialStepId, subList, wordField, paraphraseField);
+                wordbookUrlList.addAll(urlList);
+            }
+        }
+        if (CollectionUtils.isEmpty(wordbookUrlList)) {
+            throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
         }
 
-        return "";
+        WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
+        VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
+        if (response.getCode() != 0) {
+            throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
+        }
+
+        PdfGeneratorResponse data = response.getData();
+        return Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
+                .orElseThrow(() -> ServiceExceptionUtil.exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
     }
 
     @Override
@@ -1434,6 +1466,80 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         posterStyle = CreativeUtils.mergeImagePosterStyle(posterStyle, appInformation);
         // 处理一下海报风格
         return CreativeUtils.handlerPosterStyle(posterStyle);
+    }
+
+    /**
+     * 生成海报
+     *
+     * @param template        海报模板
+     * @param materialStepId  素材步骤ID
+     * @param materialList    素材列表
+     * @param wordField       单词字段
+     * @param paraphraseField 单词释义字段
+     * @return 海报列表
+     */
+    private List<String> poster(PosterTemplateDTO template,
+                                String materialStepId,
+                                List<Map<String, Object>> materialList,
+                                String wordField,
+                                String paraphraseField) {
+
+        PosterTemplateDTO posterTemplateDTO = SerializationUtils.clone(template);
+        List<PosterVariableDTO> templateVariableList = posterTemplateDTO.getVariableList();
+
+        for (PosterVariableDTO posterVariableDTO : templateVariableList) {
+            String name = posterVariableDTO.getLabel();
+            if (CreativeUtils.isWordField(name)) {
+                int index = CreativeUtils.getWordFieldIndex(name) - 1;
+                if (index < 0) {
+                    continue;
+                }
+                String value = "{{" + materialStepId + ".docs[" + index + "]." + wordField + "}}";
+                posterVariableDTO.setValue(value);
+            }
+            if (CreativeUtils.isParaphraseField(name)) {
+                int index = CreativeUtils.getParaphraseFieldIndex(name) - 1;
+                if (index < 0) {
+                    continue;
+                }
+                String value = "{{" + materialStepId + ".docs[" + index + "]." + paraphraseField + "}}";
+                posterVariableDTO.setValue(value);
+            }
+        }
+
+        Map<String, Object> materialMap = new HashMap<>();
+        JsonDocsDefSchema materialData = new JsonDocsDefSchema();
+        materialData.setDocs(materialList);
+        materialMap.put(materialStepId, materialData);
+
+        Map<String, Object> docPosterVariableMap = PosterActionHandler.getDocPosterVariableMap(posterTemplateDTO);
+        Map<String, Object> replaceValueMap = AppContext.parseMapFromVariablesValues(docPosterVariableMap, materialMap);
+
+        for (PosterVariableDTO posterVariableDTO : templateVariableList) {
+            String uuid = posterVariableDTO.getUuid();
+            // 从作用域数据中获取变量值
+            Object value = replaceValueMap.get(uuid);
+            // 如果从作用域数据中获取的变量值为空，则为空字符串。
+            if (StringUtil.objectBlank(value)) {
+                value = StringUtils.EMPTY;
+            }
+            posterVariableDTO.setValue(value);
+        }
+
+        Map<String, Object> params = CollectionUtil.emptyIfNull(templateVariableList).stream()
+                .collect(Collectors.toMap(PosterVariableDTO::getField, PosterVariableDTO::emptyIfNullValue));
+
+        PosterRequest posterRequest = new PosterRequest();
+        posterRequest.setId(posterTemplateDTO.getCode());
+        posterRequest.setParams(params);
+
+        List<PosterImage> poster = posterService.poster(posterRequest);
+
+        return CollectionUtil.emptyIfNull(poster).stream()
+                .map(PosterImage::getUrl)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public static CreativeContentExecuteParam getExecuteParam(CreativeContentDO content) {
