@@ -44,6 +44,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentShareResultRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
@@ -1060,6 +1061,48 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         content.setExecuteResult(JsonUtils.toJsonString(executeResult));
         creativeContentMapper.updateById(content);
         return pdfUrl;
+    }
+
+    /**
+     * 获取分享资源
+     *
+     * @param uid 创作内容UID
+     * @return 分享资源
+     */
+    @Override
+    public CreativeContentShareResultRespVO getShareResult(String uid) {
+        CreativeContentRespVO contentResponse = this.get(uid);
+
+        CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
+        AppValidate.notNull(executeResult, "创作内容执行结果不存在({})", uid);
+
+        ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
+        // 获取视频信息
+        VideoContentInfo video = executeResult.getVideo();
+        AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
+        List<VideoContent> videoList = video.getVideoList();
+        AppValidate.notEmpty(videoList, "创作内容视频列表为空({}), 请生成视频后重试！", uid);
+
+        // 始终获取最新的完整视频，则从视频信息中获取
+        String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
+        // 如果没有完整视频，则获取视频列表的第一个视频
+        if (StringUtils.isBlank(completeVideoUrl)) {
+            completeVideoUrl = videoList.get(0).getVideoUrl();
+        }
+        //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+        resource.setCompleteVideoUrl(completeVideoUrl);
+
+        // 始终获取最新的完整音频，则从视频信息中获取
+        String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
+        // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+        resource.setCompleteAudioUrl(completeAudioUrl);
+
+        executeResult.setResource(resource);
+
+        CreativeContentShareResultRespVO response = new CreativeContentShareResultRespVO();
+        response.setUid(uid);
+        response.setExecuteResult(executeResult);
+        return response;
     }
 
     @Override
