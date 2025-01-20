@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 @Data
 @Schema(description = "作品集")
@@ -24,5 +25,5 @@ public class OpusBaseVO {
     private String opusType;
 
     @Schema(description = "作品集图片")
-    private String opusImage;
+    private List<String> opusImages;
 }

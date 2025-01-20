@@ -1,16 +1,21 @@
 package com.starcloud.ops.business.app.dal.databoject.opus;
 
 
+import cn.iocoder.yudao.framework.mybatis.core.type.StringListTypeHandler;
 import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("llm_opus")
+@TableName(value = "llm_opus", autoResultMap = true)
 public class OpusDO extends DeptBaseDO {
 
     /**
@@ -42,6 +47,7 @@ public class OpusDO extends DeptBaseDO {
     /**
      * 作品集图片
      */
-    private String opusImage;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private List<String> opusImages;
 
 }
