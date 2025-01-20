@@ -40,6 +40,7 @@ public class VideoGeneratorConfig {
         private Background background;
         private Boolean repeatEnable;
         private Boolean animationEnable;
+        private int soundSpeed;
     }
 
     @Data
@@ -103,6 +104,7 @@ public class VideoGeneratorConfig {
     public static
     class Audio {
         private String voiceRole;
+        private int voiceSpeed;
     }
 
     @Data
@@ -125,6 +127,9 @@ public class VideoGeneratorConfig {
         private Boolean audioEnable;
         private Boolean repeatEnable;
         private String repeatRole;
+        private int repeatCount;
+        private int repeatSpeed;
+
 
     }
 
