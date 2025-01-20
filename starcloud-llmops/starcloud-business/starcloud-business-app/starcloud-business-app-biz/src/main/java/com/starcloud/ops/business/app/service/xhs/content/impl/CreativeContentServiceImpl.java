@@ -74,6 +74,7 @@ import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
+import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
@@ -379,6 +380,24 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO content = creativeContentMapper.get(request.getUid());
         AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
         CreativeContentDO modify = CreativeContentConvert.INSTANCE.convert(request);
+
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        CreativeContentExecuteResult modifyResult = getExecuteResult(modify);
+        if (Objects.isNull(modifyResult)) {
+            modifyResult = executeResult;
+        }
+        if (Objects.isNull(modifyResult.getCopyWriting())) {
+            modifyResult.setCopyWriting(executeResult.getCopyWriting());
+        }
+        if (CollectionUtil.isEmpty(modifyResult.getImageList())) {
+            modifyResult.setImageList(executeResult.getImageList());
+        }
+        if (Objects.isNull(modifyResult.getVideo())) {
+            modifyResult.setVideo(executeResult.getVideo());
+        }
+        if (Objects.isNull(modifyResult.getResource())) {
+            modifyResult.setResource(executeResult.getResource());
+        }
         modify.setId(content.getId());
         creativeContentMapper.updateById(modify);
         return content.getUid();
@@ -917,6 +936,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         Boolean isAddVideoQrCode = imagePdfConfiguration.getIsAddVideoQrCode();
         String qrCodeLocation = imagePdfConfiguration.getQrCodeLocation();
 
+        // 生成图片PDF
+        ImagePdfRequest imagePdfRequest = new ImagePdfRequest();
 
         return "";
     }
