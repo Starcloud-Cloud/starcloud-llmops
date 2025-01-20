@@ -398,6 +398,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (Objects.isNull(modifyResult.getResource())) {
             modifyResult.setResource(executeResult.getResource());
         }
+        modify.setExecuteResult(JsonUtils.toJsonString(modifyResult));
         modify.setId(content.getId());
         creativeContentMapper.updateById(modify);
         return content.getUid();
