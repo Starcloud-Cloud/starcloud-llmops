@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.feign.dto.video;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +49,14 @@ public class VideoRecordResult implements java.io.Serializable {
      */
     @Schema(description = "错误信息")
     private String error;
+
+    /**
+     * 音频链接
+     */
+    @Schema(description = "音频链接")
+    @JsonProperty("audio_url")
+    private String audioUrl;
+
 
 
 }
