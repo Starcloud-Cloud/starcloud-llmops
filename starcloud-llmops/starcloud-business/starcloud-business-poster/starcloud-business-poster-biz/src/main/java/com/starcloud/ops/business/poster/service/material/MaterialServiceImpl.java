@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
@@ -27,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,6 +60,9 @@ public class MaterialServiceImpl implements MaterialService {
     @Resource
     @Lazy
     private MaterialGroupService materialGroupService;
+
+    @Resource
+    private AppDictionaryService appDictionaryService;
 
     @Override
     public Long createMaterial(MaterialSaveReqVO createReqVO) {
@@ -276,6 +281,27 @@ public class MaterialServiceImpl implements MaterialService {
                 .map(item -> transform(item, materialGroup.getName(), false))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取单词本海报列表
+     *
+     * @return 海报列表
+     */
+    @Override
+    public List<PosterTemplateDTO> listWordbookTemplate() {
+        List<String> wordbookTemplateIdList = appDictionaryService.getWordbookTemplateIdList();
+        if (CollUtil.isEmpty(wordbookTemplateIdList)) {
+            return Collections.emptyList();
+        }
+        List<PosterTemplateDTO> posterTemplateList = new ArrayList<>(wordbookTemplateIdList.size());
+        for (String wordbookTemplateId : wordbookTemplateIdList) {
+            PosterTemplateDTO posterTemplate = this.posterTemplate(wordbookTemplateId);
+            if (posterTemplate != null) {
+                posterTemplateList.add(posterTemplate);
+            }
+        }
+        return posterTemplateList;
     }
 
     /**

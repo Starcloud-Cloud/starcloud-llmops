@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 创作内容图片资源配置
@@ -18,12 +17,6 @@ import java.util.List;
 public class CreativeContentResourceImage2PdfConfiguration implements Serializable {
 
     private static final long serialVersionUID = 3139920323142676962L;
-
-    private String title;
-
-    private String subTitle;
-
-    private List<String> imageUrlList;
 
     /**
      * 是否添加图片二维码
