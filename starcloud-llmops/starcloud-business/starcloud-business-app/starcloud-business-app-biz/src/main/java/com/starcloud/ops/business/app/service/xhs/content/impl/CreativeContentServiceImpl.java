@@ -74,6 +74,7 @@ import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
+import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
@@ -379,6 +380,25 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO content = creativeContentMapper.get(request.getUid());
         AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
         CreativeContentDO modify = CreativeContentConvert.INSTANCE.convert(request);
+
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        CreativeContentExecuteResult modifyResult = getExecuteResult(modify);
+        if (Objects.isNull(modifyResult)) {
+            modifyResult = executeResult;
+        }
+        if (Objects.isNull(modifyResult.getCopyWriting())) {
+            modifyResult.setCopyWriting(executeResult.getCopyWriting());
+        }
+        if (CollectionUtil.isEmpty(modifyResult.getImageList())) {
+            modifyResult.setImageList(executeResult.getImageList());
+        }
+        if (Objects.isNull(modifyResult.getVideo())) {
+            modifyResult.setVideo(executeResult.getVideo());
+        }
+        if (Objects.isNull(modifyResult.getResource())) {
+            modifyResult.setResource(executeResult.getResource());
+        }
+        modify.setExecuteResult(JsonUtils.toJsonString(modifyResult));
         modify.setId(content.getId());
         creativeContentMapper.updateById(modify);
         return content.getUid();
@@ -838,13 +858,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             // 如果完整视频为空，则从视频信息中获取
             if (StringUtils.isBlank(resource.getCompleteVideoUrl())) {
                 String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
-                AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+                //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
                 resource.setCompleteVideoUrl(completeVideoUrl);
             }
             // 如果完整音频为空，则从视频信息中获取
             if (StringUtils.isBlank(resource.getCompleteAudioUrl())) {
                 String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
-                AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+                // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
                 resource.setCompleteAudioUrl(completeAudioUrl);
             }
         }
@@ -917,6 +937,8 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         Boolean isAddVideoQrCode = imagePdfConfiguration.getIsAddVideoQrCode();
         String qrCodeLocation = imagePdfConfiguration.getQrCodeLocation();
 
+        // 生成图片PDF
+        ImagePdfRequest imagePdfRequest = new ImagePdfRequest();
 
         return "";
     }
@@ -990,15 +1012,25 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
         }
 
+        // 生成 PDF
         WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
+        wordbookPdfRequest.setWordbookImageUrlList(wordbookUrlList);
         VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
         if (response.getCode() != 0) {
             throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
         }
-
         PdfGeneratorResponse data = response.getData();
-        return Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
-                .orElseThrow(() -> ServiceExceptionUtil.exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+        String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
+                .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+
+        // 保存PDF URL
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        ResourceContentInfo resource = executeResult.getResource();
+        resource.setWordbookPdfUrl(pdfUrl);
+        executeResult.setResource(resource);
+        content.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        creativeContentMapper.updateById(content);
+        return pdfUrl;
     }
 
     @Override
