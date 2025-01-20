@@ -45,7 +45,11 @@ public class DeptPermissionTable {
                 "llm_creative_plan_batch",
                 "llm_creative_content",
                 "poster_material_group",
-                "poster_material"
+                "poster_material",
+
+                "llm_opus",
+                "llm_opus_directory",
+                "llm_opus_bind"
         );
     }
 }

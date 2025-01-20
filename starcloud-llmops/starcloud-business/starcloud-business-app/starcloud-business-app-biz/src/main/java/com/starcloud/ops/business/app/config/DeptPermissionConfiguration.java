@@ -9,6 +9,9 @@ import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLib
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibrarySliceDO;
 import com.starcloud.ops.business.app.dal.databoject.materiallibrary.MaterialLibraryTableColumnDO;
+import com.starcloud.ops.business.app.dal.databoject.opus.OpusBindDO;
+import com.starcloud.ops.business.app.dal.databoject.opus.OpusDO;
+import com.starcloud.ops.business.app.dal.databoject.opus.OpusDirectoryDO;
 import com.starcloud.ops.business.app.dal.databoject.plugin.PluginDefinitionDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
@@ -36,6 +39,9 @@ public class DeptPermissionConfiguration {
             rule.addDeptColumn(PluginDefinitionDO.class);
             rule.addDeptColumn(SocialUserBindDO.class);
             rule.addDeptColumn(SocialUserDO.class);
+            rule.addDeptColumn(OpusDO.class);
+            rule.addDeptColumn(OpusDirectoryDO.class);
+            rule.addDeptColumn(OpusBindDO.class);
         };
     }
 

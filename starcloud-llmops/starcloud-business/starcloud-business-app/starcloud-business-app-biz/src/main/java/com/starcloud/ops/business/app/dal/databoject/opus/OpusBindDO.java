@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.dal.databoject.opus;
 
+import cn.iocoder.yudao.framework.tenant.core.db.DeptBaseDO;
 import cn.iocoder.yudao.framework.tenant.core.db.TenantBaseDO;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -10,10 +11,15 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @TableName("llm_opus_bind")
-public class OpusBindDO extends TenantBaseDO {
+public class OpusBindDO extends DeptBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+
+    /**
+     * uid
+     */
+    private String bindUid;
 
     /**
      * 作品集uid
@@ -29,4 +35,14 @@ public class OpusBindDO extends TenantBaseDO {
      * 创作内容uid
      */
     private String creativeContentUid;
+
+    /**
+     * 视频
+     */
+    private Boolean video;
+
+    /**
+     * 开启
+     */
+    private Boolean open;
 }

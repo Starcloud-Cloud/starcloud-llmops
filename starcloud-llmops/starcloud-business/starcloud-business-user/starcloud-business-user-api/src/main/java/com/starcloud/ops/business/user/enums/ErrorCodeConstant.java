@@ -122,4 +122,7 @@ public interface ErrorCodeConstant {
 
     ErrorCode WX_SERVICE_ERROR =  new ErrorCode(2000600007, "查询模板失败, [{}]");
 
+    ErrorCode OPUS_ERROR =  new ErrorCode(2000700001, "作品集操作错误, [{}]");
+
+
 }
