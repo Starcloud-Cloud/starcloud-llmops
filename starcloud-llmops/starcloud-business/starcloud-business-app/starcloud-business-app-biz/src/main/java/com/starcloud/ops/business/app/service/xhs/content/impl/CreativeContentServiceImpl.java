@@ -874,6 +874,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 始终获取最新的完整音频，则从视频信息中获取
         String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
         // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+        if (StringUtils.isBlank(completeAudioUrl)) {
+            completeAudioUrl = videoList.get(0).getAudioUrl();
+        }
         resource.setCompleteAudioUrl(completeAudioUrl);
 
         CreativeContentResourceRespVO response = new CreativeContentResourceRespVO();
