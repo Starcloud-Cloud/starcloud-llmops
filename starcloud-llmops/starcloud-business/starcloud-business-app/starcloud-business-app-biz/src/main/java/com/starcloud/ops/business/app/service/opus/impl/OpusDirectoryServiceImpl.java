@@ -2,25 +2,25 @@ package com.starcloud.ops.business.app.service.opus.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import com.starcloud.ops.business.app.controller.admin.opus.vo.*;
 import com.starcloud.ops.business.app.convert.opus.OpusConvert;
 import com.starcloud.ops.business.app.dal.databoject.opus.OpusDirectoryDO;
 import com.starcloud.ops.business.app.dal.mysql.opus.OpusDirectoryMapper;
 import com.starcloud.ops.business.app.service.opus.OpusBindService;
 import com.starcloud.ops.business.app.service.opus.OpusDirectoryService;
+import com.starcloud.ops.business.app.util.OpusDirUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
+import static com.starcloud.ops.business.app.util.OpusDirUtils.ROOT;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.OPUS_ERROR;
 
 @Slf4j
@@ -33,7 +33,6 @@ public class OpusDirectoryServiceImpl implements OpusDirectoryService {
     @Resource
     private OpusBindService bindService;
 
-    private static final String ROOT = "root";
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -98,7 +97,20 @@ public class OpusDirectoryServiceImpl implements OpusDirectoryService {
             opusDirectoryMapper.updateById(updateDO);
             return;
         }
-        opusDirectoryMapper.selectParentDir(reqVO.getOpusUid(), reqVO.getParentUid());
+        // 校验循环目录
+        List<OpusDirectoryDO> opusDirectoryDOList = opusDirectoryMapper.selectByOpusUid(reqVO.getOpusUid());
+        Map<String, List<String>> adjacencyList = new HashMap<>();
+        for (OpusDirectoryDO opusDirectoryDO : opusDirectoryDOList) {
+            if (Objects.equals(opusDirectoryDO.getDirUid(), reqVO.getDirUid())) {
+                // 修改后的目录
+                adjacencyList.computeIfAbsent(reqVO.getParentUid(), k -> new ArrayList<String>()).add(reqVO.getDirUid());
+                continue;
+            }
+            adjacencyList.computeIfAbsent(opusDirectoryDO.getParentUid(), k -> new ArrayList<String>()).add(opusDirectoryDO.getDirUid());
+        }
+        if (OpusDirUtils.hasCycle(adjacencyList)) {
+            throw exception(OPUS_ERROR, "目录树存在循环引用");
+        }
 
         // 修改父目录 校验order 更新
         updateOrder(reqVO);
@@ -110,8 +122,7 @@ public class OpusDirectoryServiceImpl implements OpusDirectoryService {
     @Override
     public List<DirectoryNodeVO> opusNodeTree(String opusUid) {
         List<OpusDirectoryDO> opusDirectoryDOList = opusDirectoryMapper.selectByOpusUid(opusUid);
-        Map<String, List<OpusDirectoryDO>> parentUidGroup = opusDirectoryDOList.stream().collect(Collectors.groupingBy(OpusDirectoryDO::getParentUid));
-        return buildChildrenNode(ROOT, parentUidGroup);
+        return OpusDirUtils.buildChildrenNode(opusDirectoryDOList);
     }
 
     @Override
@@ -147,21 +158,4 @@ public class OpusDirectoryServiceImpl implements OpusDirectoryService {
         }
     }
 
-    /**
-     * 构建目录树结构
-     */
-    private List<DirectoryNodeVO> buildChildrenNode(String parentUid, Map<String, List<OpusDirectoryDO>> parentUidGroup) {
-        List<OpusDirectoryDO> childrenDirList = parentUidGroup.get(parentUid);
-        if (CollectionUtil.isEmpty(childrenDirList)) {
-            return null;
-        }
-        List<DirectoryNodeVO> result = new ArrayList<>(childrenDirList.size());
-        for (OpusDirectoryDO opusDirectoryDO : childrenDirList) {
-            List<DirectoryNodeVO> childrenNodeList = buildChildrenNode(opusDirectoryDO.getDirUid(), parentUidGroup);
-            DirectoryNodeVO currentNode = OpusConvert.INSTANCE.convert(opusDirectoryDO);
-            currentNode.setChildren(childrenNodeList);
-            result.add(currentNode);
-        }
-        return result;
-    }
 }

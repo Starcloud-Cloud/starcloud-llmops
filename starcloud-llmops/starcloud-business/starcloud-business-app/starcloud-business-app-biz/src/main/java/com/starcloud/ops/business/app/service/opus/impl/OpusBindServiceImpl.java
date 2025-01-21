@@ -5,7 +5,6 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.app.controller.admin.opus.vo.OpusBindBaseVO;
 import com.starcloud.ops.business.app.controller.admin.opus.vo.OpusBindPageReqVO;
 import com.starcloud.ops.business.app.controller.admin.opus.vo.OpusBindRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.convert.opus.OpusConvert;
 import com.starcloud.ops.business.app.dal.databoject.opus.OpusBindDO;
 import com.starcloud.ops.business.app.dal.databoject.opus.OpusCreativeBindDTO;
