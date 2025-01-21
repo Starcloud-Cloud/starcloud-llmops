@@ -1192,6 +1192,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setError(data.getError());
             content.setCode(resultReqVO.getImageCode());
             content.setImageUrl(resultReqVO.getImageUrl());
+            content.setAudioUrl(data.getAudioUrl());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());

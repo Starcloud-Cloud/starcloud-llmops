@@ -36,4 +36,8 @@ public class VideoContent implements Serializable {
     @Schema(description = "错误信息")
     private String error;
 
+    @Schema(description = "音频链接")
+    private String audioUrl;
+
+
 }
