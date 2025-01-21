@@ -195,6 +195,7 @@ public class CreativeUtils {
             map.put("repeatEnable", videoConfig.getGlobalSettings().getRepeatEnable());
             map.put("soundEffect", videoConfig.getGlobalSettings().getSoundEffect());
             map.put("animationEnable", videoConfig.getGlobalSettings().getAnimationEnable());
+            map.put("soundSpeed", videoConfig.getGlobalSettings().getSoundSpeed());
             return JSONUtil.toJsonStr(map);
         } catch (Exception e) {
             return StringUtils.EMPTY;
