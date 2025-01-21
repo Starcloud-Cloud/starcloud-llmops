@@ -22,31 +22,12 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.app.dto.AppExecuteProgress;
-import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
-import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
@@ -67,17 +48,10 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
-import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
-import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
-import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
-import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
+import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
-import com.starcloud.ops.business.app.model.content.ImageContent;
-import com.starcloud.ops.business.app.model.content.VideoContent;
-import com.starcloud.ops.business.app.model.content.VideoContentInfo;
+import com.starcloud.ops.business.app.model.content.*;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceConfiguration;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceImage2PdfConfiguration;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceWordbook2PdfConfiguration;
@@ -94,8 +68,6 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.handler.Abst
 import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.MaterialMetadata;
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
-import com.starcloud.ops.business.log.api.message.vo.request.LogAppMessageListReqVO;
-import com.starcloud.ops.business.log.dal.dataobject.LogAppMessageDO;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -109,13 +81,7 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -965,7 +931,6 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (materialList.size() <= count) {
 
 
-
         }
 
         return "";
@@ -1083,7 +1048,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
     }
 
-    //只做透传
+    // 只做透传
     @Override
     public VideoContent videoResult(VideoResultReqVO resultReqVO) {
         try {
@@ -1101,6 +1066,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setError(data.getError());
             content.setCode(resultReqVO.getImageCode());
             content.setImageUrl(resultReqVO.getImageUrl());
+            content.setAudioUrl(data.getAudioUrl());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
@@ -1108,7 +1074,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
 
-    //只做透传
+    // 只做透传
     @Override
     public VideoMergeResult videoMerge(VideoMergeConfig config) {
         try {
