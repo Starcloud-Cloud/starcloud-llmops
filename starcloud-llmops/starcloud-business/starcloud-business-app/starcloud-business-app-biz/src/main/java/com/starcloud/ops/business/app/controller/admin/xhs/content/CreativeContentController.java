@@ -316,11 +316,11 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.generateWordBookPdf(request));
     }
 
-    @GetMapping("/shareResource/{uid}")
-    @Operation(summary = "分享创作内容资源")
+    @GetMapping("/shareResult")
+    @Operation(summary = "获取分享结果")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<CreativeContentShareResultRespVO> shareResource(@PathVariable("uid") String uid) {
+    public CommonResult<CreativeContentShareResultRespVO> shareResult(@RequestParam("uid") String uid) {
         return CommonResult.success(creativeContentService.getShareResult(uid));
     }
 }
