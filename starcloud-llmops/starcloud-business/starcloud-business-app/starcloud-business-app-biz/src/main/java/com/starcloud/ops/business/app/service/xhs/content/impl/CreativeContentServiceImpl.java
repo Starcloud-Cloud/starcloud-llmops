@@ -26,6 +26,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
@@ -78,7 +80,9 @@ import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
+import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
+import com.starcloud.ops.business.app.model.content.*;
 import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
@@ -117,13 +121,7 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -1222,7 +1220,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
     }
 
-    //只做透传
+    // 只做透传
     @Override
     public VideoContent videoResult(VideoResultReqVO resultReqVO) {
         try {
@@ -1240,6 +1238,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setError(data.getError());
             content.setCode(resultReqVO.getImageCode());
             content.setImageUrl(resultReqVO.getImageUrl());
+            content.setAudioUrl(data.getAudioUrl());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
@@ -1247,7 +1246,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
 
-    //只做透传
+    // 只做透传
     @Override
     public VideoMergeResult videoMerge(VideoMergeConfig config) {
         try {
