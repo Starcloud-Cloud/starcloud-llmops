@@ -40,7 +40,7 @@ public class VideoGeneratorConfig {
         private Background background;
         private Boolean repeatEnable;
         private Boolean animationEnable;
-        private int soundSpeed;
+        private Integer soundSpeed;
     }
 
     @Data
