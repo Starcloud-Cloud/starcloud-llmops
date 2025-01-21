@@ -247,6 +247,20 @@ public class AppDictionaryServiceImpl implements AppDictionaryService {
     }
 
     /**
+     * 获取单词本模板列表
+     *
+     * @return 获取单词本模板列表
+     */
+    @Override
+    public List<String> getWordbookTemplateIdList() {
+        List<DictDataDO> dictDataList = getDictionaryList(AppConstants.WORD_BOOK_ID_TEMPLATE);
+        return CollectionUtil.emptyIfNull(dictDataList)
+                .stream()
+                .map(DictDataDO::getValue)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 根据字典类型，获取正在启用的字典数据列表
      *
      * @param dictType 字典类型

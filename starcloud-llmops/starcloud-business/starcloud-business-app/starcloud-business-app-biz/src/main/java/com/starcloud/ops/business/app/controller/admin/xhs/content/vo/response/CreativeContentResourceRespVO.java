@@ -25,12 +25,6 @@ public class CreativeContentResourceRespVO implements Serializable {
     private String uid;
 
     /**
-     * 分享二维码url
-     */
-    @Schema(description = "分享二维码")
-    private String shareQrCode;
-
-    /**
      * 创作内容资料配置
      */
     @Schema(description = "创作内容资料配置")

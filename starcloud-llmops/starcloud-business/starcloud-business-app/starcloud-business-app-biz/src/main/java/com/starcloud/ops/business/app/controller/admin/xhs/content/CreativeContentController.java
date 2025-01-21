@@ -10,8 +10,26 @@ import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.base.vo.request.UidRequest;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.batch.vo.response.CreativePlanBatchRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.RiskReplaceReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentShareResultRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.RiskReplaceRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.ShareContentRespVO;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
@@ -25,7 +43,14 @@ import com.starcloud.ops.business.app.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -272,6 +297,13 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.getResource(uid));
     }
 
+    @PostMapping("/resource/save")
+    @Operation(summary = "保存创作内容资源配置")
+    public CommonResult<Boolean> saveResource(@RequestBody @Validated CreativeContentResourceConfigurationReqVO request) {
+        creativeContentService.saveResourceConfig(request);
+        return CommonResult.success(true);
+    }
+
     @PostMapping("/resource/imagePdf")
     @Operation(summary = "生成图片PDF")
     public CommonResult<String> imagePdf(@RequestBody @Validated CreativeContentResourceConfigurationReqVO request) {
@@ -282,5 +314,13 @@ public class CreativeContentController {
     @Operation(summary = "生成单词本PDF")
     public CommonResult<String> wordbook(@RequestBody @Validated CreativeContentResourceConfigurationReqVO request) {
         return CommonResult.success(creativeContentService.generateWordBookPdf(request));
+    }
+
+    @GetMapping("/shareResult")
+    @Operation(summary = "获取分享结果")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<CreativeContentShareResultRespVO> shareResult(@RequestParam("uid") String uid) {
+        return CommonResult.success(creativeContentService.getShareResult(uid));
     }
 }

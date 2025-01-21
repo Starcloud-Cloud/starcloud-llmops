@@ -87,4 +87,10 @@ public interface AppDictionaryService {
      */
     Map<String, String> defaultAppConfiguration();
 
+    /**
+     * 获取单词本模板列表
+     *
+     * @return 获取单词本模板列表
+     */
+    List<String> getWordbookTemplateIdList();
 }

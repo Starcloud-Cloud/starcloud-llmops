@@ -44,6 +44,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentShareResultRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
@@ -78,6 +79,7 @@ import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
@@ -851,36 +853,34 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentExecuteResult executeResult = getExecuteResult(content);
         AppValidate.notNull(executeResult, "创作内容执行结果不存在({})", uid);
         ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
-        // 如果完整视频和完整音频为空，则从视频信息中获取
-        if (StringUtils.isBlank(resource.getCompleteVideoUrl()) || StringUtils.isBlank(resource.getCompleteAudioUrl())) {
-            VideoContentInfo video = executeResult.getVideo();
-            AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
-            // 如果完整视频为空，则从视频信息中获取
-            if (StringUtils.isBlank(resource.getCompleteVideoUrl())) {
-                String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
-                //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
-                resource.setCompleteVideoUrl(completeVideoUrl);
-            }
-            // 如果完整音频为空，则从视频信息中获取
-            if (StringUtils.isBlank(resource.getCompleteAudioUrl())) {
-                String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
-                // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
-                resource.setCompleteAudioUrl(completeAudioUrl);
-            }
-        }
 
-        // 生成分享二维码
-        QrConfig config = new QrConfig();
-        config.setCharset(StandardCharsets.UTF_8);
-        String qrContent = "share?sss";
-        String shareQrCode = QrCodeUtil.generateAsBase64(qrContent, config, ImgUtil.IMAGE_TYPE_PNG);
+        // 获取视频信息
+        VideoContentInfo video = executeResult.getVideo();
+        AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
+        List<VideoContent> videoList = video.getVideoList();
+        AppValidate.notEmpty(videoList, "创作内容视频列表为空({}), 请生成视频后重试！", uid);
+
+        // 始终获取最新的完整视频，则从视频信息中获取
+        String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
+        // 如果没有完整视频，则获取视频列表的第一个视频
+        if (StringUtils.isBlank(completeVideoUrl)) {
+            completeVideoUrl = videoList.get(0).getVideoUrl();
+        }
+        //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+        resource.setCompleteVideoUrl(completeVideoUrl);
+
+        // 始终获取最新的完整音频，则从视频信息中获取
+        String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
+        // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+        if (StringUtils.isBlank(completeAudioUrl)) {
+            completeAudioUrl = videoList.get(0).getAudioUrl();
+        }
+        resource.setCompleteAudioUrl(completeAudioUrl);
 
         CreativeContentResourceRespVO response = new CreativeContentResourceRespVO();
         response.setUid(uid);
         response.setResourceConfiguration(resourceConfiguration);
         response.setResource(resource);
-        response.setShareQrCode(shareQrCode);
-
         return response;
     }
 
@@ -923,8 +923,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (CollectionUtils.isEmpty(imageList)) {
             throw ServiceExceptionUtil.invalidParamException("图片生成列表不能为空");
         }
+        List<String> imageUrlList = imageList.stream().map(ImageContent::getUrl).collect(Collectors.toList());
 
         ResourceContentInfo resource = executeResult.getResource();
+        if (Objects.isNull(resource)) {
+            resource = new ResourceContentInfo();
+        }
         String videoUrl = resource.getCompleteVideoUrl();
         String audioUrl = resource.getCompleteAudioUrl();
 
@@ -937,10 +941,35 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         Boolean isAddVideoQrCode = imagePdfConfiguration.getIsAddVideoQrCode();
         String qrCodeLocation = imagePdfConfiguration.getQrCodeLocation();
 
+        String title = Optional.ofNullable(executeResult.getCopyWriting()).map(CopyWritingContent::getTitle).orElse("图片PDF");
         // 生成图片PDF
         ImagePdfRequest imagePdfRequest = new ImagePdfRequest();
+        imagePdfRequest.setTitle(title);
+        imagePdfRequest.setImageUrlList(imageUrlList);
 
-        return "";
+        VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateImagePdf(imagePdfRequest);
+        if (response.getCode() != 0) {
+            throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
+        }
+        PdfGeneratorResponse data = response.getData();
+        String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
+                .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+
+        // 保存参数配置
+        CreativeContentExecuteParam executeParam = getExecuteParam(content);
+        CreativeContentResourceConfiguration resourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration())
+                .orElse(new CreativeContentResourceConfiguration());
+        resourceConfiguration.setImagePdfConfiguration(imagePdfConfiguration);
+        executeParam.setResourceConfiguration(resourceConfiguration);
+
+        // 保存PDF URL
+        resource.setImagePdfUrl(pdfUrl);
+        executeResult.setResource(resource);
+        content.setExecuteParam(JsonUtils.toJsonString(executeParam));
+        content.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        creativeContentMapper.updateById(content);
+
+        return pdfUrl;
     }
 
     /**
@@ -1012,8 +1041,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
         }
 
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        String title = Optional.ofNullable(executeResult).map(CreativeContentExecuteResult::getCopyWriting).map(CopyWritingContent::getTitle).orElse("抗遗忘默写单词本");
         // 生成 PDF
         WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
+        wordbookPdfRequest.setTitle(title);
         wordbookPdfRequest.setWordbookImageUrlList(wordbookUrlList);
         VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
         if (response.getCode() != 0) {
@@ -1023,14 +1055,62 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
                 .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
 
+        // 保存配置参数
+        CreativeContentResourceConfiguration contentResourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration())
+                .orElse(new CreativeContentResourceConfiguration());
+        contentResourceConfiguration.setWordbookPdfConfiguration(wordbookPdfConfiguration);
+        executeParam.setResourceConfiguration(contentResourceConfiguration);
+
         // 保存PDF URL
-        CreativeContentExecuteResult executeResult = getExecuteResult(content);
-        ResourceContentInfo resource = executeResult.getResource();
+        ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
         resource.setWordbookPdfUrl(pdfUrl);
         executeResult.setResource(resource);
+        content.setExecuteParam(JsonUtils.toJsonString(executeParam));
         content.setExecuteResult(JsonUtils.toJsonString(executeResult));
         creativeContentMapper.updateById(content);
         return pdfUrl;
+    }
+
+    /**
+     * 获取分享资源
+     *
+     * @param uid 创作内容UID
+     * @return 分享资源
+     */
+    @Override
+    public CreativeContentShareResultRespVO getShareResult(String uid) {
+        CreativeContentRespVO contentResponse = this.get(uid);
+
+        CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
+        AppValidate.notNull(executeResult, "创作内容执行结果不存在({})", uid);
+
+        ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
+        // 获取视频信息
+        VideoContentInfo video = executeResult.getVideo();
+        AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
+        List<VideoContent> videoList = video.getVideoList();
+        AppValidate.notEmpty(videoList, "创作内容视频列表为空({}), 请生成视频后重试！", uid);
+
+        // 始终获取最新的完整视频，则从视频信息中获取
+        String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
+        // 如果没有完整视频，则获取视频列表的第一个视频
+        if (StringUtils.isBlank(completeVideoUrl)) {
+            completeVideoUrl = videoList.get(0).getVideoUrl();
+        }
+        //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+        resource.setCompleteVideoUrl(completeVideoUrl);
+
+        // 始终获取最新的完整音频，则从视频信息中获取
+        String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
+        // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+        resource.setCompleteAudioUrl(completeAudioUrl);
+
+        executeResult.setResource(resource);
+
+        CreativeContentShareResultRespVO response = new CreativeContentShareResultRespVO();
+        response.setUid(uid);
+        response.setExecuteResult(executeResult);
+        return response;
     }
 
     @Override
@@ -1145,7 +1225,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         }
     }
 
-    //只做透传
+    // 只做透传
     @Override
     public VideoContent videoResult(VideoResultReqVO resultReqVO) {
         try {
@@ -1163,6 +1243,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             content.setError(data.getError());
             content.setCode(resultReqVO.getImageCode());
             content.setImageUrl(resultReqVO.getImageUrl());
+            content.setAudioUrl(data.getAudioUrl());
             return content;
         } catch (Exception e) {
             throw new ServiceException(500, e.getMessage());
@@ -1170,7 +1251,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
 
-    //只做透传
+    // 只做透传
     @Override
     public VideoMergeResult videoMerge(VideoMergeConfig config) {
         try {

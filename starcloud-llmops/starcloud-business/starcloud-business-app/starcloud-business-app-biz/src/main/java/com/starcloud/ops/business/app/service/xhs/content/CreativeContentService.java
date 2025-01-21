@@ -20,6 +20,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentShareResultRespVO;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
@@ -295,4 +296,11 @@ public interface CreativeContentService {
      */
     String generateWordBookPdf(CreativeContentResourceConfigurationReqVO request);
 
+    /**
+     * 获取分享资源
+     *
+     * @param uid 创作内容UID
+     * @return 分享资源
+     */
+    CreativeContentShareResultRespVO getShareResult(String uid);
 }
