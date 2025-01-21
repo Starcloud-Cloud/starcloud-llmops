@@ -23,6 +23,8 @@ public class WordbookPdfRequest implements Serializable {
 
     private static final long serialVersionUID = 3687999754376432422L;
 
+    private String title;
+
     private List<String> wordbookImageUrlList;
 
 }

@@ -23,6 +23,8 @@ public class ImagePdfRequest implements Serializable {
 
     private static final long serialVersionUID = -7063720976257890507L;
 
+    private String title;
+
     private List<String> imageUrlList;
 
     private Boolean isAddVideoQrCode;

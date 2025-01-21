@@ -79,6 +79,7 @@ import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
 import com.starcloud.ops.business.app.model.content.ImageContent;
@@ -937,8 +938,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         Boolean isAddVideoQrCode = imagePdfConfiguration.getIsAddVideoQrCode();
         String qrCodeLocation = imagePdfConfiguration.getQrCodeLocation();
 
+        String title = Optional.ofNullable(executeResult.getCopyWriting()).map(CopyWritingContent::getTitle).orElse("图片PDF");
         // 生成图片PDF
         ImagePdfRequest imagePdfRequest = new ImagePdfRequest();
+        imagePdfRequest.setTitle(title);
         imagePdfRequest.setImageUrlList(imageUrlList);
 
         VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateImagePdf(imagePdfRequest);
@@ -949,14 +952,15 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
                 .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
 
-        // 保存PDF URL
+        // 保存参数配置
         CreativeContentExecuteParam executeParam = getExecuteParam(content);
         CreativeContentResourceConfiguration resourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration())
                 .orElse(new CreativeContentResourceConfiguration());
         resourceConfiguration.setImagePdfConfiguration(imagePdfConfiguration);
         executeParam.setResourceConfiguration(resourceConfiguration);
 
-        resource.setWordbookPdfUrl(pdfUrl);
+        // 保存PDF URL
+        resource.setImagePdfUrl(pdfUrl);
         executeResult.setResource(resource);
         content.setExecuteParam(JsonUtils.toJsonString(executeParam));
         content.setExecuteResult(JsonUtils.toJsonString(executeResult));
@@ -1034,8 +1038,11 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
         }
 
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        String title = Optional.ofNullable(executeResult).map(CreativeContentExecuteResult::getCopyWriting).map(CopyWritingContent::getTitle).orElse("抗遗忘默写单词本");
         // 生成 PDF
         WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
+        wordbookPdfRequest.setTitle(title);
         wordbookPdfRequest.setWordbookImageUrlList(wordbookUrlList);
         VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
         if (response.getCode() != 0) {
@@ -1045,13 +1052,13 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
                 .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
 
-        // 保存PDF URL
+        // 保存配置参数
         CreativeContentResourceConfiguration contentResourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration())
                 .orElse(new CreativeContentResourceConfiguration());
         contentResourceConfiguration.setWordbookPdfConfiguration(wordbookPdfConfiguration);
         executeParam.setResourceConfiguration(contentResourceConfiguration);
 
-        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        // 保存PDF URL
         ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
         resource.setWordbookPdfUrl(pdfUrl);
         executeResult.setResource(resource);
