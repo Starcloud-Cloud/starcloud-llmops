@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentShareResultRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.RiskReplaceRespVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.ShareContentRespVO;
 import com.starcloud.ops.business.app.enums.plugin.ProcessMannerEnum;
@@ -315,11 +316,11 @@ public class CreativeContentController {
         return CommonResult.success(creativeContentService.generateWordBookPdf(request));
     }
 
-    @GetMapping("/shareResource/{uid}")
-    @Operation(summary = "分享创作内容资源")
+    @GetMapping("/shareResult")
+    @Operation(summary = "获取分享结果")
     @DataPermission(enable = false)
     @ApiOperationSupport(order = 100, author = "nacoyer")
-    public CommonResult<CreativeContentRespVO> shareResource(@PathVariable("uid") String uid) {
-        return CommonResult.success(creativeContentService.detail(uid));
+    public CommonResult<CreativeContentShareResultRespVO> shareResult(@RequestParam("uid") String uid) {
+        return CommonResult.success(creativeContentService.getShareResult(uid));
     }
 }

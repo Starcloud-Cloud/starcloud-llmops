@@ -149,6 +149,7 @@ yudao:
       - /admin-api/llm/xhs/content/share
       - /admin-api/llm/xhs/content/shareBuildSignature
       - /admin-api/llm/xhs/content/share-list
+      - /admin-api/llm/xhs/content/shareResult
   websocket:
     enable: true # websocket的开关
     path: /infra/ws # 路径
@@ -211,6 +212,7 @@ yudao:
       - /admin-api/llm/xhs/content/share
       - /admin-api/llm/xhs/content/shareBuildSignature
       - /admin-api/llm/xhs/content/share-list
+      - /admin-api/llm/xhs/content/shareResult
     ignore-tables:
       - system_tenant
       - system_tenant_package
