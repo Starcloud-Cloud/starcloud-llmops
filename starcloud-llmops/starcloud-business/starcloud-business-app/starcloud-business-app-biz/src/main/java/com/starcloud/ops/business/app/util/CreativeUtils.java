@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -974,6 +975,38 @@ public class CreativeUtils {
                 .max(Integer::compareTo).orElse(-1);
     }
 
+
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("\\d+");
+
+
+    public static String handleField(String field) {
+        Matcher matcher = NUMBER_PATTERN.matcher(field);
+        if (matcher.find()) {
+            String number = matcher.group(0);
+            return field.replace(number, "");
+        }
+        return field;
+    }
+
+    public static int getMaterialFieldWordOrParaphraseCount(Map<String, MaterialFieldConfigDTO> materialFieldMap, String wordField, String paraphraseField) {
+        Set<String> fields = materialFieldMap.keySet();
+        int wordCount = 0;
+        int paraphraseCount = 0;
+        for (String field : fields) {
+            String handleWordField = handleField(wordField);
+            String wordRegx = handleWordField + "|" + handleWordField + "(\\d+)";
+            if (field.matches(wordRegx)) {
+                wordCount++;
+                continue;
+            }
+            String handleParaphraseField = handleField(paraphraseField);
+            String paraphraseRegx = handleParaphraseField + "|" + handleParaphraseField + "(\\d+)";
+            if (field.matches(paraphraseRegx)) {
+                paraphraseCount++;
+            }
+        }
+        return Math.max(wordCount, paraphraseCount);
+    }
 }
 
 

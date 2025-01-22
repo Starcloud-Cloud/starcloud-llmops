@@ -530,7 +530,7 @@ public abstract class AbstractMaterialHandler {
      * @param appInformation 应用信息
      * @return 需要的素材数量
      */
-    protected Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
+    public Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
         Integer posterNeedSize = computePosterStyleNeedMaterialSize(posterStyle);
         Integer appNeedSize = computeAppInformationNeedSize(appInformation);
         return Math.max(posterNeedSize, appNeedSize);
