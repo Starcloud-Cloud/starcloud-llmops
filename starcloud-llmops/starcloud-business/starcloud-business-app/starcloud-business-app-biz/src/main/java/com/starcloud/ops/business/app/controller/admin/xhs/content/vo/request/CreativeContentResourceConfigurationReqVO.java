@@ -36,4 +36,6 @@ public class CreativeContentResourceConfigurationReqVO implements Serializable {
     @Schema(description = "创作内容资料")
     private ResourceContentInfo resource;
 
+    private String source;
+
 }
