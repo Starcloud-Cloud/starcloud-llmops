@@ -48,7 +48,7 @@ class PictureMaterialHandler extends AbstractMaterialHandler {
      * @return 需要的素材数量
      */
     @Override
-    protected Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
+    public Integer computeNeedMaterialSize(PosterStyleDTO posterStyle, AppMarketRespVO appInformation) {
         return Optional.ofNullable(posterStyle)
                 .map(PosterStyleDTO::getTotalImageCount)
                 .orElse(0);

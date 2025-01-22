@@ -126,6 +126,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -1001,6 +1002,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         String wordField = wordbookPdfConfiguration.getWordField();
         String paraphraseField = wordbookPdfConfiguration.getParaphraseField();
 
+        // 处理海报模板
         PosterTemplateDTO posterTemplate = wordbookPdfConfiguration.getPosterTemplate();
         PosterTemplateDTO template = CreativeUtils.handlerPosterTemplate(posterTemplate, 0);
 
@@ -1011,32 +1013,61 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .collect(Collectors.toList());
+
         // 获取单词字段的最大值
         int wordFiledCount = CreativeUtils.getWordFieldCount(variableNameList);
         // 获取单词释义字段的最大值
         int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableNameList);
         // 确定每张图需要多少素材
         int count = Math.max(wordFiledCount, paraphraseFieldCount);
-
         if (count <= 0) {
             throw ServiceExceptionUtil.invalidParamException("单词卡模板配置异常！请联系管理员！");
         }
         List<String> wordbookUrlList = new ArrayList<>();
-        // 此时说明，素材只够生成一张图
-        if (materialList.size() <= count) {
-            List<String> urlList = poster(template, materialStepId, materialList, wordField, paraphraseField);
-            wordbookUrlList.addAll(urlList);
-        } else {
-            // 计算一共需要多少张图，如果有余数，则需要多一张
-            int size = materialList.size() / count;
-            int remainder = materialList.size() % count;
-            size = remainder > 0 ? size + 1 : size;
-            for (int i = 0; i < size; i++) {
-                List<Map<String, Object>> subList = materialList.subList(i * count, Math.min((i + 1) * count, materialList.size()));
-                List<String> urlList = poster(template, materialStepId, subList, wordField, paraphraseField);
+
+        if (materialList.size() == 1) {
+            // 查询创作计划，校验创作计划是否存在
+            CreativePlanRespVO planResponse = creativePlanService.get(content.getPlanUid());
+            // 素材字段配置列表
+            List<MaterialFieldConfigDTO> materialFieldList = this.materialFieldList(planResponse);
+            Map<String, MaterialFieldConfigDTO> materialFieldMap = materialFieldList.stream()
+                    .collect(Collectors.toMap(MaterialFieldConfigDTO::getFieldName, Function.identity()));
+
+            // 计算素材字段的单词和释义的数量，取最大值
+            int fieldCount = CreativeUtils.getMaterialFieldWordOrParaphraseCount(materialFieldMap, wordField, paraphraseField);
+            // 如果素材字段的数量小于需要的数量，说明素材字段不够，只需要生成一张图
+            if (fieldCount < count) {
+                List<String> urlList = poster(template, materialStepId, materialList, wordField, paraphraseField, count, fieldCount, 0);
                 wordbookUrlList.addAll(urlList);
+            } else {
+                // 计算一共需要多少张图，如果有余数，则需要多一张
+                int size = fieldCount / count;
+                int remainder = fieldCount % count;
+                size = remainder > 0 ? size + 1 : size;
+                for (int i = 0; i < size; i++) {
+                    List<Map<String, Object>> subList = materialList.subList(i * count, Math.min((i + 1) * count, materialList.size()));
+                    List<String> urlList = poster(template, materialStepId, subList, wordField, paraphraseField, count, fieldCount, i);
+                    wordbookUrlList.addAll(urlList);
+                }
+            }
+        } else {
+            // 此时说明，素材只够生成一张图
+            if (materialList.size() <= count) {
+                List<String> urlList = poster(template, materialStepId, materialList, wordField, paraphraseField, count, 1,0);
+                wordbookUrlList.addAll(urlList);
+            } else {
+                // 计算一共需要多少张图，如果有余数，则需要多一张
+                int size = materialList.size() / count;
+                int remainder = materialList.size() % count;
+                size = remainder > 0 ? size + 1 : size;
+                for (int i = 0; i < size; i++) {
+                    List<Map<String, Object>> subList = materialList.subList(i * count, Math.min((i + 1) * count, materialList.size()));
+                    List<String> urlList = poster(template, materialStepId, subList, wordField, paraphraseField, count, 1, i);
+                    wordbookUrlList.addAll(urlList);
+                }
             }
         }
+
         if (CollectionUtils.isEmpty(wordbookUrlList)) {
             throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
         }
@@ -1587,7 +1618,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                                 String materialStepId,
                                 List<Map<String, Object>> materialList,
                                 String wordField,
-                                String paraphraseField) {
+                                String paraphraseField,
+                                int count,
+                                int fieldCount,
+                                int i) {
 
         PosterTemplateDTO posterTemplateDTO = SerializationUtils.clone(template);
         List<PosterVariableDTO> templateVariableList = posterTemplateDTO.getVariableList();
@@ -1599,12 +1633,29 @@ public class CreativeContentServiceImpl implements CreativeContentService {
                 if (index < 0) {
                     continue;
                 }
+                if (materialList.size() == 1 && fieldCount > 1) {
+                    int handleIndex = index + 1;
+                    int wordFieldIndex = i * count + handleIndex;
+                    String handleWordField = CreativeUtils.handleField(wordField) + wordFieldIndex;
+                    String value = "{{" + materialStepId + ".docs[0]." + handleWordField + "}}";
+                    posterVariableDTO.setValue(value);
+                    continue;
+                }
                 String value = "{{" + materialStepId + ".docs[" + index + "]." + wordField + "}}";
                 posterVariableDTO.setValue(value);
+                continue;
             }
             if (CreativeUtils.isParaphraseField(name)) {
                 int index = CreativeUtils.getParaphraseFieldIndex(name) - 1;
                 if (index < 0) {
+                    continue;
+                }
+                if (materialList.size() == 1 && fieldCount > 1) {
+                    int handleIndex = index + 1;
+                    int paraphraseFieldIndex = i * count + handleIndex;
+                    String handleParaphraseField = CreativeUtils.handleField(paraphraseField) + paraphraseFieldIndex;
+                    String value = "{{" + materialStepId + ".docs[0]." + handleParaphraseField + "}}";
+                    posterVariableDTO.setValue(value);
                     continue;
                 }
                 String value = "{{" + materialStepId + ".docs[" + index + "]." + paraphraseField + "}}";
