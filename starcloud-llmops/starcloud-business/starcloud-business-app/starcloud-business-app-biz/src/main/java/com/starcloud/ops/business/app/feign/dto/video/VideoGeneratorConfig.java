@@ -16,7 +16,10 @@ import java.util.Map;
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(name = "VideoGeneratorConfig", description = "视频生成配置类")
-public class VideoGeneratorConfig {
+public class VideoGeneratorConfig implements java.io.Serializable {
+
+    private static final long serialVersionUID = 4035060399572428688L;
+
     private String id;
     private Map<String, String> resources;
     private GlobalSettings globalSettings;
