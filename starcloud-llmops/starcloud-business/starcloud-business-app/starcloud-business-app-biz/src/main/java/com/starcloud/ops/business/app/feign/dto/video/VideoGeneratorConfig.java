@@ -129,7 +129,7 @@ public class VideoGeneratorConfig {
         private String repeatRole;
         private int repeatCount;
         private int repeatSpeed;
-        private Boolean pauseEnable;
+        private String pauseEnable;
 
 
     }
