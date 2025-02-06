@@ -41,6 +41,23 @@ public class VideoGeneratorConfig {
         private Boolean repeatEnable;
         private Boolean animationEnable;
         private Integer soundSpeed;
+        private Subtitles subtitles;
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static
+    class Subtitles {
+        private Boolean enable;
+        private String mode;
+        private String font;
+        private String fontSize;
+        private String color;
+        private String bgColor;
+        private Float opacity;
+        private Point position;
     }
 
     @Data
@@ -130,8 +147,7 @@ public class VideoGeneratorConfig {
         private int repeatCount;
         private int repeatSpeed;
         private String pauseEnable;
-
-
+        private Boolean subtitleEnable;
     }
 
     @Data
