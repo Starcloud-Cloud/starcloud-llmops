@@ -53,7 +53,7 @@ public class VideoGeneratorConfig {
         private Boolean enable;
         private String mode;
         private String font;
-        private String fontSize;
+        private Integer fontSize;
         private String color;
         private String bgColor;
         private Float opacity;
