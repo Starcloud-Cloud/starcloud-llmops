@@ -102,7 +102,7 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
      * @param type 权益类型-AdminUserRightsTypeEnum
      */
     @Override
-    public Integer getRightsCount(Integer type) {
+    public Integer getOriginalFixedRightsSums(Integer type) {
         AdminUserRightsTypeEnum rightsTypeEnum = AdminUserRightsTypeEnum.getByType(type);
         if (rightsTypeEnum == null) {
             throw exception(RIGHTS_TYPE_NOT_SUPPORT);

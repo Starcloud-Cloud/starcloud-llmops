@@ -80,5 +80,5 @@ public interface AdminUserRightsApi {
      * 根据权益类型获取权益总数
      * @param type 权益类型-AdminUserRightsTypeEnum
      */
-    Integer getRightsCount(Integer type);
+    Integer getOriginalFixedRightsSums(Integer type);
 }
