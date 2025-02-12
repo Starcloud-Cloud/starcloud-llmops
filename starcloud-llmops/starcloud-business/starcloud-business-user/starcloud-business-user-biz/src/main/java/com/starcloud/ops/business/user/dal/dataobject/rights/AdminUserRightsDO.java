@@ -1,9 +1,13 @@
 package com.starcloud.ops.business.user.dal.dataobject.rights;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
+import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import lombok.*;
@@ -106,6 +110,130 @@ public class AdminUserRightsDO extends BaseDO {
      * <p>
      */
     private Integer status;
+
+
+    @TableField(typeHandler = OriginalFixedRightsTypeHandler.class)
+    private  OriginalFixedRights  originalFixedRights;
+
+    @TableField(typeHandler = DynamicRightsTypeHandler.class)
+    private DynamicRights dynamicRights;
+
+    @TableField(typeHandler = InvariantRightsTypeHandler.class)
+    private InvariantRights invariantRights;
+
+
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static class OriginalFixedRights {
+        /**
+         * 模板数量
+         */
+        private int templateNums;
+        /**
+         * 魔法豆
+         */
+        private Integer magicBean;
+        /**
+         * 图片值
+         */
+        private Integer magicImage;
+        /**
+         * 矩阵点
+         */
+        private Integer matrixBean;
+
+    }
+
+    public static class OriginalFixedRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, OriginalFixedRights.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static class DynamicRights {
+        /**
+         * 模板数量
+         */
+        private int templateNums;
+        /**
+         * 魔法豆
+         */
+        private Integer magicBean;
+        /**
+         * 图片值
+         */
+        private Integer magicImage;
+        /**
+         * 矩阵点
+         */
+        private Integer matrixBean;
+
+    }
+
+    public static class DynamicRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, DynamicRights.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static class InvariantRights {
+        /**
+         * 模板数量
+         */
+        private int templateNums;
+        /**
+         * 魔法豆
+         */
+        private Integer magicBean;
+        /**
+         * 图片值
+         */
+        private Integer magicImage;
+        /**
+         * 矩阵点
+         */
+        private Integer matrixBean;
+
+    }
+
+    public static class InvariantRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, InvariantRights.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
 
 
 }

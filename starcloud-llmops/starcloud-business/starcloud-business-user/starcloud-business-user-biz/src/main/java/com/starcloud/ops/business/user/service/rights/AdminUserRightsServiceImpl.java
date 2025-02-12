@@ -518,6 +518,26 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     }
 
     /**
+     * 获取指定类型的剩余数量-有效期内的
+     *
+     * @param type 权益类型
+     */
+    @Override
+    public Integer getUsedNumsByType(Integer type) {
+        return 0;
+    }
+
+    /**
+     * 获取指定类型的总数量-有效期内的
+     *
+     * @param type 权益类型
+     */
+    @Override
+    public Integer getEffectiveNumsByType(Integer type) {
+        return 0;
+    }
+
+    /**
      * 获取权益数大于 0 且有效的权益列表
      *
      * @param userId     用户 ID

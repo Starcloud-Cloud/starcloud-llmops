@@ -19,6 +19,7 @@ public enum AdminUserRightsTypeEnum implements IntArrayValuable {
     MAGIC_BEAN(1, "魔法豆"),
     MAGIC_IMAGE(2, "图片"),
     MATRIX_BEAN(3, " 魔法豆"), // 原矩阵豆
+    TEMPLATE(4, " 模板"),
     ;
 
     /**

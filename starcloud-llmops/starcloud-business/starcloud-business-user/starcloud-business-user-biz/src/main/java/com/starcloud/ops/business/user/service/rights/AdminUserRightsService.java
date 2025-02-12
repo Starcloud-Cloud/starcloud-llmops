@@ -143,4 +143,17 @@ public interface AdminUserRightsService {
 
 
     void expireRightsBySystem(AdminUserRightsDO rightsDO);
+
+
+    /**
+     * 获取指定类型的剩余数量-有效期内的
+     * @param type 权益类型
+     */
+    Integer getUsedNumsByType(Integer type);
+
+    /**
+     * 获取指定类型的总数量-有效期内的
+     * @param type 权益类型
+     */
+    Integer getEffectiveNumsByType(Integer type);
 }

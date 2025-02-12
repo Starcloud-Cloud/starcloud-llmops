@@ -50,6 +50,7 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
 import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.*;
+import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
 import com.starcloud.ops.business.app.model.content.*;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceConfiguration;
@@ -1038,6 +1039,72 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         videoConfig.setId(null);
         try {
             VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGenerator(videoConfig);
+            if (generatorResponse.getCode() != 0) {
+                throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
+            }
+            videoConfig.setId(generatorResponse.getData().getTaskId());
+            return videoConfig;
+        } catch (Exception e) {
+            throw new ServiceException(500, e.getMessage());
+        }
+    }
+
+    /**
+     * 开始生成单条视频
+     *
+     * @param reqVO
+     */
+    @Override
+    public VideoGeneratorConfigV2 generateVideoV2(VideoConfigReqVO reqVO) {
+        if (StringUtils.isBlank(reqVO.getVideoConfig())) {
+            throw exception(PARAM_ERROR, "生成视频配置必填");
+        }
+        VideoGeneratorConfigV2 videoConfig = JSONUtil.toBean(reqVO.getVideoConfig(), VideoGeneratorConfigV2.class);
+        if (Objects.isNull(videoConfig.getGlobalSettings())) {
+            videoConfig.setGlobalSettings(new VideoGeneratorConfigV2.GlobalSettings());
+        }
+
+        if (JSONUtil.isTypeJSONObject(reqVO.getQuickConfiguration())) {
+            JSONObject quickConfiguration = JSONObject.parseObject(reqVO.getQuickConfiguration());
+            for (Map.Entry<String, Object> entry : quickConfiguration.entrySet()) {
+                if (Objects.isNull(entry.getValue())) {
+                    continue;
+                }
+                BeanPath beanPath = new BeanPath("globalSettings." + entry.getKey());
+                try {
+                    beanPath.set(videoConfig, entry.getValue());
+                } catch (Exception ignored) {
+                    log.warn("字段不存在 {}", entry.getKey());
+                }
+            }
+        }
+
+        String imageCode = reqVO.getImageCode();
+        if (StringUtils.isBlank(imageCode)) {
+            throw exception(PARAM_ERROR, "图片code必填");
+        }
+
+        CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
+        if (Objects.isNull(creativeContent)) {
+            throw exception(PARAM_ERROR, "创作内容不存在");
+        }
+        CreativeContentRespVO contentRespVO = CreativeContentConvert.INSTANCE.convert(creativeContent);
+        Map<String, String> resources = buildResources(contentRespVO, reqVO.getImageUrl());
+
+        List<ImageContent> imageContents = Optional.ofNullable(contentRespVO.getExecuteResult())
+                .map(CreativeContentExecuteResult::getImageList).orElseThrow(() -> exception(PARAM_ERROR, "没有图片生成结果"));
+        if (CollectionUtil.isEmpty(imageContents)) {
+            throw exception(PARAM_ERROR, "没有图片生成结果");
+        }
+
+        if (Objects.isNull(videoConfig.getGlobalSettings().getVideo().getBackground())) {
+            videoConfig.getGlobalSettings().getVideo().setBackground(new VideoGeneratorConfigV2.BackgroundConfig());
+        }
+        videoConfig.getGlobalSettings().getVideo().getBackground().setSource(reqVO.getImageUrl());
+        videoConfig.setResources(resources);
+        videoConfig.setId(null);
+        try {
+            VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGeneratorV2(videoConfig);
             if (generatorResponse.getCode() != 0) {
                 throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
             }

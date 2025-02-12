@@ -23,6 +23,7 @@ import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.C
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
+import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.app.model.content.VideoContent;
 import org.apache.commons.lang3.StringUtils;
 
@@ -99,6 +100,11 @@ public interface CreativeContentService {
      * 开始生成单条视频
      */
     VideoGeneratorConfig generateVideo(VideoConfigReqVO reqVO);
+
+    /**
+     * 开始生成单条视频
+     */
+    VideoGeneratorConfigV2 generateVideoV2(VideoConfigReqVO reqVO);
 
     /**
      * 视频生成结果

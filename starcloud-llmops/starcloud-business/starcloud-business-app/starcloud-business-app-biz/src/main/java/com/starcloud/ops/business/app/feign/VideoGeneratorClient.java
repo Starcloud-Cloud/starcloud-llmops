@@ -4,6 +4,7 @@ import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
+import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
@@ -72,5 +73,45 @@ public interface VideoGeneratorClient {
      */
     @PostMapping(value = "v1/pdf/wordbook")
     VideoGeneratorResponse<PdfGeneratorResponse> generateWordBookPdf(WordbookPdfRequest request);
+
+
+    /**
+     * 执行视频生成
+     *
+     * @return 海报
+     */
+    @PostMapping(value = "/v2/generate/videos")
+    VideoGeneratorResponse<VideoGeneratorResult> videoGeneratorV2(VideoGeneratorConfigV2 config);
+
+    /**
+     * 获取生成结果
+     *
+     * @return 模板列表
+     */
+    @GetMapping(value = "/v2/videos/{video_id}")
+    VideoGeneratorResponse<VideoRecordResult> getGeneratorResultV2(@PathVariable("video_id") String video_id);
+
+
+    /**
+     * 获取生成结果
+     *
+     * @return 模板列表
+     */
+    @PostMapping(value = "/v2/videos/merge")
+    VideoGeneratorResponse<VideoMergeResult> mergeVideosV2(VideoMergeConfig config);
+
+
+    /**
+     * 服务检测
+     *
+     * @return 模板列表
+     */
+    @PostMapping(value = "/v2/health")
+    void healthV2();
+
+
+
+
+
 
 }
