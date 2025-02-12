@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -68,7 +69,7 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
         }
 
         Integer originalFixedRightsSums = rightsApi.getOriginalFixedRightsSums(AdminUserRightsTypeEnum.TEMPLATE.getType());
-        if (addNum > originalFixedRightsSums) {
+        if (Objects.isNull(originalFixedRightsSums) || addNum > originalFixedRightsSums) {
             throw exception(NOT_TEMPLATE_RESOURCE);
         }
 
