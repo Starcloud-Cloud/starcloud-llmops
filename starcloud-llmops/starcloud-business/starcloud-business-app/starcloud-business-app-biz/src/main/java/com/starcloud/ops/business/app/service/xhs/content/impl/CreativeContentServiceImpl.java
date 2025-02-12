@@ -75,6 +75,7 @@ import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
 import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
 import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
 import com.starcloud.ops.business.app.feign.dto.video.*;
+import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
