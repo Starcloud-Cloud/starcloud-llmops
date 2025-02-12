@@ -407,6 +407,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     @Transactional(rollbackFor = Exception.class)
     public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
+        List<PosterStyleDTO> imageStyleList = request.getConfiguration().getImageStyleList();
+        templateRecordService.checkRecordNum(imageStyleList);
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
 
@@ -419,8 +421,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
-        List<PosterStyleDTO> imageStyleList = request.getConfiguration().getImageStyleList();
-        templateRecordService.checkRecordNum(imageStyleList);
+
         CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
         CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
         planResponse.setVerificationList(verifications);
