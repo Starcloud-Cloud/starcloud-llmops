@@ -68,7 +68,7 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
             }
         }
 
-        Integer originalFixedRightsSums = rightsApi.getOriginalFixedRightsSums(AdminUserRightsTypeEnum.TEMPLATE.getType());
+        Integer originalFixedRightsSums = rightsApi.getOriginalFixedRightsSums(WebFrameworkUtils.getLoginUserId(), AdminUserRightsTypeEnum.TEMPLATE.getType());
         if (Objects.isNull(originalFixedRightsSums) || addNum > originalFixedRightsSums) {
             throw exception(NOT_TEMPLATE_RESOURCE);
         }
