@@ -153,7 +153,7 @@ public interface AdminUserRightsService {
 
     /**
      * 获取指定类型的总数量-有效期内的
-     * @param type 权益类型
+     * @param rightsType 权益类型 @{AdminUserRightsTypeEnum}
      */
-    Integer getEffectiveNumsByType(Integer type);
+    Integer getEffectiveNumsByType(AdminUserRightsTypeEnum rightsType);
 }

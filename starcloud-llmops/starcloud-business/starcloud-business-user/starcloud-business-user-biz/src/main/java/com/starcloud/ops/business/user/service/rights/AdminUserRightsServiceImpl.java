@@ -530,10 +530,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     /**
      * 获取指定类型的总数量-有效期内的
      *
-     * @param type 权益类型
+     * @param rightsType 权益类型
      */
     @Override
-    public Integer getEffectiveNumsByType(Integer type) {
+    public Integer getEffectiveNumsByType(AdminUserRightsTypeEnum rightsType ) {
         return 0;
     }
 

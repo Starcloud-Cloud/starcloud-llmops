@@ -75,4 +75,10 @@ public interface AdminUserRightsApi {
      * @return 权益统计
      */
     List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList);
+
+    /**
+     * 根据权益类型获取权益总数
+     * @param type 权益类型-AdminUserRightsTypeEnum
+     */
+    Integer getRightsCount(Integer type);
 }
