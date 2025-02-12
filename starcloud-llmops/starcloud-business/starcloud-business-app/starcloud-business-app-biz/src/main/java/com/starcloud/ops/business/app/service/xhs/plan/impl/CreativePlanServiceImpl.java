@@ -47,6 +47,7 @@ import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
+import com.starcloud.ops.business.app.service.template.TemplateRecordService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -109,6 +110,9 @@ public class CreativePlanServiceImpl implements CreativePlanService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private TemplateRecordService templateRecordService;
 
 
     /**
@@ -400,6 +404,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
      * @return 创作计划UID
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         // 处理并且校验请求
@@ -414,7 +419,8 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setConfiguration(JsonUtils.toJsonString(request.getConfiguration()));
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
-
+        List<PosterStyleDTO> imageStyleList = request.getConfiguration().getImageStyleList();
+        templateRecordService.checkRecordNum(imageStyleList);
         CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
         CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);
         planResponse.setVerificationList(verifications);

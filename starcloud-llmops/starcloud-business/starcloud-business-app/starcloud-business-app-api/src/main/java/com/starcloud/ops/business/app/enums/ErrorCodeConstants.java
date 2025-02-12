@@ -686,5 +686,7 @@ public interface ErrorCodeConstants {
     ErrorCode PROMPT_NOT_EXIST = new ErrorCode(300703001, "提示词不存在");
 
     ErrorCode NO_PERMISSION = new ErrorCode(300703002, "用户没有权限推荐提示词");
+    ErrorCode NOT_TEMPLATE_RESOURCE = new ErrorCode(300800001, "模板数量不足");
+
 
 }
