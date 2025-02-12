@@ -13,6 +13,7 @@ import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdmi
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.business.user.service.level.AdminUserLevelConfigService;
 import com.starcloud.ops.business.user.service.rights.AdminUserRightsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,20 +70,20 @@ public class AdminUserRightsController {
     public CommonResult<PageResult<AppAdminUserRightsRespVO>> getPointRecordPage(@Valid AppAdminUserRightsPageReqVO pageVO) {
         PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(getLoginUserId(), pageVO);
         // 优化显示内容
-        if (!pageResult.getList().isEmpty()){
-            pageResult.getList().forEach(rights->{
-                Integer status = LocalDateTimeUtils.isBetween(rights.getValidStartTime(),rights.getValidEndTime()) ?
+        if (!pageResult.getList().isEmpty()) {
+            pageResult.getList().forEach(rights -> {
+                Integer status = LocalDateTimeUtils.isBetween(rights.getValidStartTime(), rights.getValidEndTime()) ?
                         AdminUserRightsStatusEnum.NORMAL.getType()
-                        : LocalDateTimeUtils.beforeNow(rights.getValidStartTime())&& LocalDateTimeUtils.beforeNow(rights.getValidEndTime()) ?
+                        : LocalDateTimeUtils.beforeNow(rights.getValidStartTime()) && LocalDateTimeUtils.beforeNow(rights.getValidEndTime()) ?
                         AdminUserRightsStatusEnum.EXPIRE.getType()
-                        : LocalDateTimeUtils.afterNow(rights.getValidStartTime())&& LocalDateTimeUtils.afterNow(rights.getValidEndTime())?
-                        AdminUserRightsStatusEnum.PENDING.getType():AdminUserRightsStatusEnum.CANCEL.getType();
+                        : LocalDateTimeUtils.afterNow(rights.getValidStartTime()) && LocalDateTimeUtils.afterNow(rights.getValidEndTime()) ?
+                        AdminUserRightsStatusEnum.PENDING.getType() : AdminUserRightsStatusEnum.CANCEL.getType();
                 rights.setStatus(status);
             });
         }
         PageResult<AppAdminUserRightsRespVO> result = AdminUserRightsConvert.INSTANCE.convertPage02(pageResult);
 
-        result.getList().forEach(data->{
+        result.getList().forEach(data -> {
             if (Objects.nonNull(data.getUserLevelId())) {
                 data.setLevelName(adminUserLevelConfigService.getLevelConfig(data.getUserLevelId()).getName());
             }
@@ -99,6 +100,13 @@ public class AdminUserRightsController {
         return success(Boolean.TRUE);
     }
 
+
+    @GetMapping("/u/getOriginalFixedRightsSums")
+    @Operation(summary = "系统会员-权益模板数据测试")
+    @PreAuthenticated
+    public CommonResult<Integer> getOriginalFixedRightsSums() {
+        return success(adminUserRightsService.getEffectiveNumsByType(getLoginUserId(), AdminUserRightsTypeEnum.TEMPLATE));
+    }
 
 
 }

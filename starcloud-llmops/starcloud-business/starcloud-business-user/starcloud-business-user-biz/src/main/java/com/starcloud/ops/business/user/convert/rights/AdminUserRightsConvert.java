@@ -72,9 +72,9 @@ public interface AdminUserRightsConvert {
                                           LocalDateTime startTime, LocalDateTime endTime, Long levelId, Integer templates) {
 
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
-        AdminUserRightsDO.OriginalFixedRights originalFixedRights = new AdminUserRightsDO().getOriginalFixedRights();
+        AdminUserRightsDO.OriginalFixedRights originalFixedRights = new AdminUserRightsDO.OriginalFixedRights();
         originalFixedRights.setTemplateNums(templates);
-        AdminUserRightsDO.DynamicRights dynamicRights = new AdminUserRightsDO().getDynamicRights();
+        AdminUserRightsDO.DynamicRights dynamicRights = new AdminUserRightsDO.DynamicRights();
         dynamicRights.setTemplateNums(templates);
 
 
