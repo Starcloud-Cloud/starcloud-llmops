@@ -31,6 +31,12 @@ public class UserRightsBasicDTO {
     private Integer matrixBean;
 
     /**
+     * 赠送图片权益
+     */
+    @Schema(description = "模板数量", example = " 1")
+    private Integer template;
+
+    /**
      * 时间范围
      */
     @Schema(description = "时间范围", example = " 1")

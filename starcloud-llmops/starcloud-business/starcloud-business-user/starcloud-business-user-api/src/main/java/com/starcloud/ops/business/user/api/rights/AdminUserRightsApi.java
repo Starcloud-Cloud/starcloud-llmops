@@ -27,7 +27,7 @@ public interface AdminUserRightsApi {
      */
     @Deprecated
     void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer rightsTimeNums, Integer rightsTimeRange,
-                   Integer bizType, String bizId, Long levelId);
+                   Integer bizType, String bizId, Long levelId,Integer templates);
 
     /**
      * 新增用户权益
@@ -75,4 +75,10 @@ public interface AdminUserRightsApi {
      * @return 权益统计
      */
     List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList);
+
+    /**
+     * 根据权益类型获取权益总数
+     * @param type 权益类型-AdminUserRightsTypeEnum
+     */
+    Integer getOriginalFixedRightsSums(Long userId,Integer type);
 }

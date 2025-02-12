@@ -16,9 +16,12 @@ import java.util.Objects;
 @Getter
 public enum AdminUserRightsTypeEnum implements IntArrayValuable {
 
-    MAGIC_BEAN(1, "魔法豆"),
-    MAGIC_IMAGE(2, "图片"),
-    MATRIX_BEAN(3, " 魔法豆"), // 原矩阵豆
+    // 累计且动态
+    MAGIC_BEAN(1, "魔法豆",true,true),
+    MAGIC_IMAGE(2, "图片",true,true),
+    MATRIX_BEAN(3, " 魔法豆",true,true), // 原矩阵豆
+    // 不累计且动态
+    TEMPLATE(4, " 模板",true,false),
     ;
 
     /**
@@ -29,6 +32,16 @@ public enum AdminUserRightsTypeEnum implements IntArrayValuable {
      * 名字
      */
     private final String name;
+
+    /**
+     * 是否动态
+     */
+    private final Boolean isDynamic;
+
+    /**
+     * 是否累计
+     */
+    private final Boolean isAdd;
 
     @Override
     public int[] array() {

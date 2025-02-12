@@ -243,7 +243,7 @@ public class AdminUserInviteServiceImpl implements AdminUserInviteService {
                         .setTimeNums(1)
                         .setTimeRange(TimeRangeTypeEnum.MONTH.getType())
                         .setBizId(String.valueOf(inviteRecordsId))
-                        .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE.getType())
+                        .setBizType(AdminUserRightsBizTypeEnum.USER_INVITE_REPEAT.getType())
                         .setLevelId(null);
                 adminUserRightsService.createRights(inviteUserRightsDTO);
             });

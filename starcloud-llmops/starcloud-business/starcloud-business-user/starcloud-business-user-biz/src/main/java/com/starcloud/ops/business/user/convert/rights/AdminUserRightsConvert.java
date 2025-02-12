@@ -69,9 +69,15 @@ public interface AdminUserRightsConvert {
 
     default AdminUserRightsDO convert(Long userId, String bizId, Integer bizType,
                                           Integer magicBean, Integer magicImage, Integer matrixBean,
-                                          LocalDateTime startTime, LocalDateTime endTime, Long levelId) {
+                                          LocalDateTime startTime, LocalDateTime endTime, Long levelId, Integer templates) {
 
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
+        AdminUserRightsDO.OriginalFixedRights originalFixedRights = new AdminUserRightsDO.OriginalFixedRights();
+        originalFixedRights.setTemplateNums(templates);
+        AdminUserRightsDO.DynamicRights dynamicRights = new AdminUserRightsDO.DynamicRights();
+        dynamicRights.setTemplateNums(templates);
+
+
         return AdminUserRightsDO.builder()
                 .userId(userId)
                 .bizId(bizId)
@@ -88,6 +94,8 @@ public interface AdminUserRightsConvert {
                 .validStartTime(startTime)
                 .validEndTime(endTime)
                 .status(AdminUserRightsStatusEnum.NORMAL.getType())
+                .originalFixedRights(originalFixedRights)
+                .dynamicRights(dynamicRights)
                 .build();
     }
 }
