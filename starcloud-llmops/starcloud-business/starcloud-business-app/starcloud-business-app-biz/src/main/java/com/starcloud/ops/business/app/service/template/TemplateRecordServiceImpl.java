@@ -7,6 +7,8 @@ import com.starcloud.ops.business.app.dal.databoject.template.TemplateRecordDO;
 import com.starcloud.ops.business.app.dal.mysql.template.TemplateRecordMapper;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.util.CreativeUtils;
+import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
+import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,9 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
 
     @Resource
     private TemplateRecordMapper recordMapper;
+
+    @Resource
+    private AdminUserRightsApi rightsApi;
 
     @Override
     public void addRecord(List<PosterStyleDTO> posterStyleDTOList) {
@@ -62,7 +67,8 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
             }
         }
 
-        if (addNum > 5) {
+        Integer originalFixedRightsSums = rightsApi.getOriginalFixedRightsSums(AdminUserRightsTypeEnum.TEMPLATE.getType());
+        if (addNum > originalFixedRightsSums) {
             throw exception(NOT_TEMPLATE_RESOURCE);
         }
 
