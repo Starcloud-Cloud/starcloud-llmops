@@ -38,6 +38,7 @@ import com.starcloud.ops.business.app.model.plan.PlanExecuteRequest;
 import com.starcloud.ops.business.app.model.plan.PlanExecuteResult;
 import com.starcloud.ops.business.app.model.plan.PlanTotalCount;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
+import com.starcloud.ops.business.app.service.template.TemplateRecordService;
 import com.starcloud.ops.business.app.service.xhs.batch.CreativePlanBatchService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -98,6 +99,8 @@ public class CreativePlanExecuteManager {
 
     private final TransactionTemplate transactionTemplate;
 
+    private final TemplateRecordService templateRecordService;
+
     /**
      * 获取创作计划锁的 Key。
      *
@@ -147,6 +150,10 @@ public class CreativePlanExecuteManager {
 
             // 获取并且校验计划
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
+            // 模板使用记录 校验数量
+            if (CreativePlanSourceEnum.isMarket(planResponse.getSource())) {
+                templateRecordService.addRecord(planResponse.getConfiguration().getImageStyleList());
+            }
 
             // 创作内容任务数据整合处理
             ContentBatchRequest batchRequest = this.buildContentRequestList(planResponse, request);

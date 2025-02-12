@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -839,6 +840,26 @@ public class CreativeUtils {
         }
 
         return posterStyleList;
+    }
+
+    public static List<String> getPosterTemplateCodes(List<PosterStyleDTO> posterStyleList) {
+        try {
+            List<String> templateCodes = new ArrayList<>();
+            for (PosterStyleDTO posterStyleDTO : posterStyleList) {
+                if (Objects.nonNull(posterStyleDTO.getSaleConfig()) && BooleanUtils.isTrue(posterStyleDTO.getSaleConfig().getOpenSale())) {
+                    List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+                    if (CollUtil.isEmpty(templateList)) {
+                        continue;
+                    }
+                    for (PosterTemplateDTO posterTemplateDTO : templateList) {
+                        templateCodes.add(posterTemplateDTO.getCode());
+                    }
+                }
+            }
+            return templateCodes;
+        } catch (Exception ignore) {
+        }
+        return Collections.emptyList();
     }
 
     /**
