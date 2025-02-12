@@ -180,7 +180,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long levelId) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long levelId,Integer templates) {
 
         if (magicBean == 0 || magicImage == 0) {
             return;
@@ -197,7 +197,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         LocalDateTime endTime = getPlusTimeByRange(timeRange, timeNums, startTime);
 
         // 构建对象
-        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, magicBean, magicImage, matrixBean, startTime, endTime, levelId);
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, magicBean, magicImage, matrixBean, startTime, endTime, levelId,templates);
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -265,7 +265,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 权益数量判断
         UserRightsBasicDTO rightsBasicDTO = rightsAndLevelCommonDTO.getRightsBasicDTO();
-        if (rightsBasicDTO.getMagicBean() == 0 && rightsBasicDTO.getMagicImage() == 0 && rightsBasicDTO.getMatrixBean() == 0) {
+        if (rightsBasicDTO.getMagicBean() == 0 && rightsBasicDTO.getMagicImage() == 0 && rightsBasicDTO.getMatrixBean() == 0 && rightsBasicDTO.getTemplate() == 0) {
             log.warn("权益添加失败，权益数量为0无法添加，当前用户 ID{},业务 ID 为{},业务类型为{}, 权益数据为{}", userId, bizId, bizType, rightsAndLevelCommonDTO);
             return null;
         }
@@ -297,7 +297,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         LocalDateTime endTime = getPlusTimeByRange(rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getRange(), rightsAndLevelCommonDTO.getLevelBasicDTO().getTimesRange().getNums(), startTime);
 
         // 构建对象
-        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime, Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()) ? null : rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId());
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime,
+                Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()) ? null : rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId(),rightsBasicDTO.getTemplate());
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -533,8 +534,44 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      * @param rightsType 权益类型
      */
     @Override
-    public Integer getEffectiveNumsByType(AdminUserRightsTypeEnum rightsType ) {
-        return 0;
+    public Integer getEffectiveNumsByType(Long userId,AdminUserRightsTypeEnum rightsType) {
+        switch (rightsType){
+            case TEMPLATE:
+                return selectCountByTypeAndStatus(userId, AdminUserRightsTypeEnum.TEMPLATE);
+            default:
+                throw exception(USER_RIGHTS_TYPE_NOT_SUPPORT);
+        }
+
+    }
+    private Integer selectCountByTypeAndStatus(Long userId,AdminUserRightsTypeEnum rightsType){
+        LocalDateTime now = LocalDateTime.now();
+        // 查询条件：当前用户下启用且未过期且权益值大于0的数据
+        LambdaQueryWrapper<AdminUserRightsDO> wrapper = Wrappers.lambdaQuery(AdminUserRightsDO.class)
+                .eq(AdminUserRightsDO::getStatus, AdminUserRightsStatusEnum.NORMAL.getType())
+                // 校验有效期；为避免定时器没跑，实际已经过期
+                // 添加这个条件来确保当前时间在有效期内
+                .le(AdminUserRightsDO::getValidStartTime, now)
+                // 添加这个条件来确保当前时间在有效期内
+                .ge(AdminUserRightsDO::getValidEndTime, now)
+                .eq(AdminUserRightsDO::getUserId, userId)
+                .orderByDesc(AdminUserRightsDO::getValidEndTime);
+
+        if (Objects.nonNull(rightsType)) {
+            switch (rightsType) {
+                case TEMPLATE:
+                    wrapper.isNotNull(AdminUserRightsDO::getDynamicRights);
+                    wrapper.orderByAsc(AdminUserRightsDO::getMagicImage);
+                    break;
+            }
+        }
+
+        List<AdminUserRightsDO> adminUserRightsDOS = adminUserRightsMapper.selectList(wrapper);
+
+        return adminUserRightsDOS.stream()
+                .map(AdminUserRightsDO::getOriginalFixedRights)
+                .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
+                .max(Comparator.naturalOrder())
+                .orElse(0);
     }
 
     /**

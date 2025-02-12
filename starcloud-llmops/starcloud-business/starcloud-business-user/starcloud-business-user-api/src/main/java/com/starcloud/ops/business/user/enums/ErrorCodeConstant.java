@@ -61,6 +61,7 @@ public interface ErrorCodeConstant {
     ErrorCode USER_RIGHTS_LIMIT_USE = new ErrorCode(2_004_008_006, " 今日{}权益已经使用完，请升级或明天再试！");
     ErrorCode USER_RIGHTS_LIMIT_USE_TYPE_NO_FOUND = new ErrorCode(2_004_008_007, "权益未找到，请核对后重试");
     ErrorCode RIGHTS_TYPE_NOT_SUPPORT = new ErrorCode(2_004_008_008, "未知的权益类型，请核对后重试");
+    ErrorCode USER_RIGHTS_TYPE_NOT_SUPPORT = new ErrorCode(2_004_008_009, "权益类型暂不支持，请核对后重试");
 
 
 

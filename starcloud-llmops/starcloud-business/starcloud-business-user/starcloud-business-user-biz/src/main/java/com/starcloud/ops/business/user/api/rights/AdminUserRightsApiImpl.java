@@ -35,13 +35,13 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
 
     @Override
     public void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer rightsTimeNums, Integer rightsTimeRange,
-                          Integer bizType, String bizId, Long levelId) {
+                          Integer bizType, String bizId, Long levelId,Integer templates) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizType, bizId, levelId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizType, bizId, levelId,templates);
     }
 
     /**
@@ -102,12 +102,12 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
      * @param type 权益类型-AdminUserRightsTypeEnum
      */
     @Override
-    public Integer getOriginalFixedRightsSums(Integer type) {
+    public Integer getOriginalFixedRightsSums(Long userId,Integer type) {
         AdminUserRightsTypeEnum rightsTypeEnum = AdminUserRightsTypeEnum.getByType(type);
         if (rightsTypeEnum == null) {
             throw exception(RIGHTS_TYPE_NOT_SUPPORT);
         }
-        return adminUserRightsService.getEffectiveNumsByType(rightsTypeEnum);
+        return adminUserRightsService.getEffectiveNumsByType(userId,rightsTypeEnum);
     }
 
 }

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
-import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import lombok.*;
@@ -113,14 +112,13 @@ public class AdminUserRightsDO extends BaseDO {
 
 
     @TableField(typeHandler = OriginalFixedRightsTypeHandler.class)
-    private  OriginalFixedRights  originalFixedRights;
+    private OriginalFixedRights originalFixedRights;
 
     @TableField(typeHandler = DynamicRightsTypeHandler.class)
     private DynamicRights dynamicRights;
 
     @TableField(typeHandler = InvariantRightsTypeHandler.class)
     private InvariantRights invariantRights;
-
 
 
     @Data
@@ -131,18 +129,18 @@ public class AdminUserRightsDO extends BaseDO {
          * 模板数量
          */
         private int templateNums;
-        /**
-         * 魔法豆
-         */
-        private Integer magicBean;
-        /**
-         * 图片值
-         */
-        private Integer magicImage;
-        /**
-         * 矩阵点
-         */
-        private Integer matrixBean;
+        // /**
+        //  * 魔法豆
+        //  */
+        // private Integer magicBean;
+        // /**
+        //  * 图片值
+        //  */
+        // private Integer magicImage;
+        // /**
+        //  * 矩阵点
+        //  */
+        // private Integer matrixBean;
 
     }
 
@@ -168,18 +166,18 @@ public class AdminUserRightsDO extends BaseDO {
          * 模板数量
          */
         private int templateNums;
-        /**
-         * 魔法豆
-         */
-        private Integer magicBean;
-        /**
-         * 图片值
-         */
-        private Integer magicImage;
-        /**
-         * 矩阵点
-         */
-        private Integer matrixBean;
+        // /**
+        //  * 魔法豆
+        //  */
+        // private Integer magicBean;
+        // /**
+        //  * 图片值
+        //  */
+        // private Integer magicImage;
+        // /**
+        //  * 矩阵点
+        //  */
+        // private Integer matrixBean;
 
     }
 
@@ -202,22 +200,60 @@ public class AdminUserRightsDO extends BaseDO {
     @NoArgsConstructor
     @EqualsAndHashCode
     public static class InvariantRights {
-        /**
-         * 模板数量
-         */
-        private int templateNums;
-        /**
-         * 魔法豆
-         */
-        private Integer magicBean;
-        /**
-         * 图片值
-         */
-        private Integer magicImage;
-        /**
-         * 矩阵点
-         */
-        private Integer matrixBean;
+        // /**
+        //  * 可使用应用数量
+        //  */
+        // private Integer usableApp;
+        // /**
+        //  * 可使用基础模型数量
+        //  */
+        // private Integer usableBasicBot;
+        //
+        // /**
+        //  * 可使用微信机器人数量
+        //  */
+        // private Integer usableWechatBot;
+        //
+        // /**
+        //  * 可使用技能插件数量
+        //  */
+        // private Integer usableSkillPlugin;
+        //
+        // /**
+        //  * 可使用团队数量
+        //  */
+        // private Integer usableTeams;
+        //
+        // /**
+        //  * 可使用团队成员数量
+        //  */
+        // private Integer usableTeamUsers;
+        //
+        // /**
+        //  * 列表查询次数
+        //  */
+        // private Integer listingQuery;
+        //
+        //
+        // /**
+        //  * 快速发布次数
+        //  */
+        // private Integer quickPublishCount;
+        //
+        // /**
+        //  * 账号管理次数
+        //  */
+        // private Integer accountManagementCount;
+        //
+        // /**
+        //  * 账号分组次数
+        //  */
+        // private Integer accountGroupingCount;
+        //
+        // /**
+        //  * 最大账号发布数量
+        //  */
+        // private Integer maxAccountsPerPublish;
 
     }
 

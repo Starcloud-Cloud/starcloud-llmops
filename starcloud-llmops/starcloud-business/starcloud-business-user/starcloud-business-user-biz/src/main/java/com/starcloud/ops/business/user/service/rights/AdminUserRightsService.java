@@ -75,7 +75,7 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long LevelId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long LevelId,Integer templates);
 
 
     /**
@@ -155,5 +155,5 @@ public interface AdminUserRightsService {
      * 获取指定类型的总数量-有效期内的
      * @param rightsType 权益类型 @{AdminUserRightsTypeEnum}
      */
-    Integer getEffectiveNumsByType(AdminUserRightsTypeEnum rightsType);
+    Integer getEffectiveNumsByType(Long userId,AdminUserRightsTypeEnum rightsType);
 }
