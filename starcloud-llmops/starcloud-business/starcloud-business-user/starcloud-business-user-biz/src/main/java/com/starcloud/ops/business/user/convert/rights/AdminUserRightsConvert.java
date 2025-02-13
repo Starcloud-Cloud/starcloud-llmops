@@ -17,7 +17,6 @@ import org.mapstruct.factory.Mappers;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
@@ -100,8 +99,6 @@ public interface AdminUserRightsConvert {
                 .dynamicRights(dynamicRights)
                 .build();
     }
-
-
 
 
     default AppAdminUserRightsRespVO convert2(AdminUserRightsDO rightsDO) {

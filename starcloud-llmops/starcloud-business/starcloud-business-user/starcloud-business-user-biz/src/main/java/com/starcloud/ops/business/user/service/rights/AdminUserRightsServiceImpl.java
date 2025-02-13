@@ -243,11 +243,11 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
                     // 其他权益类型的计算逻辑
                     int currentSum = validRightsList.stream()
-                            .mapToInt(rights -> currentGetter.apply(rights))
+                            .mapToInt(currentGetter::apply)
                             .sum();
                             
                     int initSum = validRightsList.stream()
-                            .mapToInt(rights -> initGetter.apply(rights))
+                            .mapToInt(initGetter::apply)
                             .sum();
 
                     return new AdminUserRightsCollectRespVO(
