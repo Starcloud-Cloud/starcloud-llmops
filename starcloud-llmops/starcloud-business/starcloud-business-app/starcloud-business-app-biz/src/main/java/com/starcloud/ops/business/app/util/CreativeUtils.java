@@ -852,7 +852,7 @@ public class CreativeUtils {
             return templateCodes;
         } catch (Exception ignore) {
         }
-        return Collections.emptyList();
+        return Collections.emptySet();
     }
 
     /**
