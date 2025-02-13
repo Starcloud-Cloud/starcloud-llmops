@@ -31,6 +31,11 @@ public class AddRightsDTO {
     @Min(value = 0, message = "添加矩阵豆数量不能小于 0")
     private Integer matrixBean;
 
+
+    @Schema(description = "模板", example = " 1")
+    @Min(value = 0, message = "添加矩阵豆数量不能小于 0")
+    private Integer template;
+
     @Schema(description = "生效时间数", example = "1")
     private Integer timeNums;
 

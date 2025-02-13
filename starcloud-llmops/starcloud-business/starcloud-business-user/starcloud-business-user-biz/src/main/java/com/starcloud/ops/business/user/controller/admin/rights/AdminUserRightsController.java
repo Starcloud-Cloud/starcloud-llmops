@@ -6,10 +6,7 @@ import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.framework.security.core.annotations.PreAuthenticated;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import cn.iocoder.yudao.module.system.service.user.AdminUserService;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsRespVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.*;
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
@@ -68,28 +65,18 @@ public class AdminUserRightsController {
     @Operation(summary = "系统会员-获得用户权益记录分页")
     @PreAuthenticated
     public CommonResult<PageResult<AppAdminUserRightsRespVO>> getPointRecordPage(@Valid AppAdminUserRightsPageReqVO pageVO) {
-        PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(getLoginUserId(), pageVO);
-        // 优化显示内容
-        if (!pageResult.getList().isEmpty()) {
-            pageResult.getList().forEach(rights -> {
-                Integer status = LocalDateTimeUtils.isBetween(rights.getValidStartTime(), rights.getValidEndTime()) ?
-                        AdminUserRightsStatusEnum.NORMAL.getType()
-                        : LocalDateTimeUtils.beforeNow(rights.getValidStartTime()) && LocalDateTimeUtils.beforeNow(rights.getValidEndTime()) ?
-                        AdminUserRightsStatusEnum.EXPIRE.getType()
-                        : LocalDateTimeUtils.afterNow(rights.getValidStartTime()) && LocalDateTimeUtils.afterNow(rights.getValidEndTime()) ?
-                        AdminUserRightsStatusEnum.PENDING.getType() : AdminUserRightsStatusEnum.CANCEL.getType();
-                rights.setStatus(status);
-            });
-        }
-        PageResult<AppAdminUserRightsRespVO> result = AdminUserRightsConvert.INSTANCE.convertPage02(pageResult);
+        // PageResult<AdminUserRightsDO> pageResult = adminUserRightsService.getRightsPage(getLoginUserId(), pageVO);
+        // List<AppAdminUserRightsRespVO> appAdminUserRightsRespVOS = AdminUserRightsConvert.INSTANCE.convertPage(pageResult.getList());
+        //
+        // PageResult<AppAdminUserRightsRespVO> result = AdminUserRightsConvert.INSTANCE.convertPage02(pageResult);
+        //
+        // result.getList().forEach(data -> {
+        //     if (Objects.nonNull(data.getUserLevelId())) {
+        //         data.setLevelName(adminUserLevelConfigService.getLevelConfig(data.getUserLevelId()).getName());
+        //     }
+        // });
 
-        result.getList().forEach(data -> {
-            if (Objects.nonNull(data.getUserLevelId())) {
-                data.setLevelName(adminUserLevelConfigService.getLevelConfig(data.getUserLevelId()).getName());
-            }
-        });
-
-        return success(result);
+        return success(adminUserRightsService.getRightsPage2(getLoginUserId(), pageVO));
     }
 
     @GetMapping("/u/reduceRights")
@@ -106,6 +93,14 @@ public class AdminUserRightsController {
     @PreAuthenticated
     public CommonResult<Integer> getOriginalFixedRightsSums() {
         return success(adminUserRightsService.getEffectiveNumsByType(getLoginUserId(), AdminUserRightsTypeEnum.TEMPLATE));
+    }
+
+
+    @GetMapping("/u/getRightsCollect")
+    @Operation(summary = "系统会员-获取权益数据汇总")
+    @PreAuthenticated
+    public CommonResult<List<AdminUserRightsCollectRespVO>> getRightsCollect() {
+        return success(adminUserRightsService.getRightsCollect(getLoginUserId()));
     }
 
 
