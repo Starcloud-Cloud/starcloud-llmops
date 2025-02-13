@@ -94,10 +94,11 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Override
     public PageResult<AppAdminUserRightsRespVO> getRightsPage2(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         PageResult<AdminUserRightsDO> adminUserRightsDOPageResult = adminUserRightsMapper.selectPage(userId, pageVO);
-        List<AdminUserRightsDO> rightsDOS =adminUserRightsDOPageResult.getList();
-        if (CollectionUtils.isEmpty(adminUserRightsDOPageResult.getList())) {
-            return PageResult.empty();
-        }
+        List<AdminUserRightsDO> rightsDOS = adminUserRightsDOPageResult.getList();
+        
+        // 即使列表为空也继续处理
+        List<AppAdminUserRightsRespVO> convertedRightsList = new ArrayList<>();
+        
         // 定义权益类型与其对应的getter方法的映射
         Map<AdminUserRightsTypeEnum, Function<AdminUserRightsDO, Integer>> rightsGetterMap = new EnumMap<>(AdminUserRightsTypeEnum.class);
         rightsGetterMap.put(AdminUserRightsTypeEnum.MAGIC_BEAN, rights -> Optional.ofNullable(rights.getMagicBeanInit()).orElse(0));
@@ -106,43 +107,36 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         rightsGetterMap.put(AdminUserRightsTypeEnum.TEMPLATE, rights -> Optional.ofNullable(rights.getOriginalFixedRights())
                 .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
                 .orElse(0));
+
         // 转换每条记录
-        List<AppAdminUserRightsRespVO> convertedRightsList = rightsDOS.stream()
-                .map(rightsDO -> {
-                    // 构建权益列表
-                    List<AppAdminUserRightsRespVO.RightsRespVO> rightsRespVOS = Arrays.stream(AdminUserRightsTypeEnum.values())
-                            .map(rightsType -> {
-                                Function<AdminUserRightsDO, Integer> getter = rightsGetterMap.get(rightsType);
-                                if (getter == null) {
-                                    return null;
-                                }
+        for (AdminUserRightsDO rightsDO : rightsDOS) {
+            // 构建权益列表
+            List<AppAdminUserRightsRespVO.RightsRespVO> rightsRespVOS = Arrays.stream(AdminUserRightsTypeEnum.values())
+                    .map(rightsType -> {
+                        Function<AdminUserRightsDO, Integer> getter = rightsGetterMap.get(rightsType);
+                        if (getter == null) {
+                            return null;
+                        }
 
-                                // 获取权益数量
-                                Integer num = getter.apply(rightsDO);
-                                if (num <= 0) {
-                                    return null;
-                                }
+                        // 获取权益数量,即使为0也创建对象
+                        Integer num = getter.apply(rightsDO);
+                        return new AppAdminUserRightsRespVO.RightsRespVO(
+                                rightsType.getName(),
+                                rightsType.name(),
+                                num
+                        );
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
 
-                                // 构建权益响应对象
-                                return new AppAdminUserRightsRespVO.RightsRespVO(
-                                        rightsType.getName(),
-                                        rightsType.name(),
-                                        num
-                                );
-                            })
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList());
+            // 设置权益列表到响应对象
+            AppAdminUserRightsRespVO respVO = AdminUserRightsConvert.INSTANCE.convert2(rightsDO);
+            respVO.setRightsRespVOS(rightsRespVOS);
 
-                    // 设置权益列表到响应对象
-                    AppAdminUserRightsRespVO respVO = AdminUserRightsConvert.INSTANCE.convert2(rightsDO);
-                    respVO.setRightsRespVOS(rightsRespVOS);
+            convertedRightsList.add(respVO);
+        }
 
-                    return respVO;
-                })
-                .collect(Collectors.toList());
-
-        return new PageResult<>(convertedRightsList, (long) rightsDOS.size());
-
+        return new PageResult<>(convertedRightsList, adminUserRightsDOPageResult.getTotal());
     }
 
     /**
@@ -185,9 +179,14 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Override
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
-        if (CollectionUtils.isEmpty(validRightsList)) {
-            return Collections.emptyList();
+        
+        // 移除空列表判断,使用空列表继续处理
+        if (validRightsList == null) {
+            validRightsList = Collections.emptyList();
         }
+        
+        // 使用 final 修饰,确保在 lambda 中可以安全使用
+        final List<AdminUserRightsDO> finalValidRightsList = validRightsList;
 
         // 定义权益类型与其对应的getter方法的映射
         Map<AdminUserRightsTypeEnum, Function<AdminUserRightsDO, Integer>> rightsGetterMap = new EnumMap<>(AdminUserRightsTypeEnum.class);
@@ -207,25 +206,23 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                 .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
                 .orElse(0));
 
-        // 计算每种权益类型的汇总数据
+        // 计算每种权益类型的汇总数据,始终返回所有权益类型
         return Arrays.stream(AdminUserRightsTypeEnum.values())
                 .map(rightsType -> {
-                    Function<AdminUserRightsDO, Integer> currentGetter = rightsGetterMap.get(rightsType);
-                    Function<AdminUserRightsDO, Integer> initGetter = rightsInitGetterMap.get(rightsType);
-                    
-                    if (currentGetter == null || initGetter == null) {
-                        return null;
-                    }
+                    final Function<AdminUserRightsDO, Integer> currentGetter = 
+                        Optional.ofNullable(rightsGetterMap.get(rightsType)).orElse(rights -> 0);
+                    final Function<AdminUserRightsDO, Integer> initGetter = 
+                        Optional.ofNullable(rightsInitGetterMap.get(rightsType)).orElse(rights -> 0);
 
                     // 对于模板类型,从 OriginalFixedRights 获取总数,从 DynamicRights 获取剩余数
                     if (rightsType == AdminUserRightsTypeEnum.TEMPLATE) {
-                        int totalSum = validRightsList.stream()
+                        int totalSum = finalValidRightsList.stream()
                                 .mapToInt(rights -> Optional.ofNullable(rights.getOriginalFixedRights())
                                         .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
                                         .orElse(0))
                                 .sum();
                                 
-                        int remainingSum = validRightsList.stream()
+                        int remainingSum = finalValidRightsList.stream()
                                 .mapToInt(rights -> Optional.ofNullable(rights.getDynamicRights())
                                         .map(AdminUserRightsDO.DynamicRights::getTemplateNums)
                                         .orElse(0))
@@ -242,11 +239,11 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                     }
 
                     // 其他权益类型的计算逻辑
-                    int currentSum = validRightsList.stream()
+                    int currentSum = finalValidRightsList.stream()
                             .mapToInt(currentGetter::apply)
                             .sum();
                             
-                    int initSum = validRightsList.stream()
+                    int initSum = finalValidRightsList.stream()
                             .mapToInt(initGetter::apply)
                             .sum();
 
@@ -259,7 +256,6 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                             0
                     );
                 })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
