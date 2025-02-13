@@ -10,10 +10,7 @@ import cn.iocoder.yudao.module.system.service.user.AdminUserService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.starcloud.ops.business.user.api.rights.dto.*;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.*;
 import com.starcloud.ops.business.user.convert.rights.AdminUserRightsConvert;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.dal.mysql.rights.AdminUserRightsMapper;
@@ -88,6 +85,67 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     }
 
     /**
+     * 【会员】获得权益记录分页
+     *
+     * @param userId 用户编号
+     * @param pageVO 分页查询
+     * @return 签到记录分页
+     */
+    @Override
+    public PageResult<AppAdminUserRightsRespVO> getRightsPage2(Long userId, AppAdminUserRightsPageReqVO pageVO) {
+        PageResult<AdminUserRightsDO> adminUserRightsDOPageResult = adminUserRightsMapper.selectPage(userId, pageVO);
+        List<AdminUserRightsDO> rightsDOS =adminUserRightsDOPageResult.getList();
+        if (CollectionUtils.isEmpty(adminUserRightsDOPageResult.getList())) {
+            return PageResult.empty();
+        }
+        // 定义权益类型与其对应的getter方法的映射
+        Map<AdminUserRightsTypeEnum, Function<AdminUserRightsDO, Integer>> rightsGetterMap = new EnumMap<>(AdminUserRightsTypeEnum.class);
+        rightsGetterMap.put(AdminUserRightsTypeEnum.MAGIC_BEAN, rights -> Optional.ofNullable(rights.getMagicBeanInit()).orElse(0));
+        rightsGetterMap.put(AdminUserRightsTypeEnum.MAGIC_IMAGE, rights -> Optional.ofNullable(rights.getMagicImageInit()).orElse(0));
+        rightsGetterMap.put(AdminUserRightsTypeEnum.MATRIX_BEAN, rights -> Optional.ofNullable(rights.getMatrixBeanInit()).orElse(0));
+        rightsGetterMap.put(AdminUserRightsTypeEnum.TEMPLATE, rights -> Optional.ofNullable(rights.getOriginalFixedRights())
+                .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
+                .orElse(0));
+        // 转换每条记录
+        List<AppAdminUserRightsRespVO> convertedRightsList = rightsDOS.stream()
+                .map(rightsDO -> {
+                    // 构建权益列表
+                    List<AppAdminUserRightsRespVO.RightsRespVO> rightsRespVOS = Arrays.stream(AdminUserRightsTypeEnum.values())
+                            .map(rightsType -> {
+                                Function<AdminUserRightsDO, Integer> getter = rightsGetterMap.get(rightsType);
+                                if (getter == null) {
+                                    return null;
+                                }
+
+                                // 获取权益数量
+                                Integer num = getter.apply(rightsDO);
+                                if (num <= 0) {
+                                    return null;
+                                }
+
+                                // 构建权益响应对象
+                                return new AppAdminUserRightsRespVO.RightsRespVO(
+                                        rightsType.getName(),
+                                        rightsType.name(),
+                                        num
+                                );
+                            })
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    // 设置权益列表到响应对象
+                    AppAdminUserRightsRespVO respVO = AdminUserRightsConvert.INSTANCE.convert2(rightsDO);
+                    respVO.setRightsRespVOS(rightsRespVOS);
+
+                    return respVO;
+                })
+                .collect(Collectors.toList());
+
+        return new PageResult<>(convertedRightsList, (long) rightsDOS.size());
+
+    }
+
+    /**
      * 通过业务 ID 和业务类型获取权益数据
      *
      * @param bizType 业务类型
@@ -126,55 +184,83 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      */
     @Override
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
-
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
-        int sumMagicBean = 0;
-        int sumMagicImage = 0;
-        int sumMatrixBean = 0;
-        int sumMagicBeanInit = 0;
-        int sumMagicImageInit = 0;
-        int sumMatrixBeanInit = 0;
-        if (!validRightsList.isEmpty()) {
-            sumMagicBean = validRightsList.stream().mapToInt(adminUserRightsDO -> {
-                Integer magicBean = adminUserRightsDO.getMagicBean();
-                return magicBean != null ? magicBean : 0;
-            }).sum();
-
-            sumMagicImage = validRightsList.stream().mapToInt(adminUserRightsDO -> {
-                Integer magicImage = adminUserRightsDO.getMagicImage();
-                return magicImage != null ? magicImage : 0;
-            }).sum();
-
-            sumMatrixBean = validRightsList.stream().mapToInt(adminUserRightsDO -> {
-                Integer matrixBean = adminUserRightsDO.getMatrixBean();
-                return matrixBean != null ? matrixBean : 0;
-            }).sum();
-
-            sumMagicBeanInit = validRightsList.stream().mapToInt(adminUserRightsDO -> {
-                Integer magicBeanInit = adminUserRightsDO.getMagicBeanInit();
-                return magicBeanInit != null ? magicBeanInit : 0;
-            }).sum();
-            sumMagicImageInit = validRightsList.stream().mapToInt(adminUserRightsDO -> {
-                Integer magicImageInit = adminUserRightsDO.getMagicImageInit();
-                return magicImageInit != null ? magicImageInit : 0;
-            }).sum();
-            sumMatrixBeanInit = validRightsList.stream().mapToInt(adminUserRightsDO -> {
-                Integer matrixBeanInit = adminUserRightsDO.getMatrixBeanInit();
-                return matrixBeanInit != null ? matrixBeanInit : 0;
-            }).sum();
+        if (CollectionUtils.isEmpty(validRightsList)) {
+            return Collections.emptyList();
         }
 
-        List<AdminUserRightsCollectRespVO> rightsCollectRespVOS = new ArrayList<>();
+        // 定义权益类型与其对应的getter方法的映射
+        Map<AdminUserRightsTypeEnum, Function<AdminUserRightsDO, Integer>> rightsGetterMap = new EnumMap<>(AdminUserRightsTypeEnum.class);
+        rightsGetterMap.put(AdminUserRightsTypeEnum.MAGIC_BEAN, rights -> Optional.ofNullable(rights.getMagicBean()).orElse(0));
+        rightsGetterMap.put(AdminUserRightsTypeEnum.MAGIC_IMAGE, rights -> Optional.ofNullable(rights.getMagicImage()).orElse(0));
+        rightsGetterMap.put(AdminUserRightsTypeEnum.MATRIX_BEAN, rights -> Optional.ofNullable(rights.getMatrixBean()).orElse(0));
+        rightsGetterMap.put(AdminUserRightsTypeEnum.TEMPLATE, rights -> Optional.ofNullable(rights.getDynamicRights())
+                .map(AdminUserRightsDO.DynamicRights::getTemplateNums)
+                .orElse(0));
 
-        rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_BEAN.getName(), AdminUserRightsTypeEnum.MAGIC_BEAN.name(), sumMagicBeanInit,
-                sumMagicBeanInit - sumMagicBean, sumMagicBean, 0));
-        rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MAGIC_IMAGE.getName(), AdminUserRightsTypeEnum.MAGIC_IMAGE.name(), sumMagicImageInit,
-                sumMagicImageInit - sumMagicImage, sumMagicImage, 0));
+        // 定义权益类型与其对应的初始值getter方法的映射
+        Map<AdminUserRightsTypeEnum, Function<AdminUserRightsDO, Integer>> rightsInitGetterMap = new EnumMap<>(AdminUserRightsTypeEnum.class);
+        rightsInitGetterMap.put(AdminUserRightsTypeEnum.MAGIC_BEAN, rights -> Optional.ofNullable(rights.getMagicBeanInit()).orElse(0));
+        rightsInitGetterMap.put(AdminUserRightsTypeEnum.MAGIC_IMAGE, rights -> Optional.ofNullable(rights.getMagicImageInit()).orElse(0));
+        rightsInitGetterMap.put(AdminUserRightsTypeEnum.MATRIX_BEAN, rights -> Optional.ofNullable(rights.getMatrixBeanInit()).orElse(0));
+        rightsInitGetterMap.put(AdminUserRightsTypeEnum.TEMPLATE, rights -> Optional.ofNullable(rights.getOriginalFixedRights())
+                .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
+                .orElse(0));
 
-        rightsCollectRespVOS.add(new AdminUserRightsCollectRespVO(AdminUserRightsTypeEnum.MATRIX_BEAN.getName(), AdminUserRightsTypeEnum.MATRIX_BEAN.name(), sumMatrixBeanInit,
-                sumMatrixBeanInit - sumMatrixBean, sumMatrixBean, 0));
+        // 计算每种权益类型的汇总数据
+        return Arrays.stream(AdminUserRightsTypeEnum.values())
+                .map(rightsType -> {
+                    Function<AdminUserRightsDO, Integer> currentGetter = rightsGetterMap.get(rightsType);
+                    Function<AdminUserRightsDO, Integer> initGetter = rightsInitGetterMap.get(rightsType);
+                    
+                    if (currentGetter == null || initGetter == null) {
+                        return null;
+                    }
 
-        return rightsCollectRespVOS;
+                    // 对于模板类型,从 OriginalFixedRights 获取总数,从 DynamicRights 获取剩余数
+                    if (rightsType == AdminUserRightsTypeEnum.TEMPLATE) {
+                        int totalSum = validRightsList.stream()
+                                .mapToInt(rights -> Optional.ofNullable(rights.getOriginalFixedRights())
+                                        .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
+                                        .orElse(0))
+                                .sum();
+                                
+                        int remainingSum = validRightsList.stream()
+                                .mapToInt(rights -> Optional.ofNullable(rights.getDynamicRights())
+                                        .map(AdminUserRightsDO.DynamicRights::getTemplateNums)
+                                        .orElse(0))
+                                .sum();
+
+                        return new AdminUserRightsCollectRespVO(
+                                rightsType.getName(),
+                                rightsType.name(),
+                                totalSum,
+                                totalSum - remainingSum,  // 已使用数量 = 总数 - 剩余数量
+                                remainingSum,  // 剩余数量
+                                0
+                        );
+                    }
+
+                    // 其他权益类型的计算逻辑
+                    int currentSum = validRightsList.stream()
+                            .mapToInt(currentGetter::apply)
+                            .sum();
+                            
+                    int initSum = validRightsList.stream()
+                            .mapToInt(initGetter::apply)
+                            .sum();
+
+                    return new AdminUserRightsCollectRespVO(
+                            rightsType.getName(),
+                            rightsType.name(),
+                            initSum,
+                            initSum - currentSum,
+                            currentSum,
+                            0
+                    );
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
 
@@ -206,7 +292,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 插入记录
         adminUserRightsMapper.insert(record);
         // 插入明细
-        createCommonRightsRecord(record, magicBean, magicImage, matrixBean);
+        createCommonRightsRecord(record, magicBean, magicImage, matrixBean,templates);
     }
 
     /**
@@ -241,7 +327,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         // 插入明细
-        createCommonRightsRecord(record, addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean());
+        createCommonRightsRecord(record, addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean(),addRightsDTO.getTemplate());
 
     }
 
@@ -308,7 +394,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         // 插入明细
-        createCommonRightsRecord(record, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean());
+        createCommonRightsRecord(record, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(),rightsBasicDTO.getTemplate());
 
         log.info("【添加用户权益成功，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
 
@@ -568,10 +654,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         List<AdminUserRightsDO> adminUserRightsDOS = adminUserRightsMapper.selectList(wrapper);
 
         return adminUserRightsDOS.stream()
-                .map(AdminUserRightsDO::getOriginalFixedRights)
-                .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
-                .max(Comparator.naturalOrder())
-                .orElse(0);
+                .mapToInt(adminUserRightsDO -> adminUserRightsDO.getOriginalFixedRights().getTemplateNums())
+                .sum();
     }
 
     /**
@@ -684,7 +768,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
 
     // 共通的创建权益记录方法
-    private void createCommonRightsRecord(AdminUserRightsDO record, Integer magicBean, Integer magicImage, Integer matrixBean) {
+    private void createCommonRightsRecord(AdminUserRightsDO record, Integer magicBean, Integer magicImage, Integer matrixBean, Integer template) {
         try {
             // 插入魔法豆明细记录
             if (magicBean > 0) {
@@ -702,6 +786,12 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
             if (matrixBean > 0) {
                 adminUserRightsRecordService.createRightsRecord(record.getUserId(), null, null, matrixBean,
                         AdminUserRightsTypeEnum.MATRIX_BEAN, record.getBizType() + BIZ_TYPE_OFFSET,
+                        String.valueOf(record.getId()), String.valueOf(record.getId()));
+            }
+            // 插入矩阵豆明细记录
+            if (matrixBean > 0) {
+                adminUserRightsRecordService.createRightsRecord(record.getUserId(), null, null, template,
+                        AdminUserRightsTypeEnum.TEMPLATE, record.getBizType() + BIZ_TYPE_OFFSET,
                         String.valueOf(record.getId()), String.valueOf(record.getId()));
             }
         } catch (Exception e) {

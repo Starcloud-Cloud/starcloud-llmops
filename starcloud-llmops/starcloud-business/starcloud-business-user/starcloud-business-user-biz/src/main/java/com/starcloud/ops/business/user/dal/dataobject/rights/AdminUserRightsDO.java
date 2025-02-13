@@ -110,7 +110,6 @@ public class AdminUserRightsDO extends BaseDO {
      */
     private Integer status;
 
-
     @TableField(typeHandler = OriginalFixedRightsTypeHandler.class)
     private OriginalFixedRights originalFixedRights;
 
@@ -119,7 +118,6 @@ public class AdminUserRightsDO extends BaseDO {
 
     @TableField(typeHandler = InvariantRightsTypeHandler.class)
     private InvariantRights invariantRights;
-
 
     @Data
     @NoArgsConstructor
