@@ -62,7 +62,7 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
         List<TemplateRecordDO> recordDOList = recordMapper.selectList(String.valueOf(WebFrameworkUtils.getLoginUserId()));
         List<String> recordCodeList = recordDOList.stream().map(TemplateRecordDO::getTemplateCode).collect(Collectors.toList());
 
-        int addNum = 0;
+        int addNum = recordDOList.size();
         for (String templateCode : templateCodes) {
             if (!recordCodeList.contains(templateCode)) {
                 addNum++;
