@@ -420,6 +420,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         modifyPlan.setId(plan.getId());
         creativePlanMapper.updateById(modifyPlan);
         List<PosterStyleDTO> imageStyleList = request.getConfiguration().getImageStyleList();
+        // 复制图片风格到自定义计算收费数量
+        WorkflowStepWrapperRespVO posterStepWrapper = CreativeUtils.getPosterStepWrapper(request.getConfiguration().getAppInformation());
+        List<PosterStyleDTO> customPosterStyleList = CreativeUtils.getCustomPosterStyleListByStepWrapper(posterStepWrapper);
+        imageStyleList.addAll(customPosterStyleList);
         templateRecordService.checkRecordNum(imageStyleList);
         CreativePlanDO creativePlan = creativePlanMapper.get(request.getUid());
         CreativePlanRespVO planResponse = CreativePlanConvert.INSTANCE.convertResponse(creativePlan);

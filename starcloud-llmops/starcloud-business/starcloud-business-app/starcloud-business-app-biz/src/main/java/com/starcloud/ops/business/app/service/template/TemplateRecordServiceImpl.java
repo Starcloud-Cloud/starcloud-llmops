@@ -62,15 +62,17 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
         List<TemplateRecordDO> recordDOList = recordMapper.selectList(String.valueOf(WebFrameworkUtils.getLoginUserId()));
         List<String> recordCodeList = recordDOList.stream().map(TemplateRecordDO::getTemplateCode).collect(Collectors.toList());
 
-        int addNum = recordDOList.size();
+        int total = recordDOList.size();
         for (String templateCode : templateCodes) {
             if (!recordCodeList.contains(templateCode)) {
-                addNum++;
+                total++;
             }
         }
 
         Integer originalFixedRightsSums = rightsApi.getOriginalFixedRightsSums(WebFrameworkUtils.getLoginUserId(), AdminUserRightsTypeEnum.TEMPLATE.getType());
-        if (Objects.isNull(originalFixedRightsSums) || addNum > originalFixedRightsSums) {
+        if (Objects.isNull(originalFixedRightsSums) || total > originalFixedRightsSums) {
+            //
+
             throw exception(NOT_TEMPLATE_RESOURCE);
         }
 
