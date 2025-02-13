@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
@@ -33,7 +34,7 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
 
     @Override
     public void addRecord(List<PosterStyleDTO> posterStyleDTOList) {
-        List<String> templateCodes = CreativeUtils.getPosterTemplateCodes(posterStyleDTOList);
+        Set<String> templateCodes = CreativeUtils.getPosterTemplateCodes(posterStyleDTOList);
         List<TemplateRecordDO> recordDOList = recordMapper.selectList(String.valueOf(WebFrameworkUtils.getLoginUserId()));
         List<TemplateRecordDO> addTemplateRecords = new ArrayList<>();
 
@@ -57,7 +58,7 @@ public class TemplateRecordServiceImpl implements TemplateRecordService {
 
     @Override
     public void checkRecordNum(List<PosterStyleDTO> posterStyleDTOList) {
-        List<String> templateCodes = CreativeUtils.getPosterTemplateCodes(posterStyleDTOList);
+        Set<String> templateCodes = CreativeUtils.getPosterTemplateCodes(posterStyleDTOList);
         List<TemplateRecordDO> recordDOList = recordMapper.selectList(String.valueOf(WebFrameworkUtils.getLoginUserId()));
         List<String> recordCodeList = recordDOList.stream().map(TemplateRecordDO::getTemplateCode).collect(Collectors.toList());
 

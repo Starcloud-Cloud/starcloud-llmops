@@ -47,14 +47,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -850,9 +843,9 @@ public class CreativeUtils {
         return posterStyleList;
     }
 
-    public static List<String> getPosterTemplateCodes(List<PosterStyleDTO> posterStyleList) {
+    public static Set<String> getPosterTemplateCodes(List<PosterStyleDTO> posterStyleList) {
         try {
-            List<String> templateCodes = new ArrayList<>();
+            Set<String> templateCodes = new HashSet<>();
             for (PosterStyleDTO posterStyleDTO : posterStyleList) {
                 if (Objects.nonNull(posterStyleDTO.getSaleConfig()) && BooleanUtils.isTrue(posterStyleDTO.getSaleConfig().getOpenSale())) {
                     List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
