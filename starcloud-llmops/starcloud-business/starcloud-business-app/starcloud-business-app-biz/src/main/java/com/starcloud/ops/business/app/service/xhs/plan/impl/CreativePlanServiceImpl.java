@@ -408,6 +408,10 @@ public class CreativePlanServiceImpl implements CreativePlanService {
     public CreativePlanRespVO modifyConfiguration(CreativePlanModifyReqVO request) {
         request.setValidateType(ValidateTypeEnum.UPDATE.name());
         List<PosterStyleDTO> imageStyleList = request.getConfiguration().getImageStyleList();
+        // 复制图片风格到自定义计算收费数量
+        WorkflowStepWrapperRespVO posterStepWrapper = CreativeUtils.getPosterStepWrapper(request.getConfiguration().getAppInformation());
+        List<PosterStyleDTO> customPosterStyleList = CreativeUtils.getCustomPosterStyleListByStepWrapper(posterStepWrapper);
+        imageStyleList.addAll(customPosterStyleList);
         templateRecordService.checkRecordNum(imageStyleList);
         // 处理并且校验请求
         List<Verification> verifications = request.validate();
