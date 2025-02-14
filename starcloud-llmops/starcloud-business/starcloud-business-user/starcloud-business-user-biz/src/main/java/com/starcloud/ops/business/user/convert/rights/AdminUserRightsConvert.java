@@ -3,6 +3,7 @@ package com.starcloud.ops.business.user.convert.rights;
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.MapUtils;
+import cn.iocoder.yudao.framework.common.util.date.LocalDateTimeUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsRespVO;
@@ -16,6 +17,7 @@ import org.mapstruct.factory.Mappers;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
@@ -68,10 +70,19 @@ public interface AdminUserRightsConvert {
 
 
     default AdminUserRightsDO convert(Long userId, String bizId, Integer bizType,
-                                          Integer magicBean, Integer magicImage, Integer matrixBean,
-                                          LocalDateTime startTime, LocalDateTime endTime, Long levelId) {
+                                      Integer magicBean, Integer magicImage, Integer matrixBean,
+                                      LocalDateTime startTime, LocalDateTime endTime, Long levelId, Integer templates) {
 
+        if (Objects.isNull(templates)){
+            templates = 0;
+        }
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
+        AdminUserRightsDO.OriginalFixedRights originalFixedRights = new AdminUserRightsDO.OriginalFixedRights();
+        originalFixedRights.setTemplateNums(templates);
+        AdminUserRightsDO.DynamicRights dynamicRights = new AdminUserRightsDO.DynamicRights();
+        dynamicRights.setTemplateNums(templates);
+
+
         return AdminUserRightsDO.builder()
                 .userId(userId)
                 .bizId(bizId)
@@ -88,6 +99,40 @@ public interface AdminUserRightsConvert {
                 .validStartTime(startTime)
                 .validEndTime(endTime)
                 .status(AdminUserRightsStatusEnum.NORMAL.getType())
+                .originalFixedRights(originalFixedRights)
+                .dynamicRights(dynamicRights)
                 .build();
+    }
+
+
+    default AppAdminUserRightsRespVO convert2(AdminUserRightsDO rightsDO) {
+        if (rightsDO == null) {
+            return null;
+        }
+
+        AppAdminUserRightsRespVO respVO = new AppAdminUserRightsRespVO();
+
+        // 设置基本信息
+        respVO.setId(rightsDO.getId());
+        respVO.setBizType(rightsDO.getBizType());
+        respVO.setTitle(rightsDO.getTitle());
+        respVO.setDescription(rightsDO.getDescription());
+        respVO.setMagicBeanInit(rightsDO.getMagicBeanInit());
+        respVO.setMagicImageInit(rightsDO.getMagicImageInit());
+        respVO.setMatrixBeanInit(rightsDO.getMatrixBeanInit());
+        respVO.setUserLevelId(rightsDO.getUserLevelId());
+        respVO.setValidStartTime(rightsDO.getValidStartTime());
+        respVO.setValidEndTime(rightsDO.getValidEndTime());
+
+        // 计算状态
+        Integer status = LocalDateTimeUtils.isBetween(rightsDO.getValidStartTime(), rightsDO.getValidEndTime()) ?
+                AdminUserRightsStatusEnum.NORMAL.getType() :
+                LocalDateTimeUtils.beforeNow(rightsDO.getValidStartTime()) && LocalDateTimeUtils.beforeNow(rightsDO.getValidEndTime()) ?
+                        AdminUserRightsStatusEnum.EXPIRE.getType() :
+                        LocalDateTimeUtils.afterNow(rightsDO.getValidStartTime()) && LocalDateTimeUtils.afterNow(rightsDO.getValidEndTime()) ?
+                                AdminUserRightsStatusEnum.PENDING.getType() : AdminUserRightsStatusEnum.CANCEL.getType();
+        respVO.setStatus(status);
+
+        return respVO;
     }
 }

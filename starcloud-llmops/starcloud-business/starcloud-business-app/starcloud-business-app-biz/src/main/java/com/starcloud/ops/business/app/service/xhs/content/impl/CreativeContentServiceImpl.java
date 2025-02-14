@@ -26,25 +26,8 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWra
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
 import com.starcloud.ops.business.app.api.plugin.WordCheckContent;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentCreateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentListReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentModifyReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentPageReqVOV2;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentQRCodeReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentResourceConfigurationReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRiskReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentTaskReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoConfigReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.VideoResultReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentQRCodeRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentResourceRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentRiskRespVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentShareResultRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.*;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.*;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.batch.CreativePlanBatchDO;
@@ -69,22 +52,14 @@ import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
-import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorConfig;
-import com.starcloud.ops.business.app.feign.dto.video.VideoGeneratorResult;
-import com.starcloud.ops.business.app.feign.dto.video.VideoMergeConfig;
-import com.starcloud.ops.business.app.feign.dto.video.VideoMergeResult;
-import com.starcloud.ops.business.app.feign.dto.video.VideoRecordResult;
+import com.starcloud.ops.business.app.feign.dto.video.*;
+import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
 import com.starcloud.ops.business.app.feign.request.poster.PosterRequest;
 import com.starcloud.ops.business.app.feign.request.video.ImagePdfRequest;
 import com.starcloud.ops.business.app.feign.request.video.WordbookPdfRequest;
 import com.starcloud.ops.business.app.feign.response.PdfGeneratorResponse;
 import com.starcloud.ops.business.app.feign.response.VideoGeneratorResponse;
-import com.starcloud.ops.business.app.model.content.CopyWritingContent;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
-import com.starcloud.ops.business.app.model.content.ImageContent;
-import com.starcloud.ops.business.app.model.content.VideoContent;
-import com.starcloud.ops.business.app.model.content.VideoContentInfo;
+import com.starcloud.ops.business.app.model.content.*;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceConfiguration;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceImage2PdfConfiguration;
 import com.starcloud.ops.business.app.model.content.resource.CreativeContentResourceWordbook2PdfConfiguration;
@@ -117,13 +92,7 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -1246,6 +1215,72 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         videoConfig.setId(null);
         try {
             VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGenerator(videoConfig);
+            if (generatorResponse.getCode() != 0) {
+                throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
+            }
+            videoConfig.setId(generatorResponse.getData().getTaskId());
+            return videoConfig;
+        } catch (Exception e) {
+            throw new ServiceException(500, e.getMessage());
+        }
+    }
+
+    /**
+     * 开始生成单条视频
+     *
+     * @param reqVO
+     */
+    @Override
+    public VideoGeneratorConfigV2 generateVideoV2(VideoConfigReqVO reqVO) {
+        if (StringUtils.isBlank(reqVO.getVideoConfig())) {
+            throw exception(PARAM_ERROR, "生成视频配置必填");
+        }
+        VideoGeneratorConfigV2 videoConfig = JSONUtil.toBean(reqVO.getVideoConfig(), VideoGeneratorConfigV2.class);
+        if (Objects.isNull(videoConfig.getGlobalSettings())) {
+            videoConfig.setGlobalSettings(new VideoGeneratorConfigV2.GlobalSettings());
+        }
+
+        if (JSONUtil.isTypeJSONObject(reqVO.getQuickConfiguration())) {
+            JSONObject quickConfiguration = JSONObject.parseObject(reqVO.getQuickConfiguration());
+            for (Map.Entry<String, Object> entry : quickConfiguration.entrySet()) {
+                if (Objects.isNull(entry.getValue())) {
+                    continue;
+                }
+                BeanPath beanPath = new BeanPath("globalSettings." + entry.getKey());
+                try {
+                    beanPath.set(videoConfig, entry.getValue());
+                } catch (Exception ignored) {
+                    log.warn("字段不存在 {}", entry.getKey());
+                }
+            }
+        }
+
+        String imageCode = reqVO.getImageCode();
+        if (StringUtils.isBlank(imageCode)) {
+            throw exception(PARAM_ERROR, "图片code必填");
+        }
+
+        CreativeContentDO creativeContent = creativeContentMapper.get(reqVO.getUid());
+        if (Objects.isNull(creativeContent)) {
+            throw exception(PARAM_ERROR, "创作内容不存在");
+        }
+        CreativeContentRespVO contentRespVO = CreativeContentConvert.INSTANCE.convert(creativeContent);
+        Map<String, String> resources = buildResources(contentRespVO, reqVO.getImageUrl());
+
+        List<ImageContent> imageContents = Optional.ofNullable(contentRespVO.getExecuteResult())
+                .map(CreativeContentExecuteResult::getImageList).orElseThrow(() -> exception(PARAM_ERROR, "没有图片生成结果"));
+        if (CollectionUtil.isEmpty(imageContents)) {
+            throw exception(PARAM_ERROR, "没有图片生成结果");
+        }
+
+        if (Objects.isNull(videoConfig.getGlobalSettings().getVideo().getBackground())) {
+            videoConfig.getGlobalSettings().getVideo().setBackground(new VideoGeneratorConfigV2.BackgroundConfig());
+        }
+        videoConfig.getGlobalSettings().getVideo().getBackground().setSource(reqVO.getImageUrl());
+        videoConfig.setResources(resources);
+        videoConfig.setId(null);
+        try {
+            VideoGeneratorResponse<VideoGeneratorResult> generatorResponse = videoGeneratorClient.videoGeneratorV2(videoConfig);
             if (generatorResponse.getCode() != 0) {
                 throw ServiceExceptionUtil.exception(VIDEO_ERROR, generatorResponse.getMsg());
             }
