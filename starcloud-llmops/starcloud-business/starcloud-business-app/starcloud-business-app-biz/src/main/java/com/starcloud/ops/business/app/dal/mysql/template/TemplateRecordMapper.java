@@ -25,6 +25,7 @@ public interface TemplateRecordMapper extends BaseMapperX<TemplateRecordDO> {
         MPJLambdaWrapper<TemplateRecordDO> wrapper = new MPJLambdaWrapper<TemplateRecordDO>("t")
                 .selectAs(TemplateRecordDO::getUid, TemplateRecordRespVO::getUid)
                 .selectAs(TemplateRecordDO::getTemplateCode, TemplateRecordRespVO::getTemplateCode)
+                .selectAs(TemplateRecordDO::getCreateTime, TemplateRecordRespVO::getCreateTime)
                 .selectAs("p.name", TemplateRecordRespVO::getName)
                 .selectAs("p.thumbnail", TemplateRecordRespVO::getExample)
                 .leftJoin("poster_material p on t.template_code = p.uid")

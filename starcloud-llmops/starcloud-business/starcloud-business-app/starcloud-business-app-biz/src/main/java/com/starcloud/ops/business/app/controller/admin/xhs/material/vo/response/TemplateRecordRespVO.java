@@ -3,6 +3,8 @@ package com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Schema(description = "模板使用记录")
 public class TemplateRecordRespVO {
@@ -18,4 +20,7 @@ public class TemplateRecordRespVO {
 
     @Schema(description = "示例图片")
     private String example;
+
+    @Schema(description = "绑定时间")
+    private LocalDateTime createTime;
 }
