@@ -116,4 +116,10 @@ public interface MaterialService {
      */
     List<PosterTemplateDTO> listPosterTemplateByGroup(String uid);
 
+    /**
+     * 获取单词本海报列表
+     *
+     * @return 海报列表
+     */
+    List<PosterTemplateDTO> listWordbookTemplate();
 }

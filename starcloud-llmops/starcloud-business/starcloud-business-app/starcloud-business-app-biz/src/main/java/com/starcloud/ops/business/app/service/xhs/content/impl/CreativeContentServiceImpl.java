@@ -37,8 +37,10 @@ import com.starcloud.ops.business.app.dal.mysql.xhs.batch.CreativePlanBatchMappe
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
 import com.starcloud.ops.business.app.dal.mysql.xhs.plan.CreativePlanMapper;
 import com.starcloud.ops.business.app.domain.cache.AppStepStatusCache;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
@@ -48,6 +50,7 @@ import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
 import com.starcloud.ops.business.app.feign.VideoGeneratorClient;
+import com.starcloud.ops.business.app.feign.dto.PosterImage;
 import com.starcloud.ops.business.app.feign.dto.PosterImageParam;
 import com.starcloud.ops.business.app.feign.dto.video.*;
 import com.starcloud.ops.business.app.feign.dto.video.v2.VideoGeneratorConfigV2;
@@ -61,6 +64,7 @@ import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
 import com.starcloud.ops.business.app.service.plugins.WuyouClient;
+import com.starcloud.ops.business.app.service.poster.PosterService;
 import com.starcloud.ops.business.app.service.xhs.content.CreativeContentService;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeExecuteManager;
@@ -70,8 +74,10 @@ import com.starcloud.ops.business.app.service.xhs.material.strategy.metadata.Mat
 import com.starcloud.ops.business.app.service.xhs.plan.CreativePlanService;
 import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.log.service.message.LogAppMessageService;
+import com.starcloud.ops.framework.common.api.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -85,10 +91,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.*;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.PARAM_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_ERROR;
+import static com.starcloud.ops.business.app.enums.CreativeErrorCodeConstants.VIDEO_MERGE_ERROR;
 
 /**
  * @author nacoyer
@@ -135,6 +144,9 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
     @Resource
     private VideoGeneratorClient videoGeneratorClient;
+
+    @Resource
+    private PosterService posterService;
 
     /**
      * 获取创作内容详情
@@ -336,6 +348,25 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentDO content = creativeContentMapper.get(request.getUid());
         AppValidate.notNull(content, "创作内容不存在({})", request.getUid());
         CreativeContentDO modify = CreativeContentConvert.INSTANCE.convert(request);
+
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        CreativeContentExecuteResult modifyResult = getExecuteResult(modify);
+        if (Objects.isNull(modifyResult)) {
+            modifyResult = executeResult;
+        }
+        if (Objects.isNull(modifyResult.getCopyWriting())) {
+            modifyResult.setCopyWriting(executeResult.getCopyWriting());
+        }
+        if (CollectionUtil.isEmpty(modifyResult.getImageList())) {
+            modifyResult.setImageList(executeResult.getImageList());
+        }
+        if (Objects.isNull(modifyResult.getVideo())) {
+            modifyResult.setVideo(executeResult.getVideo());
+        }
+        if (Objects.isNull(modifyResult.getResource())) {
+            modifyResult.setResource(executeResult.getResource());
+        }
+        modify.setExecuteResult(JsonUtils.toJsonString(modifyResult));
         modify.setId(content.getId());
         creativeContentMapper.updateById(modify);
         return content.getUid();
@@ -788,36 +819,34 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         CreativeContentExecuteResult executeResult = getExecuteResult(content);
         AppValidate.notNull(executeResult, "创作内容执行结果不存在({})", uid);
         ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
-        // 如果完整视频和完整音频为空，则从视频信息中获取
-        if (StringUtils.isBlank(resource.getCompleteVideoUrl()) || StringUtils.isBlank(resource.getCompleteAudioUrl())) {
-            VideoContentInfo video = executeResult.getVideo();
-            AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
-            // 如果完整视频为空，则从视频信息中获取
-            if (StringUtils.isBlank(resource.getCompleteVideoUrl())) {
-                String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
-                AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
-                resource.setCompleteVideoUrl(completeVideoUrl);
-            }
-            // 如果完整音频为空，则从视频信息中获取
-            if (StringUtils.isBlank(resource.getCompleteAudioUrl())) {
-                String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
-                AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
-                resource.setCompleteAudioUrl(completeAudioUrl);
-            }
-        }
 
-        // 生成分享二维码
-        QrConfig config = new QrConfig();
-        config.setCharset(StandardCharsets.UTF_8);
-        String qrContent = "share?sss";
-        String shareQrCode = QrCodeUtil.generateAsBase64(qrContent, config, ImgUtil.IMAGE_TYPE_PNG);
+        // 获取视频信息
+        VideoContentInfo video = executeResult.getVideo();
+        AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
+        List<VideoContent> videoList = video.getVideoList();
+        AppValidate.notEmpty(videoList, "创作内容视频列表为空({}), 请生成视频后重试！", uid);
+
+        // 始终获取最新的完整视频，则从视频信息中获取
+        String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
+        // 如果没有完整视频，则获取视频列表的第一个视频
+        if (StringUtils.isBlank(completeVideoUrl)) {
+            completeVideoUrl = videoList.get(0).getVideoUrl();
+        }
+        //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+        resource.setCompleteVideoUrl(completeVideoUrl);
+
+        // 始终获取最新的完整音频，则从视频信息中获取
+        String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
+        // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+        if (StringUtils.isBlank(completeAudioUrl)) {
+            completeAudioUrl = videoList.get(0).getAudioUrl();
+        }
+        resource.setCompleteAudioUrl(completeAudioUrl);
 
         CreativeContentResourceRespVO response = new CreativeContentResourceRespVO();
         response.setUid(uid);
         response.setResourceConfiguration(resourceConfiguration);
         response.setResource(resource);
-        response.setShareQrCode(shareQrCode);
-
         return response;
     }
 
@@ -860,8 +889,12 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         if (CollectionUtils.isEmpty(imageList)) {
             throw ServiceExceptionUtil.invalidParamException("图片生成列表不能为空");
         }
+        List<String> imageUrlList = imageList.stream().map(ImageContent::getUrl).collect(Collectors.toList());
 
         ResourceContentInfo resource = executeResult.getResource();
+        if (Objects.isNull(resource)) {
+            resource = new ResourceContentInfo();
+        }
         String videoUrl = resource.getCompleteVideoUrl();
         String audioUrl = resource.getCompleteAudioUrl();
 
@@ -874,8 +907,35 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         Boolean isAddVideoQrCode = imagePdfConfiguration.getIsAddVideoQrCode();
         String qrCodeLocation = imagePdfConfiguration.getQrCodeLocation();
 
+        String title = Optional.ofNullable(executeResult.getCopyWriting()).map(CopyWritingContent::getTitle).orElse("图片PDF");
+        // 生成图片PDF
+        ImagePdfRequest imagePdfRequest = new ImagePdfRequest();
+        imagePdfRequest.setTitle(title);
+        imagePdfRequest.setImageUrlList(imageUrlList);
 
-        return "";
+        VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateImagePdf(imagePdfRequest);
+        if (response.getCode() != 0) {
+            throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
+        }
+        PdfGeneratorResponse data = response.getData();
+        String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
+                .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+
+        // 保存参数配置
+        CreativeContentExecuteParam executeParam = getExecuteParam(content);
+        CreativeContentResourceConfiguration resourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration())
+                .orElse(new CreativeContentResourceConfiguration());
+        resourceConfiguration.setImagePdfConfiguration(imagePdfConfiguration);
+        executeParam.setResourceConfiguration(resourceConfiguration);
+
+        // 保存PDF URL
+        resource.setImagePdfUrl(pdfUrl);
+        executeResult.setResource(resource);
+        content.setExecuteParam(JsonUtils.toJsonString(executeParam));
+        content.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        creativeContentMapper.updateById(content);
+
+        return pdfUrl;
     }
 
     /**
@@ -907,34 +967,146 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         String wordField = wordbookPdfConfiguration.getWordField();
         String paraphraseField = wordbookPdfConfiguration.getParaphraseField();
 
+        // 处理海报模板
         PosterTemplateDTO posterTemplate = wordbookPdfConfiguration.getPosterTemplate();
         PosterTemplateDTO template = CreativeUtils.handlerPosterTemplate(posterTemplate, 0);
 
         List<PosterVariableDTO> variableList = template.getVariableList();
-        List<String> variableFieldNameList = CollectionUtil.emptyIfNull(variableList)
+        List<String> variableNameList = CollectionUtil.emptyIfNull(variableList)
                 .stream()
-                .map(PosterVariableDTO::getField)
+                .map(PosterVariableDTO::getLabel)
                 .filter(StringUtils::isNotBlank)
                 .distinct()
                 .collect(Collectors.toList());
+
         // 获取单词字段的最大值
-        int wordFiledCount = CreativeUtils.getWordFieldCount(variableFieldNameList);
+        int wordFiledCount = CreativeUtils.getWordFieldCount(variableNameList);
         // 获取单词释义字段的最大值
-        int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableFieldNameList);
+        int paraphraseFieldCount = CreativeUtils.getParaphraseFieldCount(variableNameList);
         // 确定每张图需要多少素材
         int count = Math.max(wordFiledCount, paraphraseFieldCount);
-
         if (count <= 0) {
             throw ServiceExceptionUtil.invalidParamException("单词卡模板配置异常！请联系管理员！");
         }
+        List<String> wordbookUrlList = new ArrayList<>();
 
-        // 此时说明，素材只够生成一张图
-        if (materialList.size() <= count) {
+        if (materialList.size() == 1) {
+            // 查询创作计划，校验创作计划是否存在
+            CreativePlanRespVO planResponse = creativePlanService.get(content.getPlanUid());
+            // 素材字段配置列表
+            List<MaterialFieldConfigDTO> materialFieldList = this.materialFieldList(planResponse);
+            Map<String, MaterialFieldConfigDTO> materialFieldMap = materialFieldList.stream()
+                    .collect(Collectors.toMap(MaterialFieldConfigDTO::getFieldName, Function.identity()));
 
-
+            // 计算素材字段的单词和释义的数量，取最大值
+            int fieldCount = CreativeUtils.getMaterialFieldWordOrParaphraseCount(materialFieldMap, wordField, paraphraseField);
+            // 如果素材字段的数量小于需要的数量，说明素材字段不够，只需要生成一张图
+            if (fieldCount < count) {
+                List<String> urlList = poster(template, materialStepId, materialList, wordField, paraphraseField, count, fieldCount, 0);
+                wordbookUrlList.addAll(urlList);
+            } else {
+                // 计算一共需要多少张图，如果有余数，则需要多一张
+                int size = fieldCount / count;
+                int remainder = fieldCount % count;
+                size = remainder > 0 ? size + 1 : size;
+                for (int i = 0; i < size; i++) {
+                    List<Map<String, Object>> subList = materialList.subList(i * count, Math.min((i + 1) * count, materialList.size()));
+                    List<String> urlList = poster(template, materialStepId, subList, wordField, paraphraseField, count, fieldCount, i);
+                    wordbookUrlList.addAll(urlList);
+                }
+            }
+        } else {
+            // 此时说明，素材只够生成一张图
+            if (materialList.size() <= count) {
+                List<String> urlList = poster(template, materialStepId, materialList, wordField, paraphraseField, count, 1,0);
+                wordbookUrlList.addAll(urlList);
+            } else {
+                // 计算一共需要多少张图，如果有余数，则需要多一张
+                int size = materialList.size() / count;
+                int remainder = materialList.size() % count;
+                size = remainder > 0 ? size + 1 : size;
+                for (int i = 0; i < size; i++) {
+                    List<Map<String, Object>> subList = materialList.subList(i * count, Math.min((i + 1) * count, materialList.size()));
+                    List<String> urlList = poster(template, materialStepId, subList, wordField, paraphraseField, count, 1, i);
+                    wordbookUrlList.addAll(urlList);
+                }
+            }
         }
 
-        return "";
+        if (CollectionUtils.isEmpty(wordbookUrlList)) {
+            throw ServiceExceptionUtil.invalidParamException("生成单词卡PDF失败，请稍后重试！");
+        }
+
+        CreativeContentExecuteResult executeResult = getExecuteResult(content);
+        String title = Optional.ofNullable(executeResult).map(CreativeContentExecuteResult::getCopyWriting).map(CopyWritingContent::getTitle).orElse("抗遗忘默写单词本");
+        // 生成 PDF
+        WordbookPdfRequest wordbookPdfRequest = new WordbookPdfRequest();
+        wordbookPdfRequest.setTitle(title);
+        wordbookPdfRequest.setWordbookImageUrlList(wordbookUrlList);
+        VideoGeneratorResponse<PdfGeneratorResponse> response = videoGeneratorClient.generateWordBookPdf(wordbookPdfRequest);
+        if (response.getCode() != 0) {
+            throw ServiceExceptionUtil.exception(VIDEO_ERROR, response.getMsg());
+        }
+        PdfGeneratorResponse data = response.getData();
+        String pdfUrl = Optional.ofNullable(data).map(PdfGeneratorResponse::getUrl)
+                .orElseThrow(() -> exception(VIDEO_ERROR, "生成单词卡PDF失败，请稍后重试！"));
+
+        // 保存配置参数
+        CreativeContentResourceConfiguration contentResourceConfiguration = Optional.ofNullable(executeParam.getResourceConfiguration())
+                .orElse(new CreativeContentResourceConfiguration());
+        contentResourceConfiguration.setWordbookPdfConfiguration(wordbookPdfConfiguration);
+        executeParam.setResourceConfiguration(contentResourceConfiguration);
+
+        // 保存PDF URL
+        ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
+        resource.setWordbookPdfUrl(pdfUrl);
+        executeResult.setResource(resource);
+        content.setExecuteParam(JsonUtils.toJsonString(executeParam));
+        content.setExecuteResult(JsonUtils.toJsonString(executeResult));
+        creativeContentMapper.updateById(content);
+        return pdfUrl;
+    }
+
+    /**
+     * 获取分享资源
+     *
+     * @param uid 创作内容UID
+     * @return 分享资源
+     */
+    @Override
+    public CreativeContentShareResultRespVO getShareResult(String uid) {
+        CreativeContentRespVO contentResponse = this.get(uid);
+
+        CreativeContentExecuteResult executeResult = contentResponse.getExecuteResult();
+        AppValidate.notNull(executeResult, "创作内容执行结果不存在({})", uid);
+
+        ResourceContentInfo resource = Optional.ofNullable(executeResult.getResource()).orElse(new ResourceContentInfo());
+        // 获取视频信息
+        VideoContentInfo video = executeResult.getVideo();
+        AppValidate.notNull(video, "创作内容视频信息不存在({}), 请生成视频后重试！", uid);
+        List<VideoContent> videoList = video.getVideoList();
+        AppValidate.notEmpty(videoList, "创作内容视频列表为空({}), 请生成视频后重试！", uid);
+
+        // 始终获取最新的完整视频，则从视频信息中获取
+        String completeVideoUrl = Optional.ofNullable(video.getCompleteVideoUrl()).orElse(StringUtils.EMPTY);
+        // 如果没有完整视频，则获取视频列表的第一个视频
+        if (StringUtils.isBlank(completeVideoUrl)) {
+            completeVideoUrl = videoList.get(0).getVideoUrl();
+        }
+        //AppValidate.notBlank(completeVideoUrl, "创作内容完整视频不存在，请合并视频后重试！");
+        resource.setCompleteVideoUrl(completeVideoUrl);
+
+        // 始终获取最新的完整音频，则从视频信息中获取
+        String completeAudioUrl = Optional.ofNullable(video.getCompleteAudioUrl()).orElse(StringUtils.EMPTY);
+        // AppValidate.notBlank(completeAudioUrl, "创作内容完整音频不存在，请合并视频后重试！");
+        resource.setCompleteAudioUrl(completeAudioUrl);
+
+        executeResult.setResource(resource);
+
+        CreativeContentShareResultRespVO response = new CreativeContentShareResultRespVO();
+        response.setUid(uid);
+        response.setExecuteResult(executeResult);
+        return response;
     }
 
     @Override
@@ -1461,6 +1633,100 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         posterStyle = CreativeUtils.mergeImagePosterStyle(posterStyle, appInformation);
         // 处理一下海报风格
         return CreativeUtils.handlerPosterStyle(posterStyle);
+    }
+
+    /**
+     * 生成海报
+     *
+     * @param template        海报模板
+     * @param materialStepId  素材步骤ID
+     * @param materialList    素材列表
+     * @param wordField       单词字段
+     * @param paraphraseField 单词释义字段
+     * @return 海报列表
+     */
+    private List<String> poster(PosterTemplateDTO template,
+                                String materialStepId,
+                                List<Map<String, Object>> materialList,
+                                String wordField,
+                                String paraphraseField,
+                                int count,
+                                int fieldCount,
+                                int i) {
+
+        PosterTemplateDTO posterTemplateDTO = SerializationUtils.clone(template);
+        List<PosterVariableDTO> templateVariableList = posterTemplateDTO.getVariableList();
+
+        for (PosterVariableDTO posterVariableDTO : templateVariableList) {
+            String name = posterVariableDTO.getLabel();
+            if (CreativeUtils.isWordField(name)) {
+                int index = CreativeUtils.getWordFieldIndex(name) - 1;
+                if (index < 0) {
+                    continue;
+                }
+                if (materialList.size() == 1 && fieldCount > 1) {
+                    int handleIndex = index + 1;
+                    int wordFieldIndex = i * count + handleIndex;
+                    String handleWordField = CreativeUtils.handleField(wordField) + wordFieldIndex;
+                    String value = "{{" + materialStepId + ".docs[0]." + handleWordField + "}}";
+                    posterVariableDTO.setValue(value);
+                    continue;
+                }
+                String value = "{{" + materialStepId + ".docs[" + index + "]." + wordField + "}}";
+                posterVariableDTO.setValue(value);
+                continue;
+            }
+            if (CreativeUtils.isParaphraseField(name)) {
+                int index = CreativeUtils.getParaphraseFieldIndex(name) - 1;
+                if (index < 0) {
+                    continue;
+                }
+                if (materialList.size() == 1 && fieldCount > 1) {
+                    int handleIndex = index + 1;
+                    int paraphraseFieldIndex = i * count + handleIndex;
+                    String handleParaphraseField = CreativeUtils.handleField(paraphraseField) + paraphraseFieldIndex;
+                    String value = "{{" + materialStepId + ".docs[0]." + handleParaphraseField + "}}";
+                    posterVariableDTO.setValue(value);
+                    continue;
+                }
+                String value = "{{" + materialStepId + ".docs[" + index + "]." + paraphraseField + "}}";
+                posterVariableDTO.setValue(value);
+            }
+        }
+
+        Map<String, Object> materialMap = new HashMap<>();
+        JsonDocsDefSchema materialData = new JsonDocsDefSchema();
+        materialData.setDocs(materialList);
+        materialMap.put(materialStepId, materialData);
+
+        Map<String, Object> docPosterVariableMap = PosterActionHandler.getDocPosterVariableMap(posterTemplateDTO);
+        Map<String, Object> replaceValueMap = AppContext.parseMapFromVariablesValues(docPosterVariableMap, materialMap);
+
+        for (PosterVariableDTO posterVariableDTO : templateVariableList) {
+            String uuid = posterVariableDTO.getUuid();
+            // 从作用域数据中获取变量值
+            Object value = replaceValueMap.get(uuid);
+            // 如果从作用域数据中获取的变量值为空，则为空字符串。
+            if (StringUtil.objectBlank(value)) {
+                value = StringUtils.EMPTY;
+            }
+            posterVariableDTO.setValue(value);
+        }
+
+        Map<String, Object> params = CollectionUtil.emptyIfNull(templateVariableList).stream()
+                .collect(Collectors.toMap(PosterVariableDTO::getField, PosterVariableDTO::emptyIfNullValue));
+
+        PosterRequest posterRequest = new PosterRequest();
+        posterRequest.setId(posterTemplateDTO.getCode());
+        posterRequest.setParams(params);
+
+        List<PosterImage> poster = posterService.poster(posterRequest);
+
+        return CollectionUtil.emptyIfNull(poster).stream()
+                .map(PosterImage::getUrl)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     public static CreativeContentExecuteParam getExecuteParam(CreativeContentDO content) {

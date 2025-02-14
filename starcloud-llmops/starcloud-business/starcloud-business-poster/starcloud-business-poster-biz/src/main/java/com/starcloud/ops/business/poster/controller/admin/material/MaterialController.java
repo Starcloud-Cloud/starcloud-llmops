@@ -119,4 +119,11 @@ public class MaterialController {
         return success(true);
     }
 
+    @DataPermission(enable = false)
+    @GetMapping("u/listWordbookTemplate")
+    @Operation(summary = "根据分组获取海报列表")
+    public CommonResult<List<PosterTemplateDTO>> listWordbookTemplate() {
+        return success(materialService.listWordbookTemplate());
+    }
+
 }

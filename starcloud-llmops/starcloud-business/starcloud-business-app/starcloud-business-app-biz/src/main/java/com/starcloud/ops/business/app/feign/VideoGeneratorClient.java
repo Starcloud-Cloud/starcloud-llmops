@@ -13,6 +13,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * @author nacoyer
@@ -62,8 +63,8 @@ public interface VideoGeneratorClient {
      * @param request 请求参数
      * @return 生成结果
      */
-    @PostMapping(value = "v1/pdf/image")
-    VideoGeneratorResponse<PdfGeneratorResponse> generateImagePdf(ImagePdfRequest request);
+    @PostMapping(value = "/v1/pdf/image")
+    VideoGeneratorResponse<PdfGeneratorResponse> generateImagePdf(@RequestBody ImagePdfRequest request);
 
     /**
      * 生成单词本pdf
@@ -71,8 +72,8 @@ public interface VideoGeneratorClient {
      * @param request 请求参数
      * @return 生成结果
      */
-    @PostMapping(value = "v1/pdf/wordbook")
-    VideoGeneratorResponse<PdfGeneratorResponse> generateWordBookPdf(WordbookPdfRequest request);
+    @PostMapping(value = "/v1/pdf/wordbook")
+    VideoGeneratorResponse<PdfGeneratorResponse> generateWordBookPdf(@RequestBody WordbookPdfRequest request);
 
 
     /**

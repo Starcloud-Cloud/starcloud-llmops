@@ -1,6 +1,10 @@
 package com.starcloud.ops.business.app.feign.request.video;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.List;
@@ -11,9 +15,15 @@ import java.util.List;
  * @since 1.0.0
  */
 @Data
+@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class WordbookPdfRequest implements Serializable {
 
     private static final long serialVersionUID = 3687999754376432422L;
+
+    private String title;
 
     private List<String> wordbookImageUrlList;
 
