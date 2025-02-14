@@ -1,5 +1,6 @@
 package com.starcloud.ops.business.app.util;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
@@ -46,14 +47,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -839,6 +833,26 @@ public class CreativeUtils {
         }
 
         return posterStyleList;
+    }
+
+    public static Set<String> getPosterTemplateCodes(List<PosterStyleDTO> posterStyleList) {
+        try {
+            Set<String> templateCodes = new HashSet<>();
+            for (PosterStyleDTO posterStyleDTO : posterStyleList) {
+                if (Objects.nonNull(posterStyleDTO.getSaleConfig()) && BooleanUtils.isTrue(posterStyleDTO.getSaleConfig().getOpenSale())) {
+                    List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
+                    if (CollUtil.isEmpty(templateList)) {
+                        continue;
+                    }
+                    for (PosterTemplateDTO posterTemplateDTO : templateList) {
+                        templateCodes.add(posterTemplateDTO.getCode());
+                    }
+                }
+            }
+            return templateCodes;
+        } catch (Exception ignore) {
+        }
+        return Collections.emptySet();
     }
 
     /**
