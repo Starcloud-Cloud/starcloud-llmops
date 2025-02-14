@@ -681,5 +681,7 @@ public interface ErrorCodeConstants {
     ErrorCode MATERIAL_LIBRARY_IMPORT_LIBRARY_EMPTY = new ErrorCode(300702220, "数据导入失败，素材库编号不存在");
     ErrorCode MATERIAL_LIBRARY_IMPORT_DATA_EMPTY = new ErrorCode(300702221, "数据导入失败，数据为空数据");
 
+    ErrorCode NOT_TEMPLATE_RESOURCE = new ErrorCode(300800001, "模板数量不足");
+
 
 }

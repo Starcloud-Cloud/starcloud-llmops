@@ -2,10 +2,15 @@ package com.starcloud.ops.server.web;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import com.starcloud.ops.business.app.exception.AppLimitException;
+import com.starcloud.ops.business.app.exception.TemplateErrorData;
+import com.starcloud.ops.business.app.exception.TemplateException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * 全局异常处理器，将 Exception 翻译成 CommonResult + 对应的异常编号
@@ -28,6 +33,17 @@ public class AppExceptionHandler {
             code = 500;
         }
         return CommonResult.error(code, exception.getMessage());
+    }
+
+    @ExceptionHandler(value = TemplateException.class)
+    public CommonResult<?> templateErrorHandler(TemplateException exception) {
+        log.error("[TemplateException]: message: {}", exception.getMessage(), exception);
+        Integer code = exception.getCode();
+        CommonResult<Set<TemplateErrorData>> result = new CommonResult<>();
+        result.setData(exception.getErrorData());
+        result.setCode(code);
+        result.setMsg(exception.getMessage());
+        return result;
     }
 
 }
