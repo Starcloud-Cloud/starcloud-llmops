@@ -17,6 +17,7 @@ import org.mapstruct.factory.Mappers;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
 
@@ -72,6 +73,9 @@ public interface AdminUserRightsConvert {
                                       Integer magicBean, Integer magicImage, Integer matrixBean,
                                       LocalDateTime startTime, LocalDateTime endTime, Long levelId, Integer templates) {
 
+        if (Objects.isNull(templates)){
+            templates = 0;
+        }
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         AdminUserRightsDO.OriginalFixedRights originalFixedRights = new AdminUserRightsDO.OriginalFixedRights();
         originalFixedRights.setTemplateNums(templates);

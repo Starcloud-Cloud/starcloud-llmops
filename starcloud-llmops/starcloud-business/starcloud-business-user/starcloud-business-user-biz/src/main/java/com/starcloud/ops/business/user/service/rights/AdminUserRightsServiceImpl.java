@@ -95,10 +95,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     public PageResult<AppAdminUserRightsRespVO> getRightsPage2(Long userId, AppAdminUserRightsPageReqVO pageVO) {
         PageResult<AdminUserRightsDO> adminUserRightsDOPageResult = adminUserRightsMapper.selectPage(userId, pageVO);
         List<AdminUserRightsDO> rightsDOS = adminUserRightsDOPageResult.getList();
-        
+
         // 即使列表为空也继续处理
         List<AppAdminUserRightsRespVO> convertedRightsList = new ArrayList<>();
-        
+
         // 定义权益类型与其对应的getter方法的映射
         Map<AdminUserRightsTypeEnum, Function<AdminUserRightsDO, Integer>> rightsGetterMap = new EnumMap<>(AdminUserRightsTypeEnum.class);
         rightsGetterMap.put(AdminUserRightsTypeEnum.MAGIC_BEAN, rights -> Optional.ofNullable(rights.getMagicBeanInit()).orElse(0));
@@ -179,12 +179,12 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
     @Override
     public List<AdminUserRightsCollectRespVO> getRightsCollect(Long userId) {
         List<AdminUserRightsDO> validRightsList = getValidAndCountableRightsList(userId, null);
-        
+
         // 移除空列表判断,使用空列表继续处理
         if (validRightsList == null) {
             validRightsList = Collections.emptyList();
         }
-        
+
         // 使用 final 修饰,确保在 lambda 中可以安全使用
         final List<AdminUserRightsDO> finalValidRightsList = validRightsList;
 
@@ -209,10 +209,10 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 计算每种权益类型的汇总数据,始终返回所有权益类型
         return Arrays.stream(AdminUserRightsTypeEnum.values())
                 .map(rightsType -> {
-                    final Function<AdminUserRightsDO, Integer> currentGetter = 
-                        Optional.ofNullable(rightsGetterMap.get(rightsType)).orElse(rights -> 0);
-                    final Function<AdminUserRightsDO, Integer> initGetter = 
-                        Optional.ofNullable(rightsInitGetterMap.get(rightsType)).orElse(rights -> 0);
+                    final Function<AdminUserRightsDO, Integer> currentGetter =
+                            Optional.ofNullable(rightsGetterMap.get(rightsType)).orElse(rights -> 0);
+                    final Function<AdminUserRightsDO, Integer> initGetter =
+                            Optional.ofNullable(rightsInitGetterMap.get(rightsType)).orElse(rights -> 0);
 
                     // 对于模板类型,从 OriginalFixedRights 获取总数,从 DynamicRights 获取剩余数
                     if (rightsType == AdminUserRightsTypeEnum.TEMPLATE) {
@@ -221,7 +221,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                                         .map(AdminUserRightsDO.OriginalFixedRights::getTemplateNums)
                                         .orElse(0))
                                 .sum();
-                                
+
                         int remainingSum = finalValidRightsList.stream()
                                 .mapToInt(rights -> Optional.ofNullable(rights.getDynamicRights())
                                         .map(AdminUserRightsDO.DynamicRights::getTemplateNums)
@@ -242,7 +242,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                     int currentSum = finalValidRightsList.stream()
                             .mapToInt(currentGetter::apply)
                             .sum();
-                            
+
                     int initSum = finalValidRightsList.stream()
                             .mapToInt(initGetter::apply)
                             .sum();
@@ -262,7 +262,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long levelId,Integer templates) {
+    public void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long levelId, Integer templates) {
 
         if (magicBean == 0 || magicImage == 0) {
             return;
@@ -279,7 +279,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         LocalDateTime endTime = getPlusTimeByRange(timeRange, timeNums, startTime);
 
         // 构建对象
-        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, magicBean, magicImage, matrixBean, startTime, endTime, levelId,templates);
+        AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, magicBean, magicImage, matrixBean, startTime, endTime, levelId, templates);
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -288,7 +288,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         // 插入记录
         adminUserRightsMapper.insert(record);
         // 插入明细
-        createCommonRightsRecord(record, magicBean, magicImage, matrixBean,templates);
+        createCommonRightsRecord(record, magicBean, magicImage, matrixBean, templates);
     }
 
     /**
@@ -323,7 +323,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         // 插入明细
-        createCommonRightsRecord(record, addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean(),addRightsDTO.getTemplate());
+        createCommonRightsRecord(record, addRightsDTO.getMagicBean(), addRightsDTO.getMagicImage(), addRightsDTO.getMatrixBean(), addRightsDTO.getTemplate());
 
     }
 
@@ -380,7 +380,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
 
         // 构建对象
         AdminUserRightsDO record = AdminUserRightsConvert.INSTANCE.convert(userId, bizId, bizType, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), startTime, endTime,
-                Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()) ? null : rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId(),rightsBasicDTO.getTemplate());
+                Objects.isNull(rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId()) ? null : rightsAndLevelCommonDTO.getLevelBasicDTO().getLevelId(), rightsBasicDTO.getTemplate());
 
         if (getLoginUserId() == null) {
             record.setCreator(String.valueOf(userId));
@@ -390,7 +390,7 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         adminUserRightsMapper.insert(record);
 
         // 插入明细
-        createCommonRightsRecord(record, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(),rightsBasicDTO.getTemplate());
+        createCommonRightsRecord(record, rightsBasicDTO.getMagicBean(), rightsBasicDTO.getMagicImage(), rightsBasicDTO.getMatrixBean(), rightsBasicDTO.getTemplate());
 
         log.info("【添加用户权益成功，当前用户{},业务类型为{} ,业务编号为 {}数据为[{}]】", userId, bizType, bizId, rightsAndLevelCommonDTO);
 
@@ -616,8 +616,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
      * @param rightsType 权益类型
      */
     @Override
-    public Integer getEffectiveNumsByType(Long userId,AdminUserRightsTypeEnum rightsType) {
-        switch (rightsType){
+    public Integer getEffectiveNumsByType(Long userId, AdminUserRightsTypeEnum rightsType) {
+        switch (rightsType) {
             case TEMPLATE:
                 return selectCountByTypeAndStatus(userId, AdminUserRightsTypeEnum.TEMPLATE);
             default:
@@ -625,7 +625,8 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
         }
 
     }
-    private Integer selectCountByTypeAndStatus(Long userId,AdminUserRightsTypeEnum rightsType){
+
+    private Integer selectCountByTypeAndStatus(Long userId, AdminUserRightsTypeEnum rightsType) {
         LocalDateTime now = LocalDateTime.now();
         // 查询条件：当前用户下启用且未过期且权益值大于0的数据
         LambdaQueryWrapper<AdminUserRightsDO> wrapper = Wrappers.lambdaQuery(AdminUserRightsDO.class)
@@ -784,8 +785,12 @@ public class AdminUserRightsServiceImpl implements AdminUserRightsService {
                         AdminUserRightsTypeEnum.MATRIX_BEAN, record.getBizType() + BIZ_TYPE_OFFSET,
                         String.valueOf(record.getId()), String.valueOf(record.getId()));
             }
+            if (Objects.isNull(template)) {
+                template = 0;
+
+            }
             // 插入矩阵豆明细记录
-            if (matrixBean > 0) {
+            if (template > 0) {
                 adminUserRightsRecordService.createRightsRecord(record.getUserId(), null, null, template,
                         AdminUserRightsTypeEnum.TEMPLATE, record.getBizType() + BIZ_TYPE_OFFSET,
                         String.valueOf(record.getId()), String.valueOf(record.getId()));
