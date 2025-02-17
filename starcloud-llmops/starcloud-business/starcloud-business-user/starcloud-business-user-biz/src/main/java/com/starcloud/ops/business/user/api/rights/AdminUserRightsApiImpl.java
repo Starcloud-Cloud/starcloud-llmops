@@ -16,6 +16,7 @@ import java.util.List;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_BIZ_NOT_SUPPORT;
+import static com.starcloud.ops.business.user.enums.ErrorCodeConstant.RIGHTS_TYPE_NOT_SUPPORT;
 
 /**
  * 用户积分的 API 实现类
@@ -34,13 +35,13 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
 
     @Override
     public void addRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer rightsTimeNums, Integer rightsTimeRange,
-                          Integer bizType, String bizId, Long levelId) {
+                          Integer bizType, String bizId, Long levelId,Integer templates) {
         Assert.isTrue(magicBean > 0 || magicImage > 0);
         AdminUserRightsBizTypeEnum bizTypeEnum = AdminUserRightsBizTypeEnum.getByType(bizType);
         if (bizTypeEnum == null) {
             throw exception(RIGHTS_BIZ_NOT_SUPPORT);
         }
-        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizType, bizId, levelId);
+        adminUserRightsService.createRights(userId, magicBean, magicImage, matrixBean, rightsTimeNums, rightsTimeRange, bizType, bizId, levelId,templates);
     }
 
     /**
@@ -93,6 +94,20 @@ public class AdminUserRightsApiImpl implements AdminUserRightsApi {
     @Override
     public List<StatisticsUserRightReqDTO> statisticsUserRightsByBizId(List<String> bizIdList) {
         return adminUserRightsRecordService.statisticsUserRightsByBizId(bizIdList);
+    }
+
+    /**
+     * 根据权益类型获取权益总数
+     *
+     * @param type 权益类型-AdminUserRightsTypeEnum
+     */
+    @Override
+    public Integer getOriginalFixedRightsSums(Long userId,Integer type) {
+        AdminUserRightsTypeEnum rightsTypeEnum = AdminUserRightsTypeEnum.getByType(type);
+        if (rightsTypeEnum == null) {
+            throw exception(RIGHTS_TYPE_NOT_SUPPORT);
+        }
+        return adminUserRightsService.getEffectiveNumsByType(userId,rightsTypeEnum);
     }
 
 }

@@ -97,6 +97,10 @@ public class PosterStyleDTO implements java.io.Serializable {
     @NotEmpty(message = "请选择图片模板！")
     private List<PosterTemplateDTO> templateList;
 
+    @Schema(description = "售卖配置")
+    @Valid
+    private SaleConfigDTO saleConfig;
+
     /**
      * 示例图片
      */

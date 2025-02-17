@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.user.api.rights.dto;
 
 
+import com.starcloud.ops.business.user.api.level.dto.LevelConfigDTO;
 import com.starcloud.ops.business.user.api.level.dto.UserLevelBasicDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

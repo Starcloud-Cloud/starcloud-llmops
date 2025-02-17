@@ -4,10 +4,7 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import com.starcloud.ops.business.user.api.rights.dto.AddRightsDTO;
 import com.starcloud.ops.business.user.api.rights.dto.AdminUserRightsAndLevelCommonDTO;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsCollectRespVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.AppAdminUserRightsPageReqVO;
-import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.NotifyExpiringRightsRespVO;
+import com.starcloud.ops.business.user.controller.admin.rights.vo.rights.*;
 import com.starcloud.ops.business.user.dal.dataobject.rights.AdminUserRightsDO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
@@ -37,6 +34,16 @@ public interface AdminUserRightsService {
      * @return 签到记录分页
      */
     PageResult<AdminUserRightsDO> getRightsPage(Long userId, AppAdminUserRightsPageReqVO pageVO);
+
+    /**
+     * 【会员】获得权益记录分页
+     *
+     * @param userId 用户编号
+     * @param pageVO 分页查询
+     * @return 签到记录分页
+     */
+    PageResult<AppAdminUserRightsRespVO> getRightsPage2(Long userId, AppAdminUserRightsPageReqVO pageVO);
+
 
 
     /**
@@ -75,7 +82,7 @@ public interface AdminUserRightsService {
      * @param bizType    业务类型
      * @param bizId      业务编号
      */
-    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long LevelId);
+    void createRights(Long userId, Integer magicBean, Integer magicImage, Integer matrixBean, Integer timeNums, Integer timeRange, Integer bizType, String bizId, Long LevelId,Integer templates);
 
 
     /**
@@ -143,4 +150,17 @@ public interface AdminUserRightsService {
 
 
     void expireRightsBySystem(AdminUserRightsDO rightsDO);
+
+
+    /**
+     * 获取指定类型的剩余数量-有效期内的
+     * @param type 权益类型
+     */
+    Integer getUsedNumsByType(Integer type);
+
+    /**
+     * 获取指定类型的总数量-有效期内的
+     * @param rightsType 权益类型 @{AdminUserRightsTypeEnum}
+     */
+    Integer getEffectiveNumsByType(Long userId,AdminUserRightsTypeEnum rightsType);
 }

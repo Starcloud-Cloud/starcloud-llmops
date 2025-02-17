@@ -1,9 +1,12 @@
 package com.starcloud.ops.business.user.dal.dataobject.rights;
 
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.mybatis.core.dataobject.BaseDO;
 import com.baomidou.mybatisplus.annotation.KeySequence;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.AbstractJsonTypeHandler;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsBizTypeEnum;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsStatusEnum;
 import lombok.*;
@@ -15,7 +18,7 @@ import java.time.LocalDateTime;
  *
  * @author QingX
  */
-@TableName("system_user_rights")
+@TableName(value = "system_user_rights",autoResultMap = true)
 @KeySequence("system_user_rights_seq") // 用于 Oracle、PostgreSQL、Kingbase、DB2、H2 数据库的主键自增。如果是 MySQL 等数据库，可不写。
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -106,6 +109,165 @@ public class AdminUserRightsDO extends BaseDO {
      * <p>
      */
     private Integer status;
+
+    @TableField(typeHandler = OriginalFixedRightsTypeHandler.class)
+    private OriginalFixedRights originalFixedRights;
+
+    @TableField(typeHandler = DynamicRightsTypeHandler.class)
+    private DynamicRights dynamicRights;
+
+    @TableField(typeHandler = InvariantRightsTypeHandler.class)
+    private InvariantRights invariantRights;
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static class OriginalFixedRights {
+        /**
+         * 模板数量
+         */
+        private int templateNums;
+        // /**
+        //  * 魔法豆
+        //  */
+        // private Integer magicBean;
+        // /**
+        //  * 图片值
+        //  */
+        // private Integer magicImage;
+        // /**
+        //  * 矩阵点
+        //  */
+        // private Integer matrixBean;
+
+    }
+
+    public static class OriginalFixedRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, OriginalFixedRights.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static class DynamicRights {
+        /**
+         * 模板数量
+         */
+        private int templateNums;
+        // /**
+        //  * 魔法豆
+        //  */
+        // private Integer magicBean;
+        // /**
+        //  * 图片值
+        //  */
+        // private Integer magicImage;
+        // /**
+        //  * 矩阵点
+        //  */
+        // private Integer matrixBean;
+
+    }
+
+    public static class DynamicRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, DynamicRights.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
+
+
+    @Data
+    @NoArgsConstructor
+    @EqualsAndHashCode
+    public static class InvariantRights {
+        // /**
+        //  * 可使用应用数量
+        //  */
+        // private Integer usableApp;
+        // /**
+        //  * 可使用基础模型数量
+        //  */
+        // private Integer usableBasicBot;
+        //
+        // /**
+        //  * 可使用微信机器人数量
+        //  */
+        // private Integer usableWechatBot;
+        //
+        // /**
+        //  * 可使用技能插件数量
+        //  */
+        // private Integer usableSkillPlugin;
+        //
+        // /**
+        //  * 可使用团队数量
+        //  */
+        // private Integer usableTeams;
+        //
+        // /**
+        //  * 可使用团队成员数量
+        //  */
+        // private Integer usableTeamUsers;
+        //
+        // /**
+        //  * 列表查询次数
+        //  */
+        // private Integer listingQuery;
+        //
+        //
+        // /**
+        //  * 快速发布次数
+        //  */
+        // private Integer quickPublishCount;
+        //
+        // /**
+        //  * 账号管理次数
+        //  */
+        // private Integer accountManagementCount;
+        //
+        // /**
+        //  * 账号分组次数
+        //  */
+        // private Integer accountGroupingCount;
+        //
+        // /**
+        //  * 最大账号发布数量
+        //  */
+        // private Integer maxAccountsPerPublish;
+
+    }
+
+    public static class InvariantRightsTypeHandler extends AbstractJsonTypeHandler<Object> {
+
+        @Override
+        protected Object parse(String json) {
+            return JsonUtils.parseObject(json, InvariantRights.class);
+        }
+
+        @Override
+        protected String toJson(Object obj) {
+            return JsonUtils.toJsonString(obj);
+        }
+
+    }
 
 
 }
