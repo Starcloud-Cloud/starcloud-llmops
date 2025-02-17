@@ -177,19 +177,19 @@ public interface CreativeErrorCodeConstants {
 
     ErrorCode EXCEL_REQUIRED_FILED = new ErrorCode(730000010, "excel中缺少必填字段[{}]");
 
-    ErrorCode MATERIAL_STEP_NOT_EXIST = new ErrorCode(730000011, "上传素材步骤不存在");
+    ErrorCode MATERIAL_STEP_NOT_EXIST = new ErrorCode(730000011, "素材库字段设置步骤不存在");
 
-    ErrorCode NO_MATERIAL_DEFINE = new ErrorCode(730000012, "上传素材步骤素材定义不存在");
+    ErrorCode NO_MATERIAL_DEFINE = new ErrorCode(730000012, "素材库字段设置步骤素材定义不存在");
 
-    ErrorCode EXCEL_HEADER_REQUIRED_FILED = new ErrorCode(730000013, "上传素材excel表头缺少必填字段:{}");
+    ErrorCode EXCEL_HEADER_REQUIRED_FILED = new ErrorCode(730000013, "素材库字段设置excel表头缺少必填字段:{}");
 
-    ErrorCode DUPLICATE_FILED_NAME = new ErrorCode(730000014, "上传素材步骤素材定义中存在重复的字段code:{}");
+    ErrorCode DUPLICATE_FILED_NAME = new ErrorCode(730000014, "素材库字段设置步骤素材定义中存在重复的字段code:{}");
 
-    ErrorCode DUPLICATE_FILED_DESC = new ErrorCode(730000015, "上传素材步骤素材定义中存在重复的字段名称:{}");
+    ErrorCode DUPLICATE_FILED_DESC = new ErrorCode(730000015, "素材库字段设置步骤素材定义中存在重复的字段名称:{}");
 
-    ErrorCode FILED_TYPE_MISTAKE = new ErrorCode(730000016, "上传素材步骤素材定义中存在错误的字段类型:{}");
+    ErrorCode FILED_TYPE_MISTAKE = new ErrorCode(730000016, "素材库字段设置步骤素材定义中存在错误的字段类型:{}");
 
-    ErrorCode NO_REQUIRED_FILED = new ErrorCode(730000017, "上传素材中缺少必填字段:{}");
+    ErrorCode NO_REQUIRED_FILED = new ErrorCode(730000017, "素材库字段设置中缺少必填字段:{}");
 
     ErrorCode FILED_NAME_ERROR = new ErrorCode(730000018, "素材定义字段code必须是英文字母和数字组成:{}");
 

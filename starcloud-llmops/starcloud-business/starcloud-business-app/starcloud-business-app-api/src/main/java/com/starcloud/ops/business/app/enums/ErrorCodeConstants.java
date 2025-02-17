@@ -688,5 +688,7 @@ public interface ErrorCodeConstants {
     ErrorCode NO_PERMISSION = new ErrorCode(300703002, "用户没有权限推荐提示词");
     ErrorCode NOT_TEMPLATE_RESOURCE = new ErrorCode(300800001, "模板数量不足");
 
+    ErrorCode NOT_TEMPLATE_RESOURCE = new ErrorCode(300800001, "模板数量不足");
+
 
 }
