@@ -153,15 +153,20 @@ public class WechatServiceImpl implements WechatService {
 
         AppPublishChannelRespVO channelRespVO = appPublishChannelService.getAllByMediumUid(wxAppId);
         if (channelRespVO == null) {
+            if (isInternalAccount(MpContextHolder.getAppId())) {
+                log.info("isInternalAccount: {}", MpContextHolder.getAppId());
+                redisTemplate.delete(request.getFromUser() + "-ready");
+                return;
+            }
             sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "此公众号未绑定机器人，请联系机器人管理员");
-            log.info("wechat end");
+            log.info("wechat end 此公众号未绑定机器人");
             redisTemplate.delete(request.getFromUser() + "-ready");
             return;
         }
 
         if (channelRespVO.getStatus() == null || channelRespVO.getStatus() != 0) {
             sendUserMsgService.sendWxMsg(wxAppId, request.getFromUser(), "此机器人已禁用，请联系机器人管理员启用");
-            log.info("wechat end");
+            log.info("wechat end 此机器人已禁用");
             redisTemplate.delete(request.getFromUser() + "-ready");
             return;
         }
