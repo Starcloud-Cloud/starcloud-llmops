@@ -523,7 +523,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
 
             // 将处理后的海报风格填充到执行参数中
             appInformation.putVariable(posterStepId, CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(handlePosterStyle));
-            // 将素材库的素材列表填充上传素材步骤变量中
+            // 将素材库的素材列表填充素材库字段设置步骤变量中
             appInformation.putVariable(materialStepId, CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(usageMaterialList));
             executeParam.setAppInformation(appInformation);
 
@@ -1534,10 +1534,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
     }
 
     /**
-     * 获取上传素材步骤
+     * 获取素材库字段设置步骤
      *
      * @param appInformation 应用信息
-     * @return 上传素材步骤
+     * @return 素材库字段设置步骤
      */
     private WorkflowStepWrapperRespVO materialStepWrapper(AppMarketRespVO appInformation) {
         WorkflowStepWrapperRespVO materialStepWrapper = appInformation.getStepByHandler(MaterialActionHandler.class);

@@ -33,7 +33,7 @@ public interface ErrorCodeConstants {
 
     // ========== 公众号素材 1006004000============
     ErrorCode MATERIAL_NOT_EXISTS = new ErrorCode(1006004000, "素材不存在");
-    ErrorCode MATERIAL_UPLOAD_FAIL = new ErrorCode(1006004001, "上传素材失败，原因：{}");
+    ErrorCode MATERIAL_UPLOAD_FAIL = new ErrorCode(1006004001, "素材库字段设置失败，原因：{}");
     ErrorCode MATERIAL_IMAGE_UPLOAD_FAIL = new ErrorCode(1006004002, "上传图片失败，原因：{}");
     ErrorCode MATERIAL_DELETE_FAIL = new ErrorCode(1006004003, "删除素材失败，原因：{}");
 
