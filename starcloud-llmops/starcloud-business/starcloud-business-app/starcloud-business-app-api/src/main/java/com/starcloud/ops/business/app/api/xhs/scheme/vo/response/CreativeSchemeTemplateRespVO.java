@@ -50,7 +50,7 @@ public class CreativeSchemeTemplateRespVO implements java.io.Serializable {
     private List<String> tags;
 
     /**
-     * 素材类型，上传素材步骤中的类型，放到外层，方便处理。没有上传素材，此值为空
+     * 素材类型，素材库字段设置步骤中的类型，放到外层，方便处理。没有素材库字段设置，此值为空
      */
     @Schema(description = "素材类型")
     private String materialType;
