@@ -73,18 +73,18 @@ public class CreativeUtils {
      */
     public static WorkflowStepWrapperRespVO getMaterialStepWrapper(AppMarketRespVO app) {
         return Optional.ofNullable(app.getStepByHandler(MaterialActionHandler.class.getSimpleName()))
-                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】第一个步骤必须是【素材库字段设置】步骤！且有且只能有一个！"));
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】第一个步骤必须是【上传素材】步骤！且有且只能有一个！"));
     }
 
     /**
-     * 获取应用的笔记描述配置步骤
+     * 获取应用的笔记生成步骤
      *
      * @param app 应用
-     * @return 笔记描述配置步骤
+     * @return 笔记生成步骤
      */
     public static WorkflowStepWrapperRespVO getAssembleStepWrapper(AppMarketRespVO app) {
         return Optional.ofNullable(app.getStepByHandler(AssembleActionHandler.class.getSimpleName()))
-                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】倒数第二个步骤必须是【笔记描述配置】步骤！且有且只能有一个！"));
+                .orElseThrow(() -> ServiceExceptionUtil.invalidParamException("媒体矩阵类型应用【" + app.getName() + "】倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！"));
     }
 
     /**

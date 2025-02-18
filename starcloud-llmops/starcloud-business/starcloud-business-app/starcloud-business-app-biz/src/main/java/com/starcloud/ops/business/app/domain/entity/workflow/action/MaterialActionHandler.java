@@ -168,7 +168,7 @@ public class MaterialActionHandler extends BaseActionHandler {
         // 获取到资料库类型
         String businessType = (String) params.get(CreativeConstants.BUSINESS_TYPE);
 
-        // 获取到处理好的素材库字段设置
+        // 获取到处理好的上传素材
         String materialListString = (String) params.get(CreativeConstants.MATERIAL_LIST);
         List<Map<String, Object>> materialList = MaterialDefineUtil.parseData(materialListString);
 

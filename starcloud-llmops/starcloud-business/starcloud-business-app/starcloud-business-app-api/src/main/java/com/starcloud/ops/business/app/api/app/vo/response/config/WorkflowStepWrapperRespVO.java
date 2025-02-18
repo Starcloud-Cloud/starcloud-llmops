@@ -93,15 +93,10 @@ public class WorkflowStepWrapperRespVO implements Serializable {
         // 复制 handlerStepWrapper
         WorkflowStepWrapperRespVO clone = SerializationUtils.clone(handlerStepWrapper);
         if (!"CustomActionHandler".equals(handler)) {
-            this.name = clone.getName();
-            this.field = clone.getField();
-            this.buttonLabel = clone.getButtonLabel();
             this.description = clone.getDescription();
         }
-
         flowStep.supplementFlowStep(clone.getFlowStep());
         variable.supplementStepVariable(clone.getVariable());
-        variable.supplementStepVariableValue();
     }
 
     /**

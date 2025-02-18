@@ -571,8 +571,8 @@ public class JsonSchemaUtils {
     public JsonSchema getOutVariableJsonSchema(String uid) {
         //构造一层 array schema
         ObjectSchema docSchema = (ObjectSchema) JsonSchemaUtils.generateJsonSchema(JsonDocsDefSchema.class);
-        docSchema.setTitle("素材库字段设置");
-        docSchema.setDescription("素材库字段设置步骤。应用中可以存在一个此步骤。");
+        docSchema.setTitle("上传素材");
+        docSchema.setDescription("上传素材步骤。应用中可以存在一个此步骤。");
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
         // 素材自定义配置
         ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(uid);

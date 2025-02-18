@@ -88,7 +88,7 @@ public interface CreativeMaterialService {
     List<MaterialFieldConfigDTO> generalFieldCode(GeneralFieldCodeReqVO reqVO);
 
     /**
-     * 判断素材库字段设置内容显示类型 true显示图片 false显示列表
+     * 判断上传素材内容显示类型 true显示图片 false显示列表
      * @param uid
      * @param planSource
      * @return

@@ -185,12 +185,12 @@ public class RecommendStepWrapperFactory {
      */
     public static WorkflowStepWrapperRespVO defMaterialStepWrapper() {
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
-        String name = "素材库字段设置";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_NAME");
         String field = AppUtils.obtainField(name);
         stepWrapper.setField(name);
         stepWrapper.setName(field);
-        stepWrapper.setDescription("素材库字段设置，应用中可以存在一个此步骤。");
-        stepWrapper.setButtonLabel("素材库字段设置");
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_MATERIAL_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defMaterialActionStep());
         stepWrapper.setVariable(RecommendVariableFactory.defMaterialVariable());
         return stepWrapper;
@@ -280,14 +280,14 @@ public class RecommendStepWrapperFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defAssembleStepWrapper() {
-        String name = "笔记描述配置";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME");
         String field = AppUtils.obtainField(name);
         String defaultPrompt = "";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription("笔记描述配置，也可灵活引用上游生成的内容进行组合生成。");
-        stepWrapper.setButtonLabel("笔记描述配置");
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defAssembleActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defAssembleVariable());
         return stepWrapper;
@@ -299,14 +299,14 @@ public class RecommendStepWrapperFactory {
      * @return WorkflowStepRespVO
      */
     public static WorkflowStepWrapperRespVO defPosterStepWrapper() {
-        String name = "模版配置";
+        String name = MessageUtil.getMessage("WORKFLOW_STEP_POSTER_NAME");
         String field = AppUtils.obtainField(name);
         String defaultPrompt = "为图片配上一个符合图片场景和意境的标题和副标题，标题在30到50个字内。\n {STEP." + field + ".REQUIREMENT}\n\n 输出格式：\n```\n标题:\n副标题:\n```";
         WorkflowStepWrapperRespVO stepWrapper = new WorkflowStepWrapperRespVO();
         stepWrapper.setField(field);
         stepWrapper.setName(name);
-        stepWrapper.setDescription("模版配置。应用中可以存在一个此步骤。");
-        stepWrapper.setButtonLabel("模版配置");
+        stepWrapper.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_DESCRIPTION"));
+        stepWrapper.setButtonLabel(MessageUtil.getMessage("WORKFLOW_STEP_POSTER_BUTTON_LABEL"));
         stepWrapper.setFlowStep(RecommendActionFactory.defPosterActionStep(defaultPrompt));
         stepWrapper.setVariable(RecommendVariableFactory.defPosterVariable());
         return stepWrapper;
