@@ -835,21 +835,15 @@ public class CreativeUtils {
         return posterStyleList;
     }
 
-    public static Set<String> getPosterTemplateCodes(List<PosterStyleDTO> posterStyleList) {
+    public static Set<String> getPosterStyleUids(List<PosterStyleDTO> posterStyleList) {
         try {
-            Set<String> templateCodes = new HashSet<>();
+            Set<String> styleUids = new HashSet<>();
             for (PosterStyleDTO posterStyleDTO : posterStyleList) {
                 if (Objects.nonNull(posterStyleDTO.getSaleConfig()) && BooleanUtils.isTrue(posterStyleDTO.getSaleConfig().getOpenSale())) {
-                    List<PosterTemplateDTO> templateList = posterStyleDTO.getTemplateList();
-                    if (CollUtil.isEmpty(templateList)) {
-                        continue;
-                    }
-                    for (PosterTemplateDTO posterTemplateDTO : templateList) {
-                        templateCodes.add(posterTemplateDTO.getCode());
-                    }
+                    styleUids.add(posterStyleDTO.getUuid());
                 }
             }
-            return templateCodes;
+            return styleUids;
         } catch (Exception ignore) {
         }
         return Collections.emptySet();

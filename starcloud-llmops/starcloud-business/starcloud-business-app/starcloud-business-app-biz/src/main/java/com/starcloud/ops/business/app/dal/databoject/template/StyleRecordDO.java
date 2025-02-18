@@ -12,13 +12,15 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@TableName("llm_template_record")
-public class TemplateRecordDO extends TenantBaseDO {
+@TableName("llm_style_record")
+public class StyleRecordDO extends TenantBaseDO {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     private String uid;
 
-    private String templateCode;
+    private String styleUid;
+
+    private String planUid;
 }
