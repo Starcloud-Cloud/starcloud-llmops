@@ -122,9 +122,9 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
 //                        schemeStepList.add(CreativeSchemeStepConvert.INSTANCE.convert(schemeStep));
 //                    }
 //
-//                    // 获取到素材库字段设置步骤
+//                    // 获取到上传素材步骤
 //                    MaterialSchemeStepDTO materialSchemeStep = CreativeUtils.getMaterialSchemeStep(schemeStepList);
-//                    // 获取素材库字段设置类型
+//                    // 获取上传素材类型
 //                    String materialType = Optional.ofNullable(materialSchemeStep).map(MaterialSchemeStepDTO::getMaterialType).orElse(null);
 //                    // 组装创作方案模板信息
 //                    CreativeSchemeTemplateRespVO creativeSchemeTemplate = new CreativeSchemeTemplateRespVO();

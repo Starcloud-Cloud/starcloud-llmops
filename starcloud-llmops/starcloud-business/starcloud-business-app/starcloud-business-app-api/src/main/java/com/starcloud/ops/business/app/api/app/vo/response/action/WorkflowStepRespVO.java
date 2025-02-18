@@ -52,7 +52,6 @@ public class WorkflowStepRespVO extends ActionRespVO {
 
         if (Objects.nonNull(this.getVariable())) {
             this.getVariable().supplementStepVariable(flowStep.getVariable());
-            this.getVariable().supplementStepVariableValue();
         }
     }
 

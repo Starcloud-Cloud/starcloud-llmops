@@ -573,7 +573,7 @@ public abstract class AbstractMaterialHandler {
     protected Integer computeAppInformationNeedSize(AppMarketRespVO appInformation) {
         // 计算生成步骤需要的最大的素材数量
         Integer completionStepNeedSize = computeAppCompletionStepNeedSize(appInformation);
-        // 计算笔记描述配置步骤需要的最大的素材数量
+        // 计算笔记生成步骤需要的最大的素材数量
         Integer noteStepNeedSize = computeAppNoteStepNeedSize(appInformation);
         return Math.max(completionStepNeedSize, noteStepNeedSize);
     }
@@ -606,7 +606,7 @@ public abstract class AbstractMaterialHandler {
     }
 
     /**
-     * 计算笔记描述配置步骤需要的最大的素材数量
+     * 计算笔记生成步骤需要的最大的素材数量
      *
      * @param appInformation 应用信息
      * @return 最大的素材数量

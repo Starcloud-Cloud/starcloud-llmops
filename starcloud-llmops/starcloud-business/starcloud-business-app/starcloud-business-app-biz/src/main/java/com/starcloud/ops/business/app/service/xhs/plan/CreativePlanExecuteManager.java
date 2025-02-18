@@ -331,7 +331,7 @@ public class CreativePlanExecuteManager {
 
             // 将处理后的海报风格填充到执行参数中
             executeAppInformation.putVariable(metadata.getPosterStepId(), CreativeConstants.POSTER_STYLE, JsonUtils.toJsonString(style));
-            // 将素材库的素材列表填充素材库字段设置步骤变量中
+            // 将素材库的素材列表填充上传素材步骤变量中
             executeAppInformation.putVariable(metadata.getMaterialStepId(), CreativeConstants.MATERIAL_LIST, JsonUtils.toJsonString(handleMaterialList));
             // 更新执行参数
             contentExecute.setAppInformation(executeAppInformation);
@@ -559,7 +559,7 @@ public class CreativePlanExecuteManager {
             log.info("计划执行: 参数接受素材列表为空，将从数据库中获取素材列表！");
             // 查询数据库
             materialList = creativeMaterialManager.getMaterialList(planResponse);
-            // 素材库步骤不为空的话，素材库字段设置不能为空
+            // 素材库步骤不为空的话，上传素材不能为空
             AppValidate.notEmpty(materialList, "计划执行失败：素材列表不能为空，请上传或选择素材后重试！");
             return materialList;
         } catch (ServiceException exception) {
@@ -572,10 +572,10 @@ public class CreativePlanExecuteManager {
     }
 
     /**
-     * 获取素材库字段设置步骤
+     * 获取上传素材步骤
      *
      * @param appInformation 应用信息
-     * @return 素材库字段设置步骤
+     * @return 上传素材步骤
      */
     private WorkflowStepWrapperRespVO materialStepWrapper(AppMarketRespVO appInformation) {
         WorkflowStepWrapperRespVO materialStepWrapper = appInformation.getStepByHandler(MaterialActionHandler.class);
