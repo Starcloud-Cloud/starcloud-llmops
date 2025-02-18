@@ -205,6 +205,12 @@ public class AppLogServiceImpl implements AppLogService {
         }
         if (UserUtils.isNotAdmin()) {
             query.setUserId(null);
+        } else {
+            if (StringUtils.isNotBlank(query.getUserId())) {
+                // 根据用户名查询用户ID
+                Long userId = UserUtils.getUserIdByUsername(query.getUserId());
+                query.setUserId(String.valueOf(userId));
+            }
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());
@@ -409,6 +415,12 @@ public class AppLogServiceImpl implements AppLogService {
         }
         if (UserUtils.isNotAdmin()) {
             query.setUserId(null);
+        } else {
+            if (StringUtils.isNotBlank(query.getUserId())) {
+                // 根据用户名查询用户ID
+                Long userId = UserUtils.getUserIdByUsername(query.getUserId());
+                query.setUserId(String.valueOf(userId));
+            }
         }
         // 时间类型默认值
         query.setTimeType(StringUtils.isBlank(query.getTimeType()) ? LogTimeTypeEnum.ALL.name() : query.getTimeType());

@@ -229,4 +229,11 @@ public class UserUtils {
         return SELF;
     }
 
+    public static Long getUserIdByUsername(String username) {
+        AdminUserDO user = ADMIN_USER_SERVICE.getUserByUsername(username);
+        if (Objects.isNull(user)) {
+            throw new IllegalArgumentException("用户不存在(" + username + ")");
+        }
+        return user.getId();
+    }
 }
