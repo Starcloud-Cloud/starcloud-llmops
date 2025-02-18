@@ -129,7 +129,7 @@ public interface CreativeConstants {
     String MATERIAL_TYPE = "MATERIAL_TYPE";
 
     /**
-     * 业务类型 上传素材节点 选择AbstractMaterialHandler
+     * 业务类型 素材库字段设置节点 选择AbstractMaterialHandler
      */
     String BUSINESS_TYPE = "BUSINESS_TYPE";
 

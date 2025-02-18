@@ -162,28 +162,28 @@ public class AppEntity extends BaseAppEntity<AppExecuteReqVO, AppExecuteRespVO> 
 
         // 如果类型为媒体素材
         if (AppTypeEnum.MEDIA_MATRIX.name().equals(this.getType())) {
-            // 媒体矩阵类型应用最少需要三个步骤，分别为：上传素材，笔记生成，图片生成
+            // 媒体矩阵类型应用最少需要三个步骤，分别为：素材库字段设置，笔记描述配置，模版配置
             if (stepWrappers.size() < 3) {
                 VerificationUtils.addVerificationApp(verifications, getUid(),
-                        "媒体矩阵类型应用【" + this.getName() + "】最少需要三个步骤！分别为：【上传素材】，【笔记生成】，【图片生成】");
+                        "媒体矩阵类型应用【" + this.getName() + "】最少需要三个步骤！分别为：【素材库字段设置】，【笔记描述配置】，【模版配置】");
             }
 
-            // 第一个步骤必须是：上传素材步骤，有且只有一个
+            // 第一个步骤必须是：素材库字段设置步骤，有且只有一个
             if (!(stepWrappers.get(0).equalsHandler(MaterialActionHandler.class) && configuration.isOnlyoneHandler(MaterialActionHandler.class))) {
                 VerificationUtils.addVerificationApp(verifications, getUid(),
-                        "媒体矩阵类型应用【" + this.getName() + "】第一个步骤必须是【上传素材】步骤！且有且只能有一个！");
+                        "媒体矩阵类型应用【" + this.getName() + "】第一个步骤必须是【素材库字段设置】步骤！且有且只能有一个！");
             }
 
-            // 倒数第二个必须包含笔记生成步骤, 有且只有一个
+            // 倒数第二个必须包含笔记描述配置步骤, 有且只有一个
             if (!(stepWrappers.get(stepWrappers.size() - 2).equalsHandler(AssembleActionHandler.class) && configuration.isOnlyoneHandler(AssembleActionHandler.class))) {
                 VerificationUtils.addVerificationApp(verifications, getUid(),
-                        "媒体矩阵类型应用【" + this.getName() + "】倒数第二个步骤必须是【笔记生成】步骤！且有且只能有一个！");
+                        "媒体矩阵类型应用【" + this.getName() + "】倒数第二个步骤必须是【笔记描述配置】步骤！且有且只能有一个！");
             }
 
-            // 最后一个步骤必须是图片生成步骤, 有且只有一个
+            // 最后一个步骤必须是模版配置步骤, 有且只有一个
             if (!(stepWrappers.get(stepWrappers.size() - 1).equalsHandler(PosterActionHandler.class) && configuration.isOnlyoneHandler(PosterActionHandler.class))) {
                 VerificationUtils.addVerificationApp(verifications, getUid(),
-                        "媒体矩阵类型应用【" + this.getName() + "】最后一个步骤必须是【图片生成】步骤！且有且只能有一个！");
+                        "媒体矩阵类型应用【" + this.getName() + "】最后一个步骤必须是【模版配置】步骤！且有且只能有一个！");
             }
 
             // 如果存在变量步骤，变量不能为空

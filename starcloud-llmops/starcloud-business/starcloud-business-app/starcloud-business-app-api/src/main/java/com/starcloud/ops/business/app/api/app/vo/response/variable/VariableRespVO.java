@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -216,5 +217,20 @@ public class VariableRespVO implements Serializable {
         this.variables = mergeVariableList;
     }
 
+    private static final Pattern PATTERN = Pattern.compile("上传素材");
 
+    public void supplementStepVariableValue() {
+        List<VariableItemRespVO> list = CollectionUtil.emptyIfNull(this.variables);
+        for (VariableItemRespVO item : list) {
+            String value = StringUtils.defaultIfBlank(String.valueOf(item.getValue()), StringUtils.EMPTY);
+            if (StringUtils.isBlank(value)) {
+                continue;
+            }
+            if (PATTERN.matcher(value).find()) {
+                value = value.replaceAll("上传素材", "素材库字段设置");
+            }
+            item.setValue(value);
+        }
+        this.variables = list;
+    }
 }
