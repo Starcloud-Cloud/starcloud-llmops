@@ -111,7 +111,7 @@ public class AssembleActionHandler extends BaseActionHandler {
     @JSONField(serialize = false)
     protected ActionResponse doExecute(AppContext context) {
         // 开始日志打印
-        loggerBegin(context, "笔记描述配置步骤");
+        loggerBegin(context, "笔记生成步骤");
         // 获取所有上游信息
         Map<String, Object> params = context.getContextVariablesValues();
         // 获取到参考文案标题
@@ -131,7 +131,7 @@ public class AssembleActionHandler extends BaseActionHandler {
         ActionResponse response = convert(params, copyWriting);
 
         // 结束日志打印
-        loggerSuccess(context, response, "笔记描述配置步骤");
+        loggerSuccess(context, response, "笔记生成步骤");
         return response;
     }
 

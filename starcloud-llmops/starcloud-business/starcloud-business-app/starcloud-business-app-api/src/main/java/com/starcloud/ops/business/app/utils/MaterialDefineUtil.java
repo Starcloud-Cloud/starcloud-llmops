@@ -212,7 +212,7 @@ public class MaterialDefineUtil {
 
 
     /**
-     * 应用中存在素材库字段设置步骤，
+     * 应用中存在上传素材步骤，
      * 验证素材定义是否存在
      * 验证定义中是否有重复字段code 和 重复字段名
      * 字段类型是否存在
@@ -297,7 +297,7 @@ public class MaterialDefineUtil {
     }
 
     /**
-     * 判断素材库字段设置内容显示类型 true显示图片 false显示列表
+     * 判断上传素材内容显示类型 true显示图片 false显示列表
      *
      * @return
      */
