@@ -98,8 +98,10 @@ public class WorkflowStepWrapperRespVO implements Serializable {
             this.buttonLabel = clone.getButtonLabel();
             this.description = clone.getDescription();
         }
+
         flowStep.supplementFlowStep(clone.getFlowStep());
         variable.supplementStepVariable(clone.getVariable());
+        variable.supplementStepVariableValue(supplementStepWrapperMap);
     }
 
     /**
