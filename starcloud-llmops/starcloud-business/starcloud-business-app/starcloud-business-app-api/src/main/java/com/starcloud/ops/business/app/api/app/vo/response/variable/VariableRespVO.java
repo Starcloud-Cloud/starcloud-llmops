@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -217,14 +217,18 @@ public class VariableRespVO implements Serializable {
         this.variables = mergeVariableList;
     }
 
-    public void supplementStepVariableValue(Map<String, WorkflowStepWrapperRespVO> supplementStepWrapperMap) {
+    private static final Pattern PATTERN = Pattern.compile("上传素材");
+
+    public void supplementStepVariableValue() {
         List<VariableItemRespVO> list = CollectionUtil.emptyIfNull(this.variables);
         for (VariableItemRespVO item : list) {
             String value = StringUtils.defaultIfBlank(String.valueOf(item.getValue()), StringUtils.EMPTY);
             if (StringUtils.isBlank(value)) {
                 continue;
             }
-            value = value.replaceAll("上传素材", "素材库字段设置");
+            if (PATTERN.matcher(value).find()) {
+                value = value.replaceAll("上传素材", "素材库字段设置");
+            }
             item.setValue(value);
         }
         this.variables = list;
