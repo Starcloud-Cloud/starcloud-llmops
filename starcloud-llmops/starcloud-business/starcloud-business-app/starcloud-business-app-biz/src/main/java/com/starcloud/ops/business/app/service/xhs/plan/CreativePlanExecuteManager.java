@@ -31,6 +31,7 @@ import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.material.MaterialUsageModel;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanStatusEnum;
+import com.starcloud.ops.business.app.exception.TemplateException;
 import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
 import com.starcloud.ops.business.app.model.plan.ContentBatchRequest;
 import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
@@ -152,7 +153,7 @@ public class CreativePlanExecuteManager {
             CreativePlanRespVO planResponse = this.getAndValidate(planUid);
             // 模板使用记录 校验数量
             if (CreativePlanSourceEnum.isMarket(planResponse.getSource())) {
-                templateRecordService.addRecord(planResponse.getConfiguration().getImageStyleList());
+                templateRecordService.addRecord(planResponse.getConfiguration().getImageStyleList(), planUid);
             }
 
             // 创作内容任务数据整合处理
@@ -188,6 +189,9 @@ public class CreativePlanExecuteManager {
         } catch (InterruptedException e) {
             log.error("计划执行失败", e);
             throw ServiceExceptionUtil.exception(CreativeErrorCodeConstants.PLAN_EXECUTE_FAILURE);
+        } catch (TemplateException e) {
+            log.error("计划执行失败", e);
+            throw e;
         } catch (ServiceException exception) {
             log.error("计划执行失败", exception);
             throw exception;

@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class TemplateErrorData {
 
-    private String templateCode;
+    private String styleUid;
 
     private String demoId;
 }
