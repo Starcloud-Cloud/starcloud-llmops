@@ -2,7 +2,7 @@ package com.starcloud.ops.business.app.controller.admin.xhs.material;
 
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
-import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.TemplateRecordRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.material.vo.response.StyleRecordRespVO;
 import com.starcloud.ops.business.app.service.template.TemplateRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +23,7 @@ public class TemplateRecordController {
 
     @GetMapping("/list")
     @Operation(summary = "模板使用记录", description = "模板使用记录")
-    public CommonResult<List<TemplateRecordRespVO>> list() {
+    public CommonResult<List<StyleRecordRespVO>> list() {
         return CommonResult.success(recordService.listRecord());
     }
 }
