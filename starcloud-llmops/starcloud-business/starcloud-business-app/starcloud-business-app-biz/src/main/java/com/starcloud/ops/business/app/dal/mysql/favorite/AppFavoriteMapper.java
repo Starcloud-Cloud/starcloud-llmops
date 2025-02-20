@@ -55,6 +55,21 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
     }
 
     /**
+     * 根据应用UID和用户ID查询收藏的应用
+     *
+     * @param marketUid 应用UID
+     * @param userId    用户ID
+     * @return 收藏的应用
+     */
+    default AppFavoriteDO get(String marketUid, String userId, String type) {
+        LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(AppFavoriteDO::getMarketUid, marketUid);
+        wrapper.eq(AppFavoriteDO::getCreator, userId);
+        wrapper.eq(AppFavoriteDO::getType, type);
+        return selectOne(wrapper);
+    }
+
+    /**
      * 根据用户ID和应用UID查询收藏的应用
      *
      * @param uid 用户ID
@@ -68,9 +83,10 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
      * @param userId 用户ID
      * @return 收藏应用列表
      */
-    default List<AppFavoriteDO> listByUserId(String userId) {
+    default List<AppFavoriteDO> listByUserId(String userId, String type) {
         LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(AppFavoriteDO::getCreator, userId);
+        wrapper.eq(AppFavoriteDO::getType, type);
         return selectList(wrapper);
     }
 
@@ -80,8 +96,8 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
      * @param userId 用户ID
      * @return 收藏应用Map
      */
-    default Map<String, AppFavoriteDO> mapByUserId(String userId) {
-        List<AppFavoriteDO> list = listByUserId(userId);
+    default Map<String, AppFavoriteDO> mapByUserId(String userId, String type) {
+        List<AppFavoriteDO> list = listByUserId(userId, type);
         if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }

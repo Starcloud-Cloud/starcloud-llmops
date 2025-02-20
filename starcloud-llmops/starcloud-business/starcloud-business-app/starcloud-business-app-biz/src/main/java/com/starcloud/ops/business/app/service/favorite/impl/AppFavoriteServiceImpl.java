@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoriteListReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoritePageReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.request.AppFavoriteCancelReqVO;
@@ -18,17 +19,17 @@ import com.starcloud.ops.business.app.dal.mysql.favorite.AppFavoriteMapper;
 import com.starcloud.ops.business.app.dal.mysql.market.AppMarketMapper;
 import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
+import com.starcloud.ops.business.app.enums.favorite.AppFavoriteTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.service.favorite.AppFavoriteService;
 import com.starcloud.ops.business.app.util.PageUtil;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 
@@ -105,7 +106,7 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
-        return AppFavoriteConvert.INSTANCE.convertList(list);
+        return AppFavoriteConvert.INSTANCE.convertList(list, query.getType());
     }
 
     /**
@@ -122,7 +123,7 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
 
         query.setUserId(String.valueOf(loginUserId));
         IPage<AppFavoritePO> page = appFavoriteMapper.page(PageUtil.page(query), query);
-        return AppFavoriteConvert.INSTANCE.convertPage(page);
+        return AppFavoriteConvert.INSTANCE.convertPage(page, query.getType());
     }
 
     /**
@@ -137,6 +138,10 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
         String marketUid = request.getMarketUid();
         AppValidate.notBlank(marketUid, ErrorCodeConstants.MARKET_UID_REQUIRED);
 
+        if (AppFavoriteTypeEnum.TEMPLATE_MARKET.name().equals(request.getType())) {
+            AppValidate.notBlank(request.getStyleUid(), "风格UID不能为空！");
+        }
+
         // 校验要收藏的应用是否存在。
         AppMarketDO appMarket = appMarketMapper.get(marketUid, Boolean.TRUE);
         AppValidate.notNull(appMarket, ErrorCodeConstants.MARKET_APP_NON_EXISTENT, marketUid);
@@ -146,7 +151,7 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
         AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
         // 校验应用是否已经收藏
-        AppFavoriteDO appFavorite = appFavoriteMapper.get(marketUid, String.valueOf(loginUserId));
+        AppFavoriteDO appFavorite = appFavoriteMapper.get(marketUid, String.valueOf(loginUserId), request.getType());
         AppValidate.isNull(appFavorite, ErrorCodeConstants.FAVORITE_APP_ALREADY_EXISTS, marketUid);
 
         // 保存收藏的应用
@@ -183,6 +188,11 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
         LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(AppFavoriteDO::getMarketUid, marketUid);
         wrapper.eq(AppFavoriteDO::getCreator, loginUserId);
+        wrapper.eq(AppFavoriteDO::getType, request.getType());
+        if (AppFavoriteTypeEnum.TEMPLATE_MARKET.name().equals(request.getType())) {
+            AppValidate.notBlank(request.getStyleUid(), "风格UID不能为空！");
+            wrapper.eq(AppFavoriteDO::getStyleUid, request.getStyleUid());
+        }
         appFavoriteMapper.delete(wrapper);
     }
 

@@ -18,6 +18,7 @@
         b.icon,
         b.free,
         b.cost,
+        b.styles,
         b.usage_count,
         b.like_count,
         b.view_count,
@@ -28,12 +29,17 @@
         b.create_time,
         a.uid AS favoriteUid,
         a.creator AS favoriteCreator,
-        a.create_time AS favoriteTime
+        a.create_time AS favoriteTime,
+        a.type AS favoriteType,
+        a.style_uid AS styleUid
         FROM llm_app_favorite a
         LEFT JOIN llm_app_market b ON a.market_uid = b.uid
         <where>
             <if test="query.userId != null and query.userId != '' ">
                 AND a.creator = #{query.userId}
+            </if>
+            <if test="query.type != null and query.type != '' ">
+                AND a.type = #{query.type}
             </if>
             <if test="query.name != null and query.name != '' ">
                 <bind name="name" value="query.name+'%'"/>
@@ -68,6 +74,7 @@
         b.icon,
         b.free,
         b.cost,
+        b.styles,
         b.usage_count,
         b.like_count,
         b.view_count,
@@ -78,12 +85,17 @@
         b.create_time,
         a.uid AS favoriteUid,
         a.creator AS favoriteCreator,
-        a.create_time AS favoriteTime
+        a.create_time AS favoriteTime,
+        a.type AS favoriteType,
+        a.style_uid AS styleUid
         FROM llm_app_favorite a
         LEFT JOIN llm_app_market b ON a.market_uid = b.uid
         <where>
             <if test="query.userId != null and query.userId != '' ">
                 AND a.creator = #{query.userId}
+            </if>
+            <if test="query.type != null and query.type != '' ">
+                AND a.type = #{query.type}
             </if>
             <if test="query.name != null and query.name != '' ">
                 <bind name="name" value="query.name+'%'"/>
@@ -122,6 +134,7 @@
         b.view_count,
         b.install_count,
         b.config,
+        b.styles,
         b.description,
         b.example,
         b.creator,
@@ -129,7 +142,9 @@
         b.update_time,
         a.uid AS favoriteUid,
         a.creator AS favoriteCreator,
-        a.create_time AS favoriteTime
+        a.create_time AS favoriteTime,
+        a.type AS favoriteType,
+        a.style_uid AS styleUid
         FROM llm_app_favorite a
         LEFT JOIN llm_app_market b ON a.market_uid = b.uid
         WHERE a.uid = #{uid}

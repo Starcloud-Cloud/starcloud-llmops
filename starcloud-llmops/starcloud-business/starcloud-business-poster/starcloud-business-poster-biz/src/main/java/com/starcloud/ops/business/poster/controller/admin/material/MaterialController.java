@@ -7,7 +7,9 @@ import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.excel.core.util.ExcelUtils;
 import cn.iocoder.yudao.framework.operatelog.core.annotations.OperateLog;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialAppReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialRespVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
@@ -17,6 +19,10 @@ import com.starcloud.ops.business.poster.service.material.MaterialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.annotation.Resource;
+import javax.annotation.security.PermitAll;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,10 +34,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-import javax.annotation.security.PermitAll;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 
@@ -109,6 +111,12 @@ public class MaterialController {
     @Parameter(name = "uid", description = "编号", required = true, example = "1024")
     public CommonResult<List<PosterTemplateDTO>> listPosterTemplateByGroup(@RequestParam("uid") String uid) {
         return success(materialService.listPosterTemplateByGroup(uid));
+    }
+
+    @PostMapping("u/handlePosterTemplate")
+    @Operation(summary = "复制并且更新应用")
+    public CommonResult<AppRespVO> handlePosterTemplate(@RequestBody MaterialAppReqVO request) {
+        return success(materialService.copyPosterAndUpdateApp(request));
     }
 
     @DeleteMapping("u/delete")
