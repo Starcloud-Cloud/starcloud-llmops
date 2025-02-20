@@ -22,6 +22,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
@@ -437,7 +438,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         }
         // 只查询 COMPLETION 的应用
         appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
-        List<AppMarketDO> appMarketList = appMarketMapper.list(appMarketListQuery);
+        List<AppMarketDO> appMarketList = appMarketMapper.listWithoutConfig(appMarketListQuery);
 
         // 如果为空，直接返回
         if (CollectionUtil.isEmpty(appMarketList)) {
@@ -486,7 +487,7 @@ public class AppMarketServiceImpl implements AppMarketService {
             categoryResponse.setParentCode(category.getParentCode());
             categoryResponse.setIcon(category.getIcon());
             categoryResponse.setImage(category.getImage());
-            categoryResponse.setAppList(handlerTemplateMarket(marketList));
+            categoryResponse.setAppList(handlerTemplateMarket2(marketList));
             result.add(categoryResponse);
         }
 
@@ -523,18 +524,30 @@ public class AppMarketServiceImpl implements AppMarketService {
                 clone.setWorkflowConfig(null);
                 result.add(clone);
             }
+        }
+        return result;
+    }
 
-            String variableToString = posterStepWrapper.getVariableToString(CreativeConstants.CUSTOM_POSTER_STYLE_CONFIG);
-            if (StringUtils.isBlank(variableToString) || "[]".equals(variableToString) || "null".equalsIgnoreCase(variableToString)) {
+    public List<AppMarketRespVO> handlerTemplateMarket2(List<AppMarketRespVO> marketList) {
+        if (CollectionUtil.isEmpty(marketList)) {
+            return Collections.emptyList();
+        }
+        List<AppMarketRespVO> result = Lists.newArrayList();
+        for (AppMarketRespVO appMarket : marketList) {
+            // 非媒体矩阵不尽兴操作
+            if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType())) {
+                result.add(appMarket);
                 continue;
             }
-            List<PosterStyleDTO> customPosterStyleList = JsonUtils.parseArray(variableToString, PosterStyleDTO.class);
-            if (CollectionUtil.isEmpty(customPosterStyleList)) {
+            List<MarketStyle> styles = appMarket.getStyles();
+            if (CollectionUtil.isEmpty(styles)) {
+                result.add(appMarket);
                 continue;
             }
-            for (PosterStyleDTO posterStyle : customPosterStyleList) {
+            for (MarketStyle style : styles) {
                 AppMarketRespVO clone = SerializationUtils.clone(appMarket);
-                clone.setStyle(CreativeUtils.getMarketStyle(posterStyle));
+                clone.setStyle(style);
+                clone.setStyles(null);
                 clone.setWorkflowConfig(null);
                 result.add(clone);
             }

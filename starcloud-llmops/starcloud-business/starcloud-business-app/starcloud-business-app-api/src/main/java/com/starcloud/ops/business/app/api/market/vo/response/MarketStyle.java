@@ -21,6 +21,8 @@ public class MarketStyle implements Serializable {
 
     private StyleSaleInfo saleConfig;
 
+    private Boolean openVideoMode;
+
     private List<MarketTemplate> templateList;
 
 }

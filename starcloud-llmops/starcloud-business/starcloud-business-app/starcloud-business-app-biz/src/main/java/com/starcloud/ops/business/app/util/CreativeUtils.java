@@ -24,6 +24,7 @@ import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableS
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
@@ -51,7 +52,15 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1076,8 +1085,36 @@ public class CreativeUtils {
                     return template;
                 })
                 .collect(Collectors.toList());
+        boolean openVideo = CollectionUtil.emptyIfNull(posterStyle.getTemplateList()).stream().anyMatch(template -> BooleanUtils.isTrue(template.getOpenVideoMode()));
+
+        style.setOpenVideoMode(openVideo);
         style.setTemplateList(collect);
         return style;
+    }
+
+    public static List<MarketStyle> getMarketStyles(AppMarketEntity appMarketEntity) {
+        if (Objects.isNull(appMarketEntity)) {
+            return null;
+        }
+        WorkflowConfigEntity workflowConfig = appMarketEntity.getWorkflowConfig();
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        WorkflowStepWrapper posterStepWrapper = workflowConfig.getStepWrapper(PosterActionHandler.class);
+        String variable = posterStepWrapper.getModelVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(variable) || "[]".equals(variable) || "null".equalsIgnoreCase(variable)) {
+            return null;
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(variable, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return null;
+        }
+
+        return CollectionUtil.emptyIfNull(posterStyleList)
+                .stream()
+                .map(CreativeUtils::getMarketStyle)
+                .collect(Collectors.toList());
     }
 }
 

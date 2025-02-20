@@ -58,6 +58,8 @@ AppMarketRespVO implements Serializable {
 
     private MarketStyle style;
 
+    private List<MarketStyle> styles;
+
     /**
      * 应用名称拼音
      */

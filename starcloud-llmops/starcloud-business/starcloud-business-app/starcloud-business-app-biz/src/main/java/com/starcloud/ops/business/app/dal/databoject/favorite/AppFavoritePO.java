@@ -161,4 +161,6 @@ public class AppFavoritePO implements Serializable {
     private String favoriteType;
 
     private String styleUid;
+
+    private String styles;
 }

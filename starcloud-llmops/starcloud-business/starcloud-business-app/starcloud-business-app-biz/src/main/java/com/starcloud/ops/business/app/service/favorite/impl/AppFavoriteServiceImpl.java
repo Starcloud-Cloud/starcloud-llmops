@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoriteListReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoritePageReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.request.AppFavoriteCancelReqVO;
@@ -20,21 +21,17 @@ import com.starcloud.ops.business.app.dal.mysql.operate.AppOperateMapper;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.favorite.AppFavoriteTypeEnum;
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
-import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.favorite.AppFavoriteService;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PageUtil;
-import com.starcloud.ops.business.app.api.AppValidate;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author nacoyer
@@ -109,22 +106,7 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
         if (CollectionUtils.isEmpty(list)) {
             return Collections.emptyList();
         }
-
-        List<AppFavoriteRespVO> responseList = AppFavoriteConvert.INSTANCE.convertList(list);
-        if (CollectionUtils.isEmpty(responseList)) {
-            return Collections.emptyList();
-        }
-        if (AppFavoriteTypeEnum.TEMPLATE_MARKET.name().equals(query.getType())) {
-            for (AppFavoriteRespVO response : responseList) {
-                String styleUid = response.getStyleUid();
-                PosterStyleDTO style = CreativeUtils.getPosterStyleListByUid(styleUid, response);
-                if (Objects.nonNull(style)) {
-                    response.setStyle(CreativeUtils.getMarketStyle(style));
-                    response.setWorkflowConfig(null);
-                }
-            }
-        }
-        return responseList;
+        return AppFavoriteConvert.INSTANCE.convertList(list, query.getType());
     }
 
     /**
@@ -141,7 +123,7 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
 
         query.setUserId(String.valueOf(loginUserId));
         IPage<AppFavoritePO> page = appFavoriteMapper.page(PageUtil.page(query), query);
-        return AppFavoriteConvert.INSTANCE.convertPage(page, query);
+        return AppFavoriteConvert.INSTANCE.convertPage(page, query.getType());
     }
 
     /**

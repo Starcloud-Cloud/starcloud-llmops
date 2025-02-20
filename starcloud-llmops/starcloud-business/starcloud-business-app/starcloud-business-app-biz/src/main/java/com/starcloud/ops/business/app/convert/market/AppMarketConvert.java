@@ -12,6 +12,7 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigResp
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
 import com.starcloud.ops.business.app.dal.databoject.app.AppDO;
 import com.starcloud.ops.business.app.dal.databoject.market.AppMarketDO;
 import com.starcloud.ops.business.app.dal.databoject.publish.AppPublishDO;
@@ -23,11 +24,13 @@ import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.skill.HandlerSkill;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.app.AppTypeEnum;
 import com.starcloud.ops.business.app.enums.publish.AppPublishAuditEnum;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -117,6 +120,11 @@ public interface AppMarketConvert {
             ImageConfigEntity config = appMarketEntity.getImageConfig();
             if (Objects.nonNull(config)) {
                 appMarket.setConfig(JsonUtils.toJsonString(config));
+            }
+        }
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarketEntity.getType())) {
+            if (CollectionUtils.isNotEmpty(appMarketEntity.getStyles())) {
+                appMarket.setStyles(JsonUtils.toJsonString(appMarketEntity.getStyles()));
             }
         }
         return appMarket;
@@ -221,6 +229,11 @@ public interface AppMarketConvert {
                 appMarketEntity.setImageConfig(JsonUtils.parseObject(appMarket.getConfig(), ImageConfigEntity.class));
             }
         }
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarket.getType())) {
+            if (StringUtils.isNotBlank(appMarket.getStyles())) {
+                appMarketEntity.setStyles(JsonUtils.parseArray(appMarket.getStyles(), MarketStyle.class));
+            }
+        }
         return appMarketEntity;
     }
 
@@ -320,6 +333,11 @@ public interface AppMarketConvert {
                 appMarketResponse.setImageConfig(config);
             }
         }
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarket.getType())) {
+            if (StringUtils.isNotBlank(appMarket.getStyles())) {
+                appMarketResponse.setStyles(JsonUtils.parseArray(appMarket.getStyles(), MarketStyle.class));
+            }
+        }
         appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
         return appMarketResponse;
     }
@@ -376,6 +394,11 @@ public interface AppMarketConvert {
             ImageConfigRespVO config = JsonUtils.parseObject(appMarket.getConfig(), ImageConfigRespVO.class);
             if (Objects.nonNull(config)) {
                 appMarketResponse.setImageConfig(config);
+            }
+        }
+        if (AppTypeEnum.MEDIA_MATRIX.name().equalsIgnoreCase(appMarket.getType())) {
+            if (StringUtils.isNotBlank(appMarket.getStyles())) {
+                appMarketResponse.setStyles(JsonUtils.parseArray(appMarket.getStyles(), MarketStyle.class));
             }
         }
         appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());

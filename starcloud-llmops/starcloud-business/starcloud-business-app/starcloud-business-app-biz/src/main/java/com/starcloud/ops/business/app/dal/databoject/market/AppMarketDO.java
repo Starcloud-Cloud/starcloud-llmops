@@ -193,4 +193,6 @@ public class AppMarketDO extends TenantBaseDO {
     @TableField(typeHandler = CreativePlanMaterialDO.MaterialHandler.class)
     private List<Map<String, Object>> materialList;
 
+    @TableField("styles")
+    private String styles;
 }
