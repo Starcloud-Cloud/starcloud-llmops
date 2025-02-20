@@ -158,4 +158,7 @@ public class AppFavoritePO implements Serializable {
      */
     private LocalDateTime favoriteTime;
 
+    private String favoriteType;
+
+    private String styleUid;
 }

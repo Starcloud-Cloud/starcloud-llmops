@@ -7,12 +7,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ChatConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.ImageConfigRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigRespVO;
+import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoritePageReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.request.AppFavoriteCreateReqVO;
 import com.starcloud.ops.business.app.api.favorite.vo.response.AppFavoriteRespVO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
+import com.starcloud.ops.business.app.enums.favorite.AppFavoriteTypeEnum;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.util.AppUtils;
+import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.PinyinCache;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
 import org.apache.commons.collections4.CollectionUtils;
@@ -22,6 +26,7 @@ import org.mapstruct.factory.Mappers;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -102,12 +107,22 @@ public interface AppFavoriteConvert {
      * @param page 收藏的应用分页列表
      * @return 收藏的应用分页列表
      */
-    default PageResp<AppFavoriteRespVO> convertPage(IPage<AppFavoritePO> page) {
+    default PageResp<AppFavoriteRespVO> convertPage(IPage<AppFavoritePO> page, AppFavoritePageReqVO query) {
         List<AppFavoritePO> records = page.getRecords();
         if (CollectionUtils.isEmpty(records)) {
             return PageResp.of(Collections.emptyList(), 0L, page.getCurrent(), page.getSize());
         }
         List<AppFavoriteRespVO> collect = records.stream().map(this::convert).collect(Collectors.toList());
+        if (AppFavoriteTypeEnum.TEMPLATE_MARKET.name().equals(query.getType())) {
+            for (AppFavoriteRespVO response : collect) {
+                String styleUid = response.getStyleUid();
+                PosterStyleDTO style = CreativeUtils.getPosterStyleListByUid(styleUid, response);
+                if (Objects.nonNull(style)) {
+                    response.setStyle(CreativeUtils.getMarketStyle(style));
+                    response.setWorkflowConfig(null);
+                }
+            }
+        }
         return PageResp.of(collect, page.getTotal(), page.getCurrent(), page.getSize());
     }
 
@@ -121,6 +136,8 @@ public interface AppFavoriteConvert {
         AppFavoriteDO favorite = new AppFavoriteDO();
         favorite.setUid(IdUtil.fastSimpleUUID());
         favorite.setMarketUid(request.getMarketUid());
+        favorite.setType(request.getType());
+        favorite.setStyleUid(request.getStyleUid());
         favorite.setDeleted(Boolean.FALSE);
         favorite.setCreator(loginUserId);
         favorite.setUpdater(loginUserId);

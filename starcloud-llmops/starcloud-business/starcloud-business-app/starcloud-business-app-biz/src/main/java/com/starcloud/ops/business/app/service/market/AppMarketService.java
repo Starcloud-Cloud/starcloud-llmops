@@ -72,6 +72,14 @@ public interface AppMarketService {
     List<AppMarketGroupCategoryRespVO> listGroupByCategory(AppMarketListGroupByCategoryQuery query);
 
     /**
+     * 根据分类Code查询应用市场列表
+     *
+     * @param query 查询条件
+     * @return 分组列表
+     */
+    List<AppMarketGroupCategoryRespVO> listGroupTemplateByCategory(AppMarketListGroupByCategoryQuery query);
+
+    /**
      * 分页查询应用市场列表
      *
      * @param query 查询条件

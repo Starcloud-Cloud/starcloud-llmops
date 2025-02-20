@@ -152,6 +152,8 @@
                icon,
                images,
                plugin_list,
+               free,
+               cost,
                open_video_mode,
                description,
                creator,

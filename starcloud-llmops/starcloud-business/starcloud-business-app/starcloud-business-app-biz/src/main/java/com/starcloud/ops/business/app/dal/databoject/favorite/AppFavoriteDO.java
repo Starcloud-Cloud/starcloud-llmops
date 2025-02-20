@@ -38,9 +38,18 @@ public class AppFavoriteDO extends TenantBaseDO {
     private String uid;
 
     /**
+     * 收藏类型
+     */
+    @TableField("type")
+    private String type;
+
+    /**
      * 应用 UID
      */
     @TableField("market_uid")
     private String marketUid;
+
+    @TableField("style_uid")
+    private String styleUid;
 
 }

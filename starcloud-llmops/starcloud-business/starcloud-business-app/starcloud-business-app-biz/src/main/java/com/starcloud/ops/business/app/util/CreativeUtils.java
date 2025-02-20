@@ -15,6 +15,9 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketTemplate;
+import com.starcloud.ops.business.app.api.market.vo.response.StyleSaleInfo;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
@@ -39,6 +42,7 @@ import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.model.poster.SaleConfigDTO;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -549,7 +553,7 @@ public class CreativeUtils {
      * @param appMarketResponse 应用信息
      * @return 计划配置
      */
-    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse, String source) {
+    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse, String source, String styleUid) {
         // 补充步骤默认变量
         appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
 
@@ -565,14 +569,29 @@ public class CreativeUtils {
         // 海报风格配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
         if (Objects.nonNull(stepWrapper)) {
-            // 获取到海报风格配置
-            List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
-            // 获取到最新的海报模板
-            posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
-            configuration.setImageStyleList(posterStyleList);
-
             // 应用参数处理
             List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(stepWrapper);
+            if (StringUtils.isBlank(styleUid)) {
+                // 获取到海报风格配置
+                List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
+                // 获取到最新的海报模板
+                posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
+                configuration.setImageStyleList(posterStyleList);
+            } else {
+                Optional<PosterStyleDTO> styleDTO = systemPosterStyleList.stream()
+                        .filter(item -> styleUid.equals(item.getUuid()))
+                        .findFirst();
+                if (styleDTO.isPresent()) {
+                    configuration.setImageStyleList(Collections.singletonList(styleDTO.get()));
+                } else {
+                    // 获取到海报风格配置
+                    List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
+                    // 获取到最新的海报模板
+                    posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
+                    configuration.setImageStyleList(posterStyleList);
+                }
+            }
+
             // 重新放入应用
             appMarketResponse.putModelVariable(stepWrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
             // 应用参数变为空
@@ -1012,6 +1031,53 @@ public class CreativeUtils {
             }
         }
         return Math.max(wordCount, paraphraseCount);
+    }
+
+    public static PosterStyleDTO getPosterStyleListByUid(String styleUid, AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
+        List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+        Optional<PosterStyleDTO> optional = systemPosterStyleList.stream()
+                .filter(item -> styleUid.equals(item.getUuid()))
+                .findFirst();
+        if (optional.isPresent()) {
+            return optional.get();
+        } else {
+            List<PosterStyleDTO> customPosterStyleList = getCustomPosterStyleListByStepWrapper(posterStepWrapper);
+            Optional<PosterStyleDTO> styleDTO = customPosterStyleList.stream()
+                    .filter(item -> styleUid.equals(item.getUuid()))
+                    .findFirst();
+            if (styleDTO.isPresent()) {
+                return styleDTO.get();
+            }
+        }
+        return null;
+    }
+
+    public static MarketStyle getMarketStyle(PosterStyleDTO posterStyle) {
+        MarketStyle style = new MarketStyle();
+        style.setUuid(posterStyle.getUuid());
+        style.setStyleName(posterStyle.getName());
+
+        StyleSaleInfo saleInfo = new StyleSaleInfo();
+        saleInfo.setOpenSale(Optional.ofNullable(posterStyle.getSaleConfig()).map(SaleConfigDTO::getOpenSale).orElse(false));
+        saleInfo.setDemoId(Optional.ofNullable(posterStyle.getSaleConfig()).map(SaleConfigDTO::getDemoId).orElse(""));
+        style.setSaleConfig(saleInfo);
+
+        List<MarketTemplate> collect = CollectionUtil.emptyIfNull(posterStyle.getTemplateList())
+                .stream()
+                .map(item -> {
+                    MarketTemplate template = new MarketTemplate();
+                    template.setUuid(item.getUuid());
+                    template.setCode(item.getCode());
+                    template.setName(item.getName());
+                    template.setExample(item.getExample());
+                    template.setGroup(item.getGroup());
+                    template.setGroupName(item.getGroupName());
+                    return template;
+                })
+                .collect(Collectors.toList());
+        style.setTemplateList(collect);
+        return style;
     }
 }
 

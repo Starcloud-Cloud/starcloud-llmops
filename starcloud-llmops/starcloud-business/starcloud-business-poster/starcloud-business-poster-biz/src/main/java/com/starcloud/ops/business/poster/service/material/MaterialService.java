@@ -1,7 +1,9 @@
 package com.starcloud.ops.business.poster.service.material;
 
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialAppReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -122,4 +124,7 @@ public interface MaterialService {
      * @return 海报列表
      */
     List<PosterTemplateDTO> listWordbookTemplate();
+
+    AppRespVO copyPosterAndUpdateApp(MaterialAppReqVO request);
+
 }
