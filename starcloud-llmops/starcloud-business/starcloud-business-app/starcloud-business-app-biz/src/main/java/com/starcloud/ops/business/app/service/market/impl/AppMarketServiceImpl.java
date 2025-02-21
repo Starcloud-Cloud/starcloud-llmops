@@ -40,7 +40,6 @@ import com.starcloud.ops.business.app.dal.mysql.publish.AppPublishMapper;
 import com.starcloud.ops.business.app.domain.entity.AppEntity;
 import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.MaterialActionHandler;
-import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
 import com.starcloud.ops.business.app.enums.ErrorCodeConstants;
 import com.starcloud.ops.business.app.enums.app.AppModelEnum;
 import com.starcloud.ops.business.app.enums.app.AppSourceEnum;
@@ -51,11 +50,9 @@ import com.starcloud.ops.business.app.enums.materiallibrary.MaterialBindTypeEnum
 import com.starcloud.ops.business.app.enums.operate.AppOperateTypeEnum;
 import com.starcloud.ops.business.app.enums.plugin.PluginBindTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
-import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
@@ -398,7 +395,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         if (query.getIsHot()) {
             List<String> nameList = appDictionaryService.hotSearchMarketAppNameList();
             if (CollectionUtil.isNotEmpty(nameList)) {
-                LambdaQueryWrapper<AppMarketDO> hotSearchListWrapper = appMarketMapper.queryMapper(Boolean.FALSE);
+                LambdaQueryWrapper<AppMarketDO> hotSearchListWrapper = appMarketMapper.queryMapper(Boolean.TRUE);
                 hotSearchListWrapper.in(AppMarketDO::getName, nameList);
                 List<AppMarketDO> hotSearchList = appMarketMapper.selectList(hotSearchListWrapper);
 
@@ -487,7 +484,7 @@ public class AppMarketServiceImpl implements AppMarketService {
             categoryResponse.setParentCode(category.getParentCode());
             categoryResponse.setIcon(category.getIcon());
             categoryResponse.setImage(category.getImage());
-            categoryResponse.setAppList(handlerTemplateMarket2(marketList));
+            categoryResponse.setAppList(handlerTemplateMarket(marketList));
             result.add(categoryResponse);
         }
 
@@ -496,39 +493,6 @@ public class AppMarketServiceImpl implements AppMarketService {
     }
 
     public List<AppMarketRespVO> handlerTemplateMarket(List<AppMarketRespVO> marketList) {
-        if (CollectionUtil.isEmpty(marketList)) {
-            return Collections.emptyList();
-        }
-        List<AppMarketRespVO> result = Lists.newArrayList();
-        for (AppMarketRespVO appMarket : marketList) {
-            // 非媒体矩阵不尽兴操作
-            if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType())) {
-                result.add(appMarket);
-                continue;
-            }
-            WorkflowStepWrapperRespVO posterStepWrapper = appMarket.getStepByHandler(PosterActionHandler.class);
-            if (Objects.isNull(posterStepWrapper)) {
-                continue;
-            }
-            String systemPosterConfig = posterStepWrapper.getModelVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
-            if (StringUtils.isBlank(systemPosterConfig) || "[]".equals(systemPosterConfig) || "null".equalsIgnoreCase(systemPosterConfig)) {
-                continue;
-            }
-            List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(systemPosterConfig, PosterStyleDTO.class);
-            if (CollectionUtil.isEmpty(posterStyleList)) {
-                continue;
-            }
-            for (PosterStyleDTO posterStyle : posterStyleList) {
-                AppMarketRespVO clone = SerializationUtils.clone(appMarket);
-                clone.setStyle(CreativeUtils.getMarketStyle(posterStyle));
-                clone.setWorkflowConfig(null);
-                result.add(clone);
-            }
-        }
-        return result;
-    }
-
-    public List<AppMarketRespVO> handlerTemplateMarket2(List<AppMarketRespVO> marketList) {
         if (CollectionUtil.isEmpty(marketList)) {
             return Collections.emptyList();
         }
