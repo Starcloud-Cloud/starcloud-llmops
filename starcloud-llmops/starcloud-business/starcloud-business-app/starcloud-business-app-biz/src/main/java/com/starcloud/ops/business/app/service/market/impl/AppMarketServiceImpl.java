@@ -194,14 +194,6 @@ public class AppMarketServiceImpl implements AppMarketService {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
-        // 查询是否收藏
-        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
-        if (Objects.nonNull(favorite)) {
-            response.setIsFavorite(Boolean.TRUE);
-        } else {
-            response.setIsFavorite(Boolean.FALSE);
-        }
-
         // 操作表中插入一条查看记录, 并且增加查看量
         appOperateMapper.create(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.VIEW.name(), String.valueOf(loginUserId));
 
