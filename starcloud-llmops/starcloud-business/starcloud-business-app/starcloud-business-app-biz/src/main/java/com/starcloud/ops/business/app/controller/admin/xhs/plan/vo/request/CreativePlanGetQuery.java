@@ -42,4 +42,5 @@ public class CreativePlanGetQuery implements java.io.Serializable {
     @NotBlank(message = "创作计划来源为必填项！")
     private String source;
 
+    private String styleUid;
 }

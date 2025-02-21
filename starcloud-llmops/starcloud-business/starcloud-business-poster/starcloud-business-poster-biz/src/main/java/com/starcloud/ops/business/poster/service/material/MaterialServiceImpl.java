@@ -6,13 +6,26 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.framework.common.util.json.JsonUtils;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.starcloud.ops.business.app.api.app.vo.request.action.WorkflowStepReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowStepWrapperReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableItemReqVO;
+import com.starcloud.ops.business.app.api.app.vo.request.variable.VariableReqVO;
+import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.action.PosterActionHandler;
+import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
+import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.service.app.AppManager;
+import com.starcloud.ops.business.app.service.app.AppService;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
+import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialAppReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialPageReqVO;
 import com.starcloud.ops.business.poster.controller.admin.material.vo.MaterialSaveReqVO;
 import com.starcloud.ops.business.poster.dal.dataobject.material.MaterialDO;
@@ -20,12 +33,12 @@ import com.starcloud.ops.business.poster.dal.dataobject.materialgroup.MaterialGr
 import com.starcloud.ops.business.poster.dal.mysql.material.MaterialMapper;
 import com.starcloud.ops.business.poster.service.materialgroup.MaterialGroupService;
 import com.starcloud.ops.business.user.util.UserUtils;
+import javax.annotation.Resource;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,6 +76,12 @@ public class MaterialServiceImpl implements MaterialService {
 
     @Resource
     private AppDictionaryService appDictionaryService;
+
+    @Resource
+    private AppService appService;
+
+    @Resource
+    private AppManager appManager;
 
     @Override
     public Long createMaterial(MaterialSaveReqVO createReqVO) {
@@ -304,6 +323,57 @@ public class MaterialServiceImpl implements MaterialService {
         return posterTemplateList;
     }
 
+    @Override
+    public AppRespVO copyPosterAndUpdateApp(MaterialAppReqVO request) {
+        AppRespVO appRespVO = appService.get(request.getUid());
+        // 判断是否需要复制海报
+        if (!isNeedCopyTemplate(request.getTemplateCode())) {
+            return appRespVO;
+        }
+        // 需要复制海报
+        PosterTemplateDTO copyTemplate = copyTemplate(request.getTemplateCode());
+
+        // 将复制的模板进行重新赋值
+        WorkflowConfigReqVO workflowConfig = request.getWorkflowConfig();
+        List<WorkflowStepWrapperReqVO> steps = workflowConfig.getSteps();
+        for (WorkflowStepWrapperReqVO step : steps) {
+            WorkflowStepReqVO flowStep = step.getFlowStep();
+            if (!PosterActionHandler.class.getSimpleName().equals(flowStep.getHandler())) {
+                continue;
+            }
+            VariableReqVO variable = flowStep.getVariable();
+            List<VariableItemReqVO> variables = variable.getVariables();
+            for (VariableItemReqVO itemReqVO : variables) {
+                if (!CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG.equals(itemReqVO.getField())) {
+                    continue;
+                }
+                String value = Objects.toString(itemReqVO.getValue());
+                List<PosterStyleDTO> list = CollUtil.emptyIfNull(JsonUtils.parseArray(value, PosterStyleDTO.class));
+                for (PosterStyleDTO posterStyle : list) {
+                    if (!request.getStyleUid().equals(posterStyle.getUuid())) {
+                        continue;
+                    }
+                    List<PosterTemplateDTO> templateList = CollUtil.emptyIfNull(posterStyle.getTemplateList());
+                    for (PosterTemplateDTO template : templateList) {
+                        if (!request.getTemplateUid().equals(template.getUuid())) {
+                            continue;
+                        }
+                        template.setCode(copyTemplate.getCode());
+                        template.setExample(copyTemplate.getExample());
+                    }
+                    posterStyle.setTemplateList(templateList);
+                }
+                itemReqVO.setValue(JsonUtils.toJsonString(list));
+            }
+            variable.setVariables(variables);
+            flowStep.setVariable(variable);
+        }
+        workflowConfig.setSteps(steps);
+        request.setWorkflowConfig(workflowConfig);
+        // 复制完成之后更新应用信息
+        return appManager.modify(request);
+    }
+
     /**
      * 转换为 PosterTemplateDTO
      *
@@ -330,6 +400,25 @@ public class MaterialServiceImpl implements MaterialService {
         return posterTemplate;
     }
 
+    /**
+     * 是否需要复制模板
+     *
+     * @param templateCode 模板code
+     * @return 是否需要复制
+     */
+    private boolean isNeedCopyTemplate(String templateCode) {
+        return false;
+    }
+
+    /**
+     * 复制模板
+     *
+     * @param templateCode 模板code
+     * @return 模板
+     */
+    private PosterTemplateDTO copyTemplate(String templateCode) {
+        return new PosterTemplateDTO();
+    }
 
     public static List<List<MaterialDO>> diffList(Collection<MaterialDO> oldList, Collection<MaterialDO> newList, BiFunction<MaterialDO, MaterialDO, Boolean> sameFunc) {
         List<MaterialDO> createList = new LinkedList<>(newList); // 默认都认为是新增的，后续会进行移除
@@ -361,4 +450,5 @@ public class MaterialServiceImpl implements MaterialService {
         }
         return asList(createList, updateList, deleteList);
     }
+
 }

@@ -1,5 +1,7 @@
 package com.starcloud.ops.business.app.api.favorite.vo.request;
 
+import com.starcloud.ops.business.app.enums.favorite.AppFavoriteTypeEnum;
+import com.starcloud.ops.framework.common.api.validation.InEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,5 +32,12 @@ public class AppFavoriteCreateReqVO implements Serializable {
     @Schema(description = "应用市场Uid")
     @NotBlank(message = "应用市场Uid不能为空")
     private String marketUid;
+
+    @Schema(description = "收藏类型")
+    @NotBlank(message = "收藏类型不能为空")
+    @InEnum(value = AppFavoriteTypeEnum.class, field = InEnum.EnumField.NAME, message = "收藏类型不支持错误")
+    private String type;
+
+    private String styleUid;
 
 }

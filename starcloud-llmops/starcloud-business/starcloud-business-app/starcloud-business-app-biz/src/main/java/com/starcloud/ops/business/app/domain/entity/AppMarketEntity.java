@@ -4,6 +4,7 @@ import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
@@ -76,6 +77,8 @@ public class AppMarketEntity extends AppEntity {
      * 开启视频生成
      */
     private Boolean openVideoMode;
+
+    private List<MarketStyle> styles;
 
     /**
      * 应用市场数据库操作类

@@ -58,6 +58,13 @@ public class AppMarketController {
         return CommonResult.success(appMarketService.listGroupByCategory(query));
     }
 
+    @GetMapping("/listGroupTemplateByCategory")
+    @Operation(summary = "根据分类分组查询应用市场", description = "根据分类分组查询应用市场")
+    @ApiOperationSupport(order = 20, author = "nacoyer")
+    public CommonResult<List<AppMarketGroupCategoryRespVO>> listGroupTemplateByCategory(@Validated AppMarketListGroupByCategoryQuery query) {
+        return CommonResult.success(appMarketService.listGroupTemplateByCategory(query));
+    }
+
     @GetMapping("/listMarketAppOption")
     @Operation(summary = "获取应用列表选项", description = "获取应用列表选项")
     @ApiOperationSupport(order = 30, author = "nacoyer")

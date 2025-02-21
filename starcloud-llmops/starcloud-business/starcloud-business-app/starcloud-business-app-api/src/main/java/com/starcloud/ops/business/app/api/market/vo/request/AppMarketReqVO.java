@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ChatConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.ImageConfigReqVO;
 import com.starcloud.ops.business.app.api.app.vo.request.config.WorkflowConfigReqVO;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -170,4 +171,6 @@ public class AppMarketReqVO implements Serializable {
      */
     @Schema(description = "是否校验")
     private Boolean validate;
+
+    private List<MarketStyle> styles;
 }
