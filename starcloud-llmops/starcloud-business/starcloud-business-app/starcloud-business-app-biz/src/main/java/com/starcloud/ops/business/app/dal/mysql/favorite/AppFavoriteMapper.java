@@ -107,7 +107,10 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
         if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
-        return list.stream().collect(Collectors.toMap(AppFavoriteDO::getMarketUid, Function.identity(), (v1, v2) -> v1));
+        return list.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> StringUtils.isNotBlank(item.getMarketUid()))
+                .collect(Collectors.toMap(AppFavoriteDO::getMarketUid, Function.identity(), (v1, v2) -> v1));
     }
 
     /**
