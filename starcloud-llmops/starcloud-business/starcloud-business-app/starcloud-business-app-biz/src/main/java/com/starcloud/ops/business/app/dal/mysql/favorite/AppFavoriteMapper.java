@@ -9,6 +9,7 @@ import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoriteListReqVO
 import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoritePageReqVO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
+import com.starcloud.ops.business.app.enums.favorite.AppFavoriteTypeEnum;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -61,11 +62,14 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
      * @param userId    用户ID
      * @return 收藏的应用
      */
-    default AppFavoriteDO get(String marketUid, String userId, String type) {
+    default AppFavoriteDO get(String marketUid, String userId, String type, String styleUid) {
         LambdaQueryWrapper<AppFavoriteDO> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(AppFavoriteDO::getMarketUid, marketUid);
         wrapper.eq(AppFavoriteDO::getCreator, userId);
         wrapper.eq(AppFavoriteDO::getType, type);
+        if (AppFavoriteTypeEnum.TEMPLATE_MARKET.name().equals(type)) {
+            wrapper.eq(AppFavoriteDO::getStyleUid, styleUid);
+        }
         return selectOne(wrapper);
     }
 
