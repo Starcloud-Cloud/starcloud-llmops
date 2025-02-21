@@ -151,7 +151,7 @@ public class AppFavoriteServiceImpl implements AppFavoriteService {
         AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
         // 校验应用是否已经收藏
-        AppFavoriteDO appFavorite = appFavoriteMapper.get(marketUid, String.valueOf(loginUserId), request.getType());
+        AppFavoriteDO appFavorite = appFavoriteMapper.get(marketUid, String.valueOf(loginUserId), request.getType(), request.getStyleUid());
         AppValidate.isNull(appFavorite, ErrorCodeConstants.FAVORITE_APP_ALREADY_EXISTS, marketUid);
 
         // 保存收藏的应用
