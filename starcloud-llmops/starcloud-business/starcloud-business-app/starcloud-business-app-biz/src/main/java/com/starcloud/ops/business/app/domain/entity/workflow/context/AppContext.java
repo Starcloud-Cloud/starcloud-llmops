@@ -3,6 +3,7 @@ package com.starcloud.ops.business.app.domain.entity.workflow.context;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -22,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RedissonClient;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -30,11 +32,14 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 /**
  * App 上下文
@@ -69,6 +74,8 @@ public class AppContext {
             return "}";
         }
     };
+
+    private static RedissonClient redissonClient = SpringUtil.getBean(RedissonClient.class);
 
 
     /**
@@ -271,7 +278,6 @@ public class AppContext {
         return this.getContextVariablesValues(stepId, true);
     }
 
-
     /**
      * 获取当前步骤的所有变量值 Maps
      *
@@ -280,18 +286,29 @@ public class AppContext {
     @JsonIgnore
     @JSONField(serialize = false)
     public Map<String, Object> getContextVariablesValues(String stepId, Boolean parse) {
+        Lock lock = redissonClient.getLock("get-context-variables-" + this.getApp().getUid() + stepId);
+        try {
+            if (!lock.tryLock(1, TimeUnit.MINUTES)) {
+                log.warn("{} 正在获取变量中", stepId);
+                return Collections.emptyMap();
+            }
+            Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
 
-        Map<String, Object> allVariablesValues = this.getAllVariablesValues(stepId);
+            //当前步骤的所有变量 kv，不加前缀
+            WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
+            Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
 
-        //当前步骤的所有变量 kv，不加前缀
-        WorkflowStepWrapper wrapper = this.getStepWrapper(stepId);
-        Map<String, Object> variables = wrapper.getContextVariablesValues(null, false);
+            if (parse) {
+                variables = parseMapFromVariablesValues(variables, allVariablesValues);
+            }
 
-        if (parse) {
-            variables = parseMapFromVariablesValues(variables, allVariablesValues);
+            return variables;
+        } catch (InterruptedException exception) {
+            log.error("获取变量失败", exception);
+            return Collections.emptyMap();
+        } finally {
+            lock.unlock();
         }
-
-        return variables;
     }
 
     /**
