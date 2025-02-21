@@ -10,12 +10,14 @@ import com.starcloud.ops.business.app.api.favorite.vo.query.AppFavoritePageReqVO
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoriteDO;
 import com.starcloud.ops.business.app.dal.databoject.favorite.AppFavoritePO;
 import com.starcloud.ops.business.app.enums.favorite.AppFavoriteTypeEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -100,12 +102,29 @@ public interface AppFavoriteMapper extends BaseMapper<AppFavoriteDO> {
      * @param userId 用户ID
      * @return 收藏应用Map
      */
-    default Map<String, AppFavoriteDO> mapByUserId(String userId, String type) {
-        List<AppFavoriteDO> list = listByUserId(userId, type);
+    default Map<String, AppFavoriteDO> mapAppByUserId(String userId) {
+        List<AppFavoriteDO> list = listByUserId(userId, AppFavoriteTypeEnum.APP_MARKET.name());
         if (CollectionUtil.isEmpty(list)) {
             return Collections.emptyMap();
         }
-        return list.stream().collect(Collectors.toMap(AppFavoriteDO::getMarketUid, Function.identity()));
+        return list.stream().collect(Collectors.toMap(AppFavoriteDO::getMarketUid, Function.identity(), (v1, v2) -> v1));
+    }
+
+    /**
+     * 查询用户收藏的应用Map
+     *
+     * @param userId 用户ID
+     * @return 收藏应用Map
+     */
+    default Map<String, AppFavoriteDO> mapTemplateByUserId(String userId) {
+        List<AppFavoriteDO> list = listByUserId(userId, AppFavoriteTypeEnum.TEMPLATE_MARKET.name());
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyMap();
+        }
+        return list.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> StringUtils.isNotBlank(item.getStyleUid()))
+                .collect(Collectors.toMap(AppFavoriteDO::getStyleUid, Function.identity(), (v1, v2) -> v1));
     }
 
     /**
