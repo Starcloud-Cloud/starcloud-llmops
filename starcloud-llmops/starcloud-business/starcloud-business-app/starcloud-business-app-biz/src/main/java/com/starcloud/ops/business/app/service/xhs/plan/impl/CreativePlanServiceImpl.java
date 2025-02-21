@@ -305,9 +305,20 @@ public class CreativePlanServiceImpl implements CreativePlanService {
                 }
             }
 
-            // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
-            List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
-            configuration.setImageStyleList(imageStyleList);
+            if (StringUtils.isBlank(query.getStyleUid())) {
+                // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
+                List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
+                configuration.setImageStyleList(imageStyleList);
+            } else {
+                PosterStyleDTO poster = CreativeUtils.getPosterStyleListByUid(query.getStyleUid(), appInformation);
+                if (Objects.nonNull(poster)) {
+                    configuration.setImageStyleList(Collections.singletonList(poster));
+                } else {
+                    // 使海报风格配置保持最新，直接从 appInformation 获取，需要保证上面已经是把最新的数据更新到 appInformation 中了。
+                    List<PosterStyleDTO> imageStyleList = CreativeUtils.mergeImagePosterStyleList(configuration.getImageStyleList(), appInformation);
+                    configuration.setImageStyleList(imageStyleList);
+                }
+            }
             creativePlanResponse.setConfiguration(configuration);
 
             // 如果计划版本号小于最新的版本号，且是来源是应用市场的时候，进行自动更新计划信息。
@@ -326,7 +337,7 @@ public class CreativePlanServiceImpl implements CreativePlanService {
         }
 
         // 新的创作计划配置
-        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse, query.getSource());
+        CreativePlanConfigurationDTO configuration = CreativeUtils.assemblePlanConfiguration(appMarketResponse, query.getSource(), query.getStyleUid());
 
         // 创建一个计划
         CreativePlanMaterialDO creativePlan = new CreativePlanMaterialDO();

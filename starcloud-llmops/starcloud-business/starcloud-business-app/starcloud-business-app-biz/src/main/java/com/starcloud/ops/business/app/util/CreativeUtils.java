@@ -15,12 +15,16 @@ import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowConfigR
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.variable.VariableItemRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketTemplate;
+import com.starcloud.ops.business.app.api.market.vo.response.StyleSaleInfo;
 import com.starcloud.ops.business.app.api.xhs.material.MaterialFieldConfigDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.BaseSchemeStepDTO;
 import com.starcloud.ops.business.app.api.xhs.scheme.dto.config.action.VariableSchemeStepDTO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentRegenerateReqVO;
 import com.starcloud.ops.business.app.controller.admin.xhs.plan.vo.response.CreativePlanRespVO;
+import com.starcloud.ops.business.app.domain.entity.AppMarketEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowConfigEntity;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.AssembleActionHandler;
@@ -39,6 +43,7 @@ import com.starcloud.ops.business.app.model.plan.CreativePlanConfigurationDTO;
 import com.starcloud.ops.business.app.model.poster.PosterStyleDTO;
 import com.starcloud.ops.business.app.model.poster.PosterTemplateDTO;
 import com.starcloud.ops.business.app.model.poster.PosterVariableDTO;
+import com.starcloud.ops.business.app.model.poster.SaleConfigDTO;
 import com.starcloud.ops.business.app.recommend.RecommendStepWrapperFactory;
 import com.starcloud.ops.business.app.service.xhs.manager.CreativeImageManager;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
@@ -47,7 +52,15 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -549,7 +562,7 @@ public class CreativeUtils {
      * @param appMarketResponse 应用信息
      * @return 计划配置
      */
-    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse, String source) {
+    public static CreativePlanConfigurationDTO assemblePlanConfiguration(AppMarketRespVO appMarketResponse, String source, String styleUid) {
         // 补充步骤默认变量
         appMarketResponse.supplementStepVariable(RecommendStepWrapperFactory.getStepVariable());
 
@@ -565,14 +578,29 @@ public class CreativeUtils {
         // 海报风格配置
         WorkflowStepWrapperRespVO stepWrapper = appMarketResponse.getStepByHandler(PosterActionHandler.class.getSimpleName());
         if (Objects.nonNull(stepWrapper)) {
-            // 获取到海报风格配置
-            List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
-            // 获取到最新的海报模板
-            posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
-            configuration.setImageStyleList(posterStyleList);
-
             // 应用参数处理
             List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(stepWrapper);
+            if (StringUtils.isBlank(styleUid)) {
+                // 获取到海报风格配置
+                List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
+                // 获取到最新的海报模板
+                posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
+                configuration.setImageStyleList(posterStyleList);
+            } else {
+                Optional<PosterStyleDTO> styleDTO = systemPosterStyleList.stream()
+                        .filter(item -> styleUid.equals(item.getUuid()))
+                        .findFirst();
+                if (styleDTO.isPresent()) {
+                    configuration.setImageStyleList(Collections.singletonList(styleDTO.get()));
+                } else {
+                    // 获取到海报风格配置
+                    List<PosterStyleDTO> posterStyleList = getPosterStyleListByStepWrapper(stepWrapper);
+                    // 获取到最新的海报模板
+                    posterStyleList = mergeImagePosterStyleList(posterStyleList, appMarketResponse);
+                    configuration.setImageStyleList(posterStyleList);
+                }
+            }
+
             // 重新放入应用
             appMarketResponse.putModelVariable(stepWrapper.getField(), CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG, JsonUtils.toJsonString(systemPosterStyleList));
             // 应用参数变为空
@@ -1006,6 +1034,81 @@ public class CreativeUtils {
             }
         }
         return Math.max(wordCount, paraphraseCount);
+    }
+
+    public static PosterStyleDTO getPosterStyleListByUid(String styleUid, AppMarketRespVO appInformation) {
+        WorkflowStepWrapperRespVO posterStepWrapper = getPosterStepWrapper(appInformation);
+        List<PosterStyleDTO> systemPosterStyleList = getSystemPosterStyleListByStepWrapper(posterStepWrapper);
+        Optional<PosterStyleDTO> optional = systemPosterStyleList.stream()
+                .filter(item -> styleUid.equals(item.getUuid()))
+                .findFirst();
+        if (optional.isPresent()) {
+            return optional.get();
+        } else {
+            List<PosterStyleDTO> customPosterStyleList = getCustomPosterStyleListByStepWrapper(posterStepWrapper);
+            Optional<PosterStyleDTO> styleDTO = customPosterStyleList.stream()
+                    .filter(item -> styleUid.equals(item.getUuid()))
+                    .findFirst();
+            if (styleDTO.isPresent()) {
+                return styleDTO.get();
+            }
+        }
+        return null;
+    }
+
+    public static MarketStyle getMarketStyle(PosterStyleDTO posterStyle) {
+        MarketStyle style = new MarketStyle();
+        style.setUuid(posterStyle.getUuid());
+        style.setStyleName(posterStyle.getName());
+
+        StyleSaleInfo saleInfo = new StyleSaleInfo();
+        saleInfo.setOpenSale(Optional.ofNullable(posterStyle.getSaleConfig()).map(SaleConfigDTO::getOpenSale).orElse(false));
+        saleInfo.setDemoId(Optional.ofNullable(posterStyle.getSaleConfig()).map(SaleConfigDTO::getDemoId).orElse(""));
+        style.setSaleConfig(saleInfo);
+
+        List<MarketTemplate> collect = CollectionUtil.emptyIfNull(posterStyle.getTemplateList())
+                .stream()
+                .map(item -> {
+                    MarketTemplate template = new MarketTemplate();
+                    template.setUuid(item.getUuid());
+                    template.setCode(item.getCode());
+                    template.setName(item.getName());
+                    template.setExample(item.getExample());
+                    template.setGroup(item.getGroup());
+                    template.setGroupName(item.getGroupName());
+                    return template;
+                })
+                .collect(Collectors.toList());
+        boolean openVideo = CollectionUtil.emptyIfNull(posterStyle.getTemplateList()).stream().anyMatch(template -> BooleanUtils.isTrue(template.getOpenVideoMode()));
+
+        style.setOpenVideoMode(openVideo);
+        style.setTemplateList(collect);
+        return style;
+    }
+
+    public static List<MarketStyle> getMarketStyles(AppMarketEntity appMarketEntity) {
+        if (Objects.isNull(appMarketEntity)) {
+            return null;
+        }
+        WorkflowConfigEntity workflowConfig = appMarketEntity.getWorkflowConfig();
+        if (Objects.isNull(workflowConfig)) {
+            return null;
+        }
+        WorkflowStepWrapper posterStepWrapper = workflowConfig.getStepWrapper(PosterActionHandler.class);
+        String variable = posterStepWrapper.getModelVariableToString(CreativeConstants.SYSTEM_POSTER_STYLE_CONFIG);
+        if (StringUtils.isBlank(variable) || "[]".equals(variable) || "null".equalsIgnoreCase(variable)) {
+            return null;
+        }
+
+        List<PosterStyleDTO> posterStyleList = JsonUtils.parseArray(variable, PosterStyleDTO.class);
+        if (CollectionUtil.isEmpty(posterStyleList)) {
+            return null;
+        }
+
+        return CollectionUtil.emptyIfNull(posterStyleList)
+                .stream()
+                .map(CreativeUtils::getMarketStyle)
+                .collect(Collectors.toList());
     }
 }
 

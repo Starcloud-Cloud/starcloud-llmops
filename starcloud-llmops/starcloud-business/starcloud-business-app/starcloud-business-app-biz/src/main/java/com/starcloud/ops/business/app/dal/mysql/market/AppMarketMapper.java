@@ -200,6 +200,7 @@ public interface AppMarketMapper extends BaseMapper<AppMarketDO> {
                 AppMarketDO::getLanguage,
                 AppMarketDO::getSort,
                 AppMarketDO::getTags,
+                AppMarketDO::getStyles,
                 AppMarketDO::getCategory,
                 AppMarketDO::getScenes,
                 AppMarketDO::getImages,

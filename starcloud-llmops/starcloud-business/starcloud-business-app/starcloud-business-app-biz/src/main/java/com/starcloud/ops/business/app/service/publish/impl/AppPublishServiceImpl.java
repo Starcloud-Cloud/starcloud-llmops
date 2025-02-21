@@ -452,6 +452,7 @@ public class AppPublishServiceImpl implements AppPublishService {
             List<PluginRespVO> list = pluginsDefinitionService.list(appPublish.getAppUid());
             appMarketEntity.setPluginList(CollectionUtil.emptyIfNull(list).stream().map(PluginRespVO::getUid).collect(Collectors.toList()));
             appMarketEntity.setOpenVideoMode(CreativeUtils.checkOpenVideoMode(appMarketEntity.getWorkflowConfig()));
+            appMarketEntity.setStyles(CreativeUtils.getMarketStyles(appMarketEntity));
         }
 
         AppDO app = JsonUtils.parseObject(appPublish.getAppInfo(), AppDO.class);

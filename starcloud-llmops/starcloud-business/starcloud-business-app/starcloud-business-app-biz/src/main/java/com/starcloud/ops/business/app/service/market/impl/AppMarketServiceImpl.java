@@ -22,6 +22,7 @@ import com.starcloud.ops.business.app.api.market.vo.request.AppMarketReqVO;
 import com.starcloud.ops.business.app.api.market.vo.request.AppMarketUpdateReqVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketGroupCategoryRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
+import com.starcloud.ops.business.app.api.market.vo.response.MarketStyle;
 import com.starcloud.ops.business.app.api.operate.request.AppOperateReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.slice.MaterialLibrarySliceAppReqVO;
@@ -51,17 +52,17 @@ import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.service.market.AppMarketService;
 import com.starcloud.ops.business.app.service.xhs.material.CreativeMaterialManager;
-import com.starcloud.ops.business.app.util.CreativeUtils;
 import com.starcloud.ops.business.app.util.UserUtils;
 import com.starcloud.ops.framework.common.api.dto.Option;
 import com.starcloud.ops.framework.common.api.dto.PageResp;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -193,14 +194,6 @@ public class AppMarketServiceImpl implements AppMarketService {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
-        // 查询是否收藏
-        AppFavoriteDO favorite = appFavoritesMapper.get(appMarket.getUid(), String.valueOf(loginUserId));
-        if (Objects.nonNull(favorite)) {
-            response.setIsFavorite(Boolean.TRUE);
-        } else {
-            response.setIsFavorite(Boolean.FALSE);
-        }
-
         // 操作表中插入一条查看记录, 并且增加查看量
         appOperateMapper.create(appMarket.getUid(), appMarket.getVersion(), AppOperateTypeEnum.VIEW.name(), String.valueOf(loginUserId));
 
@@ -212,6 +205,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         updateWrapper.set(AppMarketDO::getUpdateTime, appMarket.getUpdateTime());
         updateWrapper.eq(AppMarketDO::getId, appMarket.getId());
         appMarketMapper.update(null, updateWrapper);
+
 
         // 转换并且返回应用数据
         response.setViewCount(viewCount);
@@ -272,7 +266,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
 
         // 查询用户收藏的应用Map, key为应用市场 UID
-        Map<String, AppFavoriteDO> favoriteMap = appFavoritesMapper.mapByUserId(String.valueOf(loginUserId));
+        Map<String, AppFavoriteDO> favoriteMap = appFavoritesMapper.mapAppByUserId(String.valueOf(loginUserId));
 
         // 是否查询热门搜索的应用
         if (query.getIsHot()) {
@@ -370,6 +364,135 @@ public class AppMarketServiceImpl implements AppMarketService {
         }
 
 
+        return result;
+    }
+
+    /**
+     * 根据分类Code查询应用市场列表
+     *
+     * @param query 查询条件
+     * @return 分组列表
+     */
+    @Override
+    public List<AppMarketGroupCategoryRespVO> listGroupTemplateByCategory(AppMarketListGroupByCategoryQuery query) {
+        List<AppMarketGroupCategoryRespVO> result = Lists.newArrayList();
+
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        AppValidate.notNull(loginUserId, ErrorCodeConstants.USER_MAY_NOT_LOGIN);
+
+        // 查询用户收藏的应用Map, key为应用市场 UID
+        Map<String, AppFavoriteDO> favoriteMap = appFavoritesMapper.mapTemplateByUserId(String.valueOf(loginUserId));
+
+        // 是否查询热门搜索的应用
+        if (query.getIsHot()) {
+            List<String> nameList = appDictionaryService.hotSearchMarketAppNameList();
+            if (CollectionUtil.isNotEmpty(nameList)) {
+                LambdaQueryWrapper<AppMarketDO> hotSearchListWrapper = appMarketMapper.queryMapper(Boolean.TRUE);
+                hotSearchListWrapper.in(AppMarketDO::getName, nameList);
+                List<AppMarketDO> hotSearchList = appMarketMapper.selectList(hotSearchListWrapper);
+
+                if (CollectionUtil.isNotEmpty(hotSearchList)) {
+                    List<AppMarketRespVO> collect = nameList.stream()
+                            .map(name -> hotSearchList.stream().filter(item -> name.equals(item.getName())).findFirst().orElse(null))
+                            .filter(Objects::nonNull)
+                            .map(AppMarketConvert.INSTANCE::convertResponse)
+                            .collect(Collectors.toList());
+
+                    AppMarketGroupCategoryRespVO hotSearchResponse = new AppMarketGroupCategoryRespVO();
+                    hotSearchResponse.setName("热门");
+                    hotSearchResponse.setCode("HOT");
+                    hotSearchResponse.setParentCode("ROOT");
+                    hotSearchResponse.setIcon("hot");
+                    hotSearchResponse.setAppList(handlerTemplateMarket(collect, favoriteMap));
+                    result.add(hotSearchResponse);
+                }
+            }
+        }
+
+        // 查询应用市场列表
+        AppMarketListQuery appMarketListQuery = new AppMarketListQuery();
+        // 非管理员，只能查询普通应用
+        if (UserUtils.isNotAdmin()) {
+            List<String> typeList = Lists.newArrayList();
+            typeList.add(AppTypeEnum.COMMON.name());
+            typeList.add(AppTypeEnum.MEDIA_MATRIX.name());
+            appMarketListQuery.setTypeList(typeList);
+        }
+        // 只查询 COMPLETION 的应用
+        appMarketListQuery.setModel(AppModelEnum.COMPLETION.name());
+        List<AppMarketDO> appMarketList = appMarketMapper.listWithoutConfig(appMarketListQuery);
+
+        // 如果为空，直接返回
+        if (CollectionUtil.isEmpty(appMarketList)) {
+            return result;
+        }
+
+        // 按照类别分组
+        Map<String, List<AppMarketRespVO>> appMap = CollectionUtil.emptyIfNull(appMarketList).parallelStream()
+                .filter(item -> StringUtils.isNotBlank(item.getCategory()))
+                .map(AppMarketConvert.INSTANCE::convertResponseWithId)
+                .collect(Collectors.groupingBy(AppMarketRespVO::getCategory));
+
+        // 目前是两层树，二级分类。
+        List<AppCategoryVO> categoryTreeList = appDictionaryService.categoryTree();
+
+        // 转换数据
+        for (AppCategoryVO category : categoryTreeList) {
+            // 获取当前分类下的应用列表
+            List<AppMarketRespVO> marketList = appMap.getOrDefault(category.getCode(), Lists.newArrayList());
+            CollectionUtil.emptyIfNull(category.getChildren()).stream().map(item -> appMap.getOrDefault(item.getCode(), Lists.newArrayList())).forEach(marketList::addAll);
+            // 如果为空，忽略
+            if (marketList.isEmpty()) {
+                continue;
+            }
+
+            marketList = marketList.stream()
+                    .sorted(Comparator.comparing(AppMarketRespVO::getSort, Comparator.nullsLast(Long::compareTo))
+                            .thenComparingLong(AppMarketRespVO::getId)
+                    ).collect(Collectors.toList());
+
+            // 转换数据
+            AppMarketGroupCategoryRespVO categoryResponse = new AppMarketGroupCategoryRespVO();
+            categoryResponse.setName(category.getName());
+            categoryResponse.setCode(category.getCode());
+            categoryResponse.setParentCode(category.getParentCode());
+            categoryResponse.setIcon(category.getIcon());
+            categoryResponse.setImage(category.getImage());
+            categoryResponse.setAppList(handlerTemplateMarket(marketList, favoriteMap));
+            result.add(categoryResponse);
+        }
+
+
+        return result;
+    }
+
+    public List<AppMarketRespVO> handlerTemplateMarket(List<AppMarketRespVO> marketList, Map<String, AppFavoriteDO> favoriteMap) {
+        if (CollectionUtil.isEmpty(marketList)) {
+            return Collections.emptyList();
+        }
+        List<AppMarketRespVO> result = Lists.newArrayList();
+        for (AppMarketRespVO appMarket : marketList) {
+            // 非媒体矩阵不尽兴操作
+            if (!AppTypeEnum.MEDIA_MATRIX.name().equals(appMarket.getType())) {
+                //result.add(appMarket);
+                continue;
+            }
+            List<MarketStyle> styles = appMarket.getStyles();
+            if (CollectionUtil.isEmpty(styles)) {
+                //result.add(appMarket);
+                continue;
+            }
+            for (MarketStyle style : styles) {
+                AppMarketRespVO clone = SerializationUtils.clone(appMarket);
+                if (CollectionUtil.isNotEmpty(favoriteMap)) {
+                    clone.setIsFavorite(favoriteMap.containsKey(style.getUuid()));
+                }
+                clone.setStyle(style);
+                clone.setStyles(null);
+                clone.setWorkflowConfig(null);
+                result.add(clone);
+            }
+        }
         return result;
     }
 

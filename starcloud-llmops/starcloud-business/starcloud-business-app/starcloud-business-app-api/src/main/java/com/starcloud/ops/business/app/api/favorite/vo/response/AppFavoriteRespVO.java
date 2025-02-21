@@ -42,4 +42,8 @@ public class AppFavoriteRespVO extends AppMarketRespVO {
      */
     @Schema(description = "收藏时间")
     private LocalDateTime favoriteTime;
+
+    private String favoriteType;
+
+    private String styleUid;
 }

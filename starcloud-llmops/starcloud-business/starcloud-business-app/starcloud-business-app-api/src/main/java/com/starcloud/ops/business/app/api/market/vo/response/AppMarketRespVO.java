@@ -34,7 +34,8 @@ import java.util.Objects;
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "应用市场对象响应实体VO")
-public class AppMarketRespVO implements Serializable {
+public class
+AppMarketRespVO implements Serializable {
 
     private static final long serialVersionUID = 4430780734779852216L;
 
@@ -54,6 +55,10 @@ public class AppMarketRespVO implements Serializable {
      */
     @Schema(description = "应用名称")
     private String name;
+
+    private MarketStyle style;
+
+    private List<MarketStyle> styles;
 
     /**
      * 应用名称拼音
