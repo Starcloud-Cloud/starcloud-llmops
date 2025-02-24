@@ -645,8 +645,7 @@ public class CreativeContentServiceImpl implements CreativeContentService {
         // 执行中的，需要等待执行完成，然后再取消。
         if (CreativeContentStatusEnum.SUCCESS.name().equals(status) ||
                 CreativeContentStatusEnum.ULTIMATE_FAILURE.name().equals(status) ||
-                CreativeContentStatusEnum.CANCELED.name().equals(status) ||
-                CreativeContentStatusEnum.EXECUTING.name().equals(status)) {
+                CreativeContentStatusEnum.CANCELED.name().equals(status)) {
             return;
         }
         LocalDateTime now = LocalDateTime.now();
