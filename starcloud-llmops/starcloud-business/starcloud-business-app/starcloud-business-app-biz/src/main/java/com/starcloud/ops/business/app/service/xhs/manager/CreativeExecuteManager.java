@@ -12,18 +12,14 @@ import com.starcloud.ops.business.app.api.app.vo.response.AppRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.ActionResponseRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.action.WorkflowStepRespVO;
 import com.starcloud.ops.business.app.api.app.vo.response.config.WorkflowStepWrapperRespVO;
-import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
 import com.starcloud.ops.business.app.api.market.vo.response.AppMarketRespVO;
-import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
-import com.starcloud.ops.business.app.model.content.CopyWritingContent;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
-import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
-import com.starcloud.ops.business.app.model.content.ImageContent;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
-import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteReqVO;
 import com.starcloud.ops.business.app.controller.admin.app.vo.AppExecuteRespVO;
+import com.starcloud.ops.business.app.controller.admin.log.vo.response.AppLogMessageRespVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.request.CreativeContentExecuteReqVO;
+import com.starcloud.ops.business.app.controller.admin.xhs.content.vo.response.CreativeContentExecuteRespVO;
 import com.starcloud.ops.business.app.convert.app.AppConvert;
+import com.starcloud.ops.business.app.convert.market.AppMarketConvert;
 import com.starcloud.ops.business.app.convert.xhs.content.CreativeContentConvert;
 import com.starcloud.ops.business.app.dal.databoject.xhs.content.CreativeContentDO;
 import com.starcloud.ops.business.app.dal.mysql.xhs.content.CreativeContentMapper;
@@ -39,6 +35,10 @@ import com.starcloud.ops.business.app.enums.app.AppSceneEnum;
 import com.starcloud.ops.business.app.enums.xhs.content.CreativeContentStatusEnum;
 import com.starcloud.ops.business.app.enums.xhs.plan.CreativePlanSourceEnum;
 import com.starcloud.ops.business.app.feign.dto.PosterImage;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteParam;
+import com.starcloud.ops.business.app.model.content.CreativeContentExecuteResult;
+import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.service.log.AppLogService;
 import com.starcloud.ops.business.app.service.xhs.content.impl.CreativeContentServiceImpl;
 import com.starcloud.ops.business.app.service.xhs.executor.CreativeThreadPoolHolder;
@@ -50,6 +50,7 @@ import com.starcloud.ops.business.user.api.rights.AdminUserRightsApi;
 import com.starcloud.ops.business.user.api.rights.dto.ReduceRightsDTO;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.util.StringUtil;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +58,6 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -196,7 +196,8 @@ public class CreativeExecuteManager {
                 updateContentExecuting(latestContent, start);
                 // 执行应用，并且获取执行结果
                 AppExecuteRespVO response = appExecute(latestContent, maxRetry);
-
+                // 应用执行完成再次查询创作内容
+                CreativeContentDO recheckContent = creativeContentMapper.get(latestContent.getUid());
                 // 后置处理步骤缓存状态更新
                 appStepStatusCache.stepStart(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
                 // 查询日志信息
@@ -205,6 +206,15 @@ public class CreativeExecuteManager {
                 CreativeContentExecuteRespVO executeResponse = buildResponse(logAppMessage, latestContent);
                 // 获取到结果内容
                 CreativeContentExecuteResult executeResult = executeResponse.getResult();
+
+                // 如果已经是取消的话，则直接将状态更新为取消状态
+                if (CreativeContentStatusEnum.CANCELED.name().equals(recheckContent.getStatus())) {
+                    // 后置处理步骤缓存状态更新
+                    appStepStatusCache.stepFailure(response.getConversationUid(), AppStepStatusCache.POST_PROCESSOR_HANDLER, appMarketEntity);
+                    updateContentCanceled(recheckContent, start);
+                    return CreativeContentExecuteRespVO.failure(latestContent.getUid(), latestContent.getPlanUid(), latestContent.getBatchUid(), "创作内容已取消");
+                }
+
                 // 权益扣除
                 reduceRights(latestContent);
                 // 后置处理步骤缓存状态更新
@@ -414,6 +424,13 @@ public class CreativeExecuteManager {
      * @param maxRetry      最大重试次数
      */
     private void updateContentFailureByThrowable(CreativeContentDO latestContent, LocalDateTime start, Integer maxRetry, Throwable throwable) {
+
+        CreativeContentDO recheck = creativeContentMapper.get(latestContent.getUid());
+        if (CreativeContentStatusEnum.CANCELED.name().equals(recheck.getStatus())) {
+            updateContentCanceled(recheck, start);
+            return;
+        }
+
         // 如果是 Error，说明是系统异常，直接更新为最终失败即可。
         if (throwable instanceof Error) {
             updateContentUltimateFailure(latestContent, start, throwable.getMessage(), maxRetry);
@@ -489,6 +506,25 @@ public class CreativeExecuteManager {
         updateContent.setEndTime(end);
         updateContent.setElapsed(elapsed);
         updateContent.setStatus(CreativeContentStatusEnum.SUCCESS.name());
+        updateContent.setUpdateTime(end);
+        updateContent.setUpdater(latestContent.getUpdater());
+        creativeContentMapper.updateById(updateContent);
+    }
+
+    private void updateContentCanceled(CreativeContentDO latestContent, LocalDateTime start) {
+        LocalDateTime end = LocalDateTime.now();
+        long elapsed = Duration.between(start, end).toMillis();
+
+        // 更新执行结果
+        CreativeContentDO updateContent = new CreativeContentDO();
+        updateContent.setId(latestContent.getId());
+        updateContent.setExecuteResult(null);
+        updateContent.setExecuteTitle(null);
+        updateContent.setExecuteTags(null);
+        updateContent.setStartTime(start);
+        updateContent.setEndTime(end);
+        updateContent.setElapsed(elapsed);
+        updateContent.setStatus(CreativeContentStatusEnum.CANCELED.name());
         updateContent.setUpdateTime(end);
         updateContent.setUpdater(latestContent.getUpdater());
         creativeContentMapper.updateById(updateContent);
