@@ -206,6 +206,7 @@ public class AppMarketServiceImpl implements AppMarketService {
         updateWrapper.eq(AppMarketDO::getId, appMarket.getId());
         appMarketMapper.update(null, updateWrapper);
 
+
         // 转换并且返回应用数据
         response.setViewCount(viewCount);
         return response;
