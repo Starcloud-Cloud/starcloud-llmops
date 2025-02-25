@@ -11,6 +11,8 @@ import cn.iocoder.yudao.module.system.service.dict.DictDataService;
 import cn.iocoder.yudao.module.system.service.social.SocialUserService;
 import com.starcloud.ops.business.limits.enums.BenefitsStrategyTypeEnums;
 import com.starcloud.ops.business.limits.service.userbenefits.UserBenefitsService;
+import com.starcloud.ops.business.user.dal.dataobject.signin.AdminUserSignInRecordDO;
+import com.starcloud.ops.business.user.service.signin.AdminUserSignInRecordService;
 import com.starcloud.ops.business.user.util.EncryptionUtils;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -31,7 +33,7 @@ import static com.starcloud.ops.business.user.enums.DictTypeConstants.WECHAT_APP
 @Slf4j
 public class WeChatSpecialHandler implements WxMpMessageHandler {
     @Resource
-    private UserBenefitsService userBenefitsService;
+    private AdminUserSignInRecordService recordService;
 
     @Resource
     private SocialUserService socialUserService;
@@ -50,8 +52,12 @@ public class WeChatSpecialHandler implements WxMpMessageHandler {
 
         if (WeChatClickTypeEnum.SPECIAL_SIGN_IN.getCode().equalsIgnoreCase(wxMessage.getEventKey())) {
             // 签到
-            Boolean success = userBenefitsService.addUserBenefitsByStrategyType(BenefitsStrategyTypeEnums.USER_ATTENDANCE.getName(), userDO.getId());
-            String msg = success ? "签到新增权益成功" : "今日已签到";
+            String msg = "签到新增权益成功";
+            try {
+                recordService.createSignRecord(userDO.getId());
+            } catch (Exception e) {
+                msg = "今日已签到";
+            }
             return WxMpXmlOutMessage.TEXT().toUser(wxMessage.getFromUser()).fromUser(wxMessage.getToUser()).content(msg).build();
         }
 
