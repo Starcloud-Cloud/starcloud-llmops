@@ -26,22 +26,22 @@ public class CopyWritingContent implements java.io.Serializable {
     /**
      * 文案标题
      */
-    @Schema(description = "文案标题")
-    @JsonPropertyDescription("文案标题")
+    @Schema(description = "笔记标题")
+    @JsonPropertyDescription("标题")
     private String title;
 
     /**
      * 文案内容
      */
-    @Schema(description = "文案内容")
-    @JsonPropertyDescription("文案内容")
+    @Schema(description = "笔记内容")
+    @JsonPropertyDescription("内容")
     private String content;
 
     /**
      * 标签列表
      */
     @Schema(description = "标签列表")
-    @JsonPropertyDescription("标签列表")
+    @JsonPropertyDescription("标签")
     private List<String> tagList;
 
 }

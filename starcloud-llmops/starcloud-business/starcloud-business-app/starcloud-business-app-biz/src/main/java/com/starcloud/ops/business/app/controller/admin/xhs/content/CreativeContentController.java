@@ -43,6 +43,9 @@ import com.starcloud.ops.business.app.util.RedSignatureUtil;
 import com.starcloud.ops.business.app.util.UserUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,8 +56,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -329,5 +330,21 @@ public class CreativeContentController {
     @ApiOperationSupport(order = 100, author = "nacoyer")
     public CommonResult<CreativeContentShareResultRespVO> shareResult(@RequestParam("uid") String uid) {
         return CommonResult.success(creativeContentService.getShareResult(uid));
+    }
+
+    @GetMapping("/dd")
+    @Operation(summary = "获取分享结果")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<Map<String, String[]>> dd(HttpServletRequest request) {
+        return CommonResult.success(request.getParameterMap());
+    }
+
+    @PostMapping("/ddd")
+    @Operation(summary = "获取分享结果")
+    @DataPermission(enable = false)
+    @ApiOperationSupport(order = 100, author = "nacoyer")
+    public CommonResult<Map<String, String[]>> ddd(HttpServletRequest request) {
+        return CommonResult.success(request.getParameterMap());
     }
 }
