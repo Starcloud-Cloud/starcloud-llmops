@@ -1,7 +1,6 @@
 package com.starcloud.ops.business.app.model.content;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,7 +44,4 @@ public class CopyWritingContent implements java.io.Serializable {
     @JsonPropertyDescription("标签")
     private List<String> tagList;
 
-    public static void main(String[] args) {
-        System.out.println(JsonSchemaUtils.generateJsonSchemaStr(CopyWritingContent.class));
-    }
 }
