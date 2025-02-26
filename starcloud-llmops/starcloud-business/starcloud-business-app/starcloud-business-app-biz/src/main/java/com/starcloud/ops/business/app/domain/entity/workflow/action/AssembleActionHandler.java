@@ -10,6 +10,7 @@ import cn.kstry.framework.core.annotation.TaskService;
 import cn.kstry.framework.core.bus.ScopeDataOperator;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.starcloud.ops.business.app.api.verification.Verification;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
@@ -19,6 +20,7 @@ import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.enums.ValidateTypeEnum;
 import com.starcloud.ops.business.app.enums.xhs.CreativeConstants;
 import com.starcloud.ops.business.app.model.content.CopyWritingContent;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,21 @@ public class AssembleActionHandler extends BaseActionHandler {
     @Override
     public ActionResponse execute(@ReqTaskParam(reqSelf = true) AppContext context, ScopeDataOperator scopeDataOperator) {
         return super.execute(context, scopeDataOperator);
+    }
+
+    /**
+     * 获取输出变量的 JSON Schema
+     *
+     * @param stepWrapper 步骤包装器
+     * @return 输出变量的 JSON Schema
+     */
+    @Override
+    @JsonIgnore
+    @JSONField(serialize = false)
+    public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
+        // 因为输出变量是固定的，先直接返回，数据库中的值，没有描述信息。
+        // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
+        return JsonSchemaUtils.generateJsonSchema(CopyWritingContent.class);
     }
 
     /**

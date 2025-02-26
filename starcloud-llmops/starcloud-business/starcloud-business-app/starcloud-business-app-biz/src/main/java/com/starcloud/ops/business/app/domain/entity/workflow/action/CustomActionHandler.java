@@ -27,6 +27,7 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -44,6 +45,7 @@ import com.starcloud.ops.business.app.exception.ActionResponseException;
 import com.starcloud.ops.business.app.service.chat.callback.MySseCallBackHandler;
 import com.starcloud.ops.business.app.service.dict.AppDictionaryService;
 import com.starcloud.ops.business.app.util.CostPointUtils;
+import com.starcloud.ops.business.app.util.JsonSchemaUtils;
 import com.starcloud.ops.business.app.verification.VerificationUtils;
 import com.starcloud.ops.business.user.enums.rights.AdminUserRightsTypeEnum;
 import com.starcloud.ops.framework.common.api.enums.IEnumable;
@@ -201,7 +203,11 @@ public class CustomActionHandler extends BaseActionHandler {
 //            //获取参考素材的结构
 //            return JsonSchemaUtils.generateJsonSchema(MaterialTypeEnum.of(refers).getAClass());
 //        }
-        return super.getOutVariableJsonSchema(stepWrapper);
+
+        // return super.getOutVariableJsonSchema(stepWrapper);
+        // 目前是固定的，因为数据库中存入的数据，没有描述信息，先直接获取。
+        // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
+        return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
     }
 
     /**
@@ -396,7 +402,7 @@ public class CustomActionHandler extends BaseActionHandler {
 
         // 获取到 prompt
         String prompt = String.valueOf(params.getOrDefault(AppConstants.PROMPT, StrUtil.EMPTY));
-                //this.getPrompt(context, params, isCustom);
+        //this.getPrompt(context, params, isCustom);
         // 获取到大模型 model
         String model = this.getLlmModelType(context);
         // 获取到生成数量 n

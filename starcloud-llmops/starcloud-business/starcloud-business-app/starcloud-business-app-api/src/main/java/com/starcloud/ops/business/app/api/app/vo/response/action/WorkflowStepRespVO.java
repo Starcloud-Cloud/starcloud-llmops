@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.api.app.vo.response.action;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.starcloud.ops.business.app.api.app.vo.params.JsonDataVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 工作流步骤实体
@@ -49,7 +51,24 @@ public class WorkflowStepRespVO extends ActionRespVO {
         if (Objects.isNull(flowStep)) {
             return;
         }
-
+        if ("AssembleActionHandler".equals(getHandler())) {
+            ActionResponseRespVO response = flowStep.getResponse();
+            JsonDataVO output = Optional.ofNullable(response.getOutput()).orElse(new JsonDataVO());
+            // 固定 jsonSchema,因为现在数据库中的值是固定的。更新，保证数据库中的值，均有描述信息。
+            // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
+            output.setJsonSchema("{\"type\":\"object\",\"id\":\"urn:jsonschema:com:starcloud:ops:business:app:model:content:CopyWritingContent\",\"properties\":{\"title\":{\"type\":\"string\",\"description\":\"标题\"},\"content\":{\"type\":\"string\",\"description\":\"内容\"},\"tagList\":{\"type\":\"array\",\"description\":\"标签\",\"items\":{\"type\":\"string\"}}}}");
+            response.setOutput(output);
+            flowStep.setResponse(response);
+        }
+        if ("CustomActionHandler".equals(getHandler())) {
+            ActionResponseRespVO response = flowStep.getResponse();
+            JsonDataVO output = Optional.ofNullable(response.getOutput()).orElse(new JsonDataVO());
+            // 固定 jsonSchema,因为现在数据库中的值是固定的。更新，保证数据库中的值，均有描述信息。
+            // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
+            output.setJsonSchema(null);
+            response.setOutput(output);
+            flowStep.setResponse(response);
+        }
         if (Objects.nonNull(this.getVariable())) {
             this.getVariable().supplementStepVariable(flowStep.getVariable());
         }
