@@ -533,7 +533,10 @@ public class CreativeContentServiceImpl implements CreativeContentService {
             updateContent.setExecuteParam(JsonUtils.toJsonString(executeParam));
             updateContent.setUpdateTime(LocalDateTime.now());
             updateContent.setUpdater(String.valueOf(SecurityFrameworkUtils.getLoginUserId()));
-            creativeContentMapper.updateById(updateContent);
+            int i = creativeContentMapper.updateById(updateContent);
+            if (i <= 0) {
+                throw ServiceExceptionUtil.invalidParamException("重试失败，请稍候重试！");
+            }
 
             // 构建执行请求
             CreativeContentExecuteReqVO executeRequest = new CreativeContentExecuteReqVO();
