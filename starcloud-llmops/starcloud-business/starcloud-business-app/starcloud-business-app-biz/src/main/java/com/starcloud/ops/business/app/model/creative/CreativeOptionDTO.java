@@ -58,6 +58,9 @@ public class CreativeOptionDTO implements Serializable {
     @Schema(description = "描述，用于展示，对该选项的描述")
     private String description;
 
+    @Schema(description = "步骤编码")
+    private String stepHandler;
+
     /**
      * 子选项
      */
