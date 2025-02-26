@@ -439,11 +439,13 @@ public class CreativeSchemeServiceImpl implements CreativeSchemeService {
         for (WorkflowStepWrapper stepWrapper : workflowStepWrappers) {
             String stepCode = stepWrapper.getStepCode();
             String desc = stepWrapper.getDescription();
+            String stepHandler = stepWrapper.getHandler();
 
             CreativeOptionDTO stepOption = new CreativeOptionDTO();
             stepOption.setName(stepCode);
             stepOption.setDescription(desc);
             stepOption.setCode(stepCode);
+            stepOption.setStepHandler(stepHandler);
 
             JsonSchema intJsonNode = stepWrapper.getInVariableJsonSchema();
             stepOption.setInJsonSchema(JsonSchemaUtils.jsonNode2Str(intJsonNode));
