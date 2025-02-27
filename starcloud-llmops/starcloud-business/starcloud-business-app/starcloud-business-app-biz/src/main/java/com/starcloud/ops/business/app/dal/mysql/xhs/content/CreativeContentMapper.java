@@ -38,6 +38,12 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         return selectOne(wrapper);
     }
 
+    default void updateByUid(CreativeContentDO creativeContentDO) {
+        LambdaUpdateWrapper<CreativeContentDO> wrapper = Wrappers.lambdaUpdate(CreativeContentDO.class)
+                .eq(CreativeContentDO::getUid, creativeContentDO.getUid());
+        update(creativeContentDO, wrapper);
+    }
+
     /**
      * 根据条件查询创作内容列表
      *
