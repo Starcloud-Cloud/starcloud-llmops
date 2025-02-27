@@ -19,7 +19,6 @@ import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseAct
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.VariableDefInterface;
 import com.starcloud.ops.business.app.enums.AppConstants;
 import com.starcloud.ops.business.app.enums.app.AppStepTypeEnum;
-import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.content.ImageContent;
 import com.starcloud.ops.business.app.util.AppUtils;
 import com.starcloud.ops.business.app.util.JsonSchemaUtils;
@@ -282,7 +281,7 @@ public class RecommendActionFactory {
      */
     public static WorkflowStepRespVO defAssembleActionStep(String defaultPrompt) {
         // 固定的 jsonSchema，不可编辑。
-        String jsonSchema = JsonSchemaUtils.generateJsonSchemaStr(CopyWritingContent.class);
+        String jsonSchema = JsonSchemaUtils.generateCopyWritingJsonSchemaStr();
         WorkflowStepRespVO step = new WorkflowStepRespVO();
         step.setName(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_NAME"));
         step.setDescription(MessageUtil.getMessage("WORKFLOW_STEP_ASSEMBLE_DESCRIPTION"));

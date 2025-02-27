@@ -3,7 +3,6 @@ package com.starcloud.ops.business.app.util;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.iocoder.yudao.framework.datapermission.core.util.DataPermissionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -15,7 +14,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.fasterxml.jackson.module.jsonSchema.types.*;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ContainerTypeSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.SimpleTypeSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
 import com.github.victools.jsonschema.generator.OptionPreset;
 import com.github.victools.jsonschema.generator.SchemaGenerator;
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
@@ -27,8 +30,10 @@ import com.starcloud.ops.business.app.api.xhs.material.FieldDefine;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryAppReqVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.library.MaterialLibraryRespVO;
 import com.starcloud.ops.business.app.controller.admin.materiallibrary.vo.tablecolumn.MaterialLibraryTableColumnRespVO;
+import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.JsonDocsDefSchema;
 import com.starcloud.ops.business.app.enums.materiallibrary.ColumnTypeEnum;
+import com.starcloud.ops.business.app.model.content.CopyWritingContent;
 import com.starcloud.ops.business.app.model.creative.CreativeOptionDTO;
 import com.starcloud.ops.business.app.service.materiallibrary.MaterialLibraryService;
 import lombok.experimental.UtilityClass;
@@ -45,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -194,6 +198,77 @@ public class JsonSchemaUtils {
         }
     }
 
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @return 生成的 JSON Schema
+     */
+    public static JsonSchema generateCopyWritingJsonSchema() {
+        try {
+
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
+            JsonSchema jsonSchema = jsonSchemaGenerator.generateSchema(CopyWritingContent.class);
+            ObjectSchema objectSchema = jsonSchema.asObjectSchema();
+            Map<String, JsonSchema> properties = objectSchema.getProperties();
+            for (Map.Entry<String, JsonSchema> entry : properties.entrySet()) {
+                if ("title".equals(entry.getKey()) || "content".equals(entry.getKey())) {
+                    StringSchema schema = entry.getValue().asStringSchema();
+                    schema.setTitle(schema.getDescription());
+                }
+                if ("tagList".equals(entry.getKey())) {
+                    ArraySchema schema = entry.getValue().asArraySchema();
+                    schema.setTitle(schema.getDescription());
+                }
+            }
+            return jsonSchema;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateSchema for " + CopyWritingContent.class.getSimpleName(), e);
+        }
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @return 生成的 JSON Schema
+     */
+    public static JsonSchema generateJsonDataDefSchema() {
+        try {
+
+            JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(OBJECT_MAPPER);
+            JsonSchema jsonSchema = jsonSchemaGenerator.generateSchema(JsonDataDefSchema.class);
+            ObjectSchema objectSchema = jsonSchema.asObjectSchema();
+            Map<String, JsonSchema> properties = objectSchema.getProperties();
+            for (Map.Entry<String, JsonSchema> entry : properties.entrySet()) {
+                if ("data".equals(entry.getKey())) {
+                    StringSchema schema = entry.getValue().asStringSchema();
+                    schema.setTitle(schema.getDescription());
+                }
+            }
+            return jsonSchema;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Could not generateSchema for " + JsonDataDefSchema.class.getSimpleName(), e);
+        }
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @return 生成的 JSON Schema
+     */
+    public static String generateCopyWritingJsonSchemaStr() {
+        return generateJsonSchemaStr(generateCopyWritingJsonSchema());
+    }
+
+    /**
+     * 根据给定的 Java 类生成对应的 JSON Schema。
+     *
+     * @return 生成的 JSON Schema
+     */
+    public static String generateJsonDataDefSchemaStr() {
+        return generateJsonSchemaStr(generateJsonDataDefSchema());
+    }
 
     /**
      * 根据给定的 Java 类生成对应的 JSON Schema。
@@ -217,7 +292,6 @@ public class JsonSchemaUtils {
             throw new RuntimeException("Could not generateJsonSchemaNode for " + clazz, e);
         }
     }
-
 
 
     /**

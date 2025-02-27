@@ -27,7 +27,6 @@ import com.starcloud.ops.business.app.controller.admin.chat.vo.ChatRequestVO;
 import com.starcloud.ops.business.app.domain.entity.config.WorkflowStepWrapper;
 import com.starcloud.ops.business.app.domain.entity.params.JsonData;
 import com.starcloud.ops.business.app.domain.entity.workflow.ActionResponse;
-import com.starcloud.ops.business.app.domain.entity.workflow.JsonDataDefSchema;
 import com.starcloud.ops.business.app.domain.entity.workflow.action.base.BaseActionHandler;
 import com.starcloud.ops.business.app.domain.entity.workflow.context.AppContext;
 import com.starcloud.ops.business.app.domain.handler.common.HandlerContext;
@@ -207,7 +206,7 @@ public class CustomActionHandler extends BaseActionHandler {
         // return super.getOutVariableJsonSchema(stepWrapper);
         // 目前是固定的，因为数据库中存入的数据，没有描述信息，先直接获取。
         // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
-        return JsonSchemaUtils.generateJsonSchema(JsonDataDefSchema.class);
+        return JsonSchemaUtils.generateJsonDataDefSchema();
     }
 
     /**

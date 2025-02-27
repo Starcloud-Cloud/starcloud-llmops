@@ -70,7 +70,7 @@ public class AssembleActionHandler extends BaseActionHandler {
     public JsonSchema getOutVariableJsonSchema(WorkflowStepWrapper stepWrapper) {
         // 因为输出变量是固定的，先直接返回，数据库中的值，没有描述信息。
         // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
-        return JsonSchemaUtils.generateJsonSchema(CopyWritingContent.class);
+        return JsonSchemaUtils.generateCopyWritingJsonSchema();
     }
 
     /**

@@ -56,7 +56,7 @@ public class WorkflowStepRespVO extends ActionRespVO {
             JsonDataVO output = Optional.ofNullable(response.getOutput()).orElse(new JsonDataVO());
             // 固定 jsonSchema,因为现在数据库中的值是固定的。更新，保证数据库中的值，均有描述信息。
             // todo 等到此处返回结果的jsonschema 可以自定义的时候，此处需要进行重新处理。
-            output.setJsonSchema("{\"type\":\"object\",\"id\":\"urn:jsonschema:com:starcloud:ops:business:app:model:content:CopyWritingContent\",\"properties\":{\"title\":{\"type\":\"string\",\"description\":\"标题\"},\"content\":{\"type\":\"string\",\"description\":\"内容\"},\"tagList\":{\"type\":\"array\",\"description\":\"标签\",\"items\":{\"type\":\"string\"}}}}");
+            output.setJsonSchema("{\"type\":\"object\",\"id\":\"urn:jsonschema:com:starcloud:ops:business:app:model:content:CopyWritingContent\",\"properties\":{\"title\":{\"type\":\"string\",\"description\":\"标题\",\"title\":\"标题\"},\"content\":{\"type\":\"string\",\"description\":\"内容\",\"title\":\"内容\"},\"tagList\":{\"type\":\"array\",\"description\":\"标签\",\"title\":\"标签\",\"items\":{\"type\":\"string\"}}}}");
             response.setOutput(output);
             flowStep.setResponse(response);
         }
