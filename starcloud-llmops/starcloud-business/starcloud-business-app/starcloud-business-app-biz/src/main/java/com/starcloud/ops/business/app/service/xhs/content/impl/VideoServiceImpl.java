@@ -223,10 +223,15 @@ public class VideoServiceImpl implements VideoService {
             }
             try {
                 VideoContent videoContent = videoContentFuture.get();
-                VideoMergeConfig.Videos video = new VideoMergeConfig.Videos();
-                video.setUrl(videoContent.getVideoUrl());
-                videos.add(video);
                 videoContentList.add(videoContent);
+                VideoMergeConfig.Videos video = new VideoMergeConfig.Videos();
+                if (Objects.equals(videoContent.getStatus(), "failed")
+                        || Objects.equals(videoContent.getStatus(), "unknown")) {
+                    allSuccess = false;
+                } else {
+                    video.setUrl(videoContent.getVideoUrl());
+                    videos.add(video);
+                }
             } catch (Exception e) {
                 log.info("get future error", e);
                 allSuccess = false;
