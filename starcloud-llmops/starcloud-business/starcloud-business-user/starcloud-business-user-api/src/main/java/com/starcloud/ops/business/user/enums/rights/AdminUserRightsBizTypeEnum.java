@@ -54,6 +54,8 @@ public enum AdminUserRightsBizTypeEnum implements IntArrayValuable {
     APP_TEST_SCENE(34, "应用测试", "应用测试，扣除 {}，{} ", false, false, 0, 0,0),
     TEMPLATE_USED(35, "模板使用", "模板使用，扣除 {}，{} ", false, false, 0, 0,0),
     TEMPLATE_CANCEL(36, "模板退还", "模板退还，新增 {}，{} ", true, false, 0, 0,0),
+    XHS_VIDEO(37, "小红书视频", "小红书视频，扣除 {}，{} ", false, false, 0, 0,0),
+
 
     //================仅限变动记录使用======Type 值上面的+50=========================================
     ADMIN_MINUS_RECORD(50, "管理员增加", "管理员修改权益，扣除 {},{} ", false, false, 0, 0,0),

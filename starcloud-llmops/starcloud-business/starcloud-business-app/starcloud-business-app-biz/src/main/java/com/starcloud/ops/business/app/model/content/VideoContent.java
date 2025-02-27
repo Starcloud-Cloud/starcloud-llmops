@@ -40,4 +40,12 @@ public class VideoContent implements Serializable {
     private String audioUrl;
 
 
+    public static VideoContent fail(String code, String imageUrl, String error) {
+        VideoContent videoContent = new VideoContent();
+        videoContent.setCode(code);
+        videoContent.setImageUrl(imageUrl);
+        videoContent.setError(error);
+        videoContent.setStatus("fail");
+        return videoContent;
+    }
 }

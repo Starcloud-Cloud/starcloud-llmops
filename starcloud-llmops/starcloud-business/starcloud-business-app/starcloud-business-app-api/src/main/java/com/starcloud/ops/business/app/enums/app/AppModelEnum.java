@@ -31,7 +31,7 @@ public enum AppModelEnum implements IEnumable<Integer> {
      */
     IMAGE(3, "生成图片", "Image"),
 
-    ;
+    VIDEO(4, "视频生成", "Video");
 
     /**
      * 应用类型Code

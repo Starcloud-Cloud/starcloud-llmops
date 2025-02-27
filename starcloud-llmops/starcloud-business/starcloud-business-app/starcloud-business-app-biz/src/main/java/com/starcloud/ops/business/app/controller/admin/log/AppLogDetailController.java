@@ -40,6 +40,13 @@ public class AppLogDetailController {
         return CommonResult.success(appLogService.getLogAppMessageDetail(query));
     }
 
+    @PostMapping("/video")
+    @DataPermission(enable = false)
+    @Operation(summary = "会话结果")
+    public CommonResult<AppLogMessageRespVO> messageDetail(@Validated @RequestBody LogAppMessagePageReqVO query) {
+        return CommonResult.success(appLogService.getLogAppMessageDetail(query));
+    }
+
     @PostMapping("/chat")
     @DataPermission(enable = false)
     @Operation(summary = "获得聊天执行日志详情")
