@@ -19,6 +19,8 @@ import com.xingyuv.jushauth.model.AuthUser;
 import com.xingyuv.jushauth.request.AuthDefaultRequest;
 import com.xingyuv.jushauth.utils.AuthChecker;
 import com.xingyuv.jushauth.utils.HttpUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,6 +30,8 @@ import static cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils.getLogi
 
 
 public class AuthCozeRequest extends AuthDefaultRequest {
+    private static final Logger log = LoggerFactory.getLogger(AuthCozeRequest.class);
+
     public AuthCozeRequest(AuthConfig config, AuthStateCache authStateCache) {
         super(config, AuthExtendSource.COZE, authStateCache);
     }
@@ -51,6 +55,7 @@ public class AuthCozeRequest extends AuthDefaultRequest {
             String response = new HttpUtils(config.getHttpConfig())
                     .post(source.refresh(), refreshTokenData(authToken.getRefreshToken()), new HttpHeader().add("Authorization", StrUtil.format("Bearer {}", config.getClientSecret())).add("Content-Type", "application/json"))
                     .getBody();
+            log.info("refresh response:{}", response);
             JSONObject object = JSONObject.parseObject(response);
             this.checkResponse(object);
             AuthToken build = AuthToken.builder()
