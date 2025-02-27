@@ -635,6 +635,7 @@ public class JsonSchemaUtils {
                 ocrSchemaProperties.remove("url");
                 ocrSchemaProperties.remove("data");
                 ocrSchema.setDescription(columnRespVO.getColumnName() + "_ext");
+                ocrSchema.setTitle(ocrSchema.getDescription());
                 properties.put(columnRespVO.getColumnCode() + "_ext", ocrSchema);
             }
         }
@@ -648,6 +649,7 @@ public class JsonSchemaUtils {
         docSchema.setTitle("上传素材");
         docSchema.setDescription("上传素材步骤。应用中可以存在一个此步骤。");
         ArraySchema arraySchema = (ArraySchema) docSchema.getProperties().get("docs");
+        arraySchema.setTitle(arraySchema.getTitle());
         // 素材自定义配置
         ObjectSchema materialSchema = (ObjectSchema) JsonSchemaUtils.expendGenerateJsonSchema(uid);
         arraySchema.setItemsSchema(materialSchema);
