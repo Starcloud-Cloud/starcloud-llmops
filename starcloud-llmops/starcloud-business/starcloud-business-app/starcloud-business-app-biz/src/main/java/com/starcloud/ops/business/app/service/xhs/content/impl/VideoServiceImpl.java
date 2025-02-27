@@ -248,8 +248,9 @@ public class VideoServiceImpl implements VideoService {
             return videoContentInfo;
         }
 
-        if (videos.size() == 1) {
-            videoContentInfo.setCompleteVideoUrl(videos.get(0).getUrl());
+        if (videoContentList.size() == 1) {
+            videoContentInfo.setCompleteVideoUrl(videoContentList.get(0).getVideoUrl());
+            videoContentInfo.setCompleteAudioUrl(videoContentList.get(0).getAudioUrl());
             videoContentInfo.setMerged(true);
             return videoContentInfo;
         }
