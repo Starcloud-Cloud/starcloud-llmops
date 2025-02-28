@@ -259,7 +259,7 @@ public class VideoServiceImpl implements VideoService {
         videoMergeConfig.setVideos(videos);
         log.info("request video merge, {}", JSONUtil.toJsonPrettyStr(videoMergeConfig));
         VideoGeneratorResponse<VideoMergeResult> merged = videoGeneratorClient.mergeVideos(videoMergeConfig);
-
+        log.info("video merged, {}", JSONUtil.toJsonPrettyStr(merged));
         if (!Objects.equals(merged.getCode(), 0)) {
             // 合并失败
             videoContentInfo.setMergeMsg(merged.getMsg());
