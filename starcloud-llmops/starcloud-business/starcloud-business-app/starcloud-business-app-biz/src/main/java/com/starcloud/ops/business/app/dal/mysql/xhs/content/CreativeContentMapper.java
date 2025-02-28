@@ -1,6 +1,7 @@
 package com.starcloud.ops.business.app.dal.mysql.xhs.content;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.iocoder.yudao.framework.datapermission.core.annotation.DataPermission;
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
 import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -38,6 +39,7 @@ public interface CreativeContentMapper extends BaseMapperX<CreativeContentDO> {
         return selectOne(wrapper);
     }
 
+    @DataPermission(enable = false)
     default void updateByUid(CreativeContentDO creativeContentDO) {
         LambdaUpdateWrapper<CreativeContentDO> wrapper = Wrappers.lambdaUpdate(CreativeContentDO.class)
                 .eq(CreativeContentDO::getUid, creativeContentDO.getUid());
