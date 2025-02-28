@@ -156,11 +156,11 @@ public class VideoServiceImpl implements VideoService {
                 videoContentInfo.setMergeMsg(e.getMessage());
                 updateVideo(reqVO.getCreativeContentUid(), contentRespVO, videoContentInfo, reqVO.getQuickConfiguration());
             } finally {
-                redissonClient.getBucket(VIDEO_RUNNING + reqVO.getCreativeContentUid()).delete();
                 if (lock.isLocked() && lock.isHeldByCurrentThread()) {
                     lock.unlock();
                 }
                 UserContextHolder.clear();
+                redissonClient.getBucket(VIDEO_RUNNING + reqVO.getCreativeContentUid()).delete();
             }
         });
     }
